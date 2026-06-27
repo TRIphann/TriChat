@@ -1,0 +1,241 @@
+class Message {
+  final String id;
+  final String conversationId;
+  final String senderId;
+  final String senderName;
+  final String senderAvatar;
+  final String type;
+  final String content;
+
+  // Media
+  final String? mediaUrl;
+  final String? thumbnailUrl;
+  final String? fileName;
+  final int? fileSize;
+  final int? duration;
+
+  /// Đường dẫn file local — chỉ dùng để hiện preview ngay khi đang upload,
+  /// không serialize lên/từ server.
+  final String? localFilePath;
+
+  // Reply
+  final String? replyToMessageId;
+  final String? replyToContent;
+  final String? replyToSenderName;
+
+  final bool isForwarded;
+
+  // Reactions
+  final Map<String, List<String>>? reactions;
+  final int totalReactions;
+
+  // Status
+  final bool isDeleted;
+  final DateTime? deletedAt;
+  final bool isEdited;
+  final DateTime? editedAt;
+
+  final Map<String, DateTime>? readBy;
+  final Map<String, DateTime>? deliveredTo;
+  final String status; // sent, delivered, read
+
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  final bool isMine;
+
+  /// ID tạm do client sinh ra khi gửi — server echo lại để khớp đúng optimistic message.
+  final String? clientTempId;
+
+  final double? latitude;
+  final double? longitude;
+  final String? address;
+  Message({
+    required this.id,
+    required this.conversationId,
+    required this.senderId,
+    required this.senderName,
+    required this.senderAvatar,
+    required this.type,
+    required this.content,
+    this.mediaUrl,
+    this.thumbnailUrl,
+    this.fileName,
+    this.fileSize,
+    this.duration,
+    this.localFilePath,
+    this.replyToMessageId,
+    this.replyToContent,
+    this.replyToSenderName,
+    this.isForwarded = false,
+    this.reactions,
+    this.totalReactions = 0,
+    this.isDeleted = false,
+    this.deletedAt,
+    this.isEdited = false,
+    this.editedAt,
+    this.readBy,
+    this.deliveredTo,
+    this.status = 'sent',
+    required this.createdAt,
+    required this.updatedAt,
+    this.isMine = false,
+    this.clientTempId,
+    this.latitude,
+    this.longitude,
+    this.address,
+  });
+
+  factory Message.fromJson(Map<String, dynamic> json) {
+    return Message(
+      id: json['id'] ?? '',
+      conversationId: json['conversationId'] ?? json['conversation_id'] ?? '',
+      senderId: json['senderId'] ?? json['sender_id'] ?? '',
+      senderName: json['senderName'] ?? json['sender_name'] ?? '',
+      senderAvatar: json['senderAvatar'] ?? json['sender_avatar'] ?? '',
+      type: json['type'] ?? 'text',
+      content: json['content'] ?? '',
+      mediaUrl: json['mediaUrl'] ?? json['media_url'],
+      thumbnailUrl: json['thumbnailUrl'] ?? json['thumbnail_url'],
+      fileName: json['fileName'] ?? json['file_name'],
+      fileSize: json['fileSize'] ?? json['file_size'],
+      duration: json['duration'],
+      replyToMessageId: json['replyToMessageId'] ?? json['reply_to_message_id'],
+      replyToContent: json['replyToContent'] ?? json['reply_to_content'],
+      replyToSenderName:
+          json['replyToSenderName'] ?? json['reply_to_sender_name'],
+      isForwarded: json['isForwarded'] ?? json['is_forwarded'] ?? false,
+      reactions: json['reactions'] != null
+          ? Map<String, List<String>>.from(
+              (json['reactions'] as Map).map(
+                (key, value) =>
+                    MapEntry(key.toString(), List<String>.from(value)),
+              ),
+            )
+          : null,
+      totalReactions: json['totalReactions'] ?? json['total_reactions'] ?? 0,
+      isDeleted: json['isDeleted'] ?? json['is_deleted'] ?? false,
+      deletedAt: (json['deletedAt'] ?? json['deleted_at']) != null
+          ? DateTime.parse(json['deletedAt'] ?? json['deleted_at'])
+          : null,
+      isEdited: json['isEdited'] ?? json['is_edited'] ?? false,
+      editedAt: (json['editedAt'] ?? json['edited_at']) != null
+          ? DateTime.parse(json['editedAt'] ?? json['edited_at'])
+          : null,
+      readBy: (json['readBy'] ?? json['read_by']) != null
+          ? Map<String, DateTime>.from(
+              ((json['readBy'] ?? json['read_by']) as Map).map(
+                (key, value) => MapEntry(key.toString(), DateTime.parse(value)),
+              ),
+            )
+          : null,
+      deliveredTo: (json['deliveredTo'] ?? json['delivered_to']) != null
+          ? Map<String, DateTime>.from(
+              ((json['deliveredTo'] ?? json['delivered_to']) as Map).map(
+                (key, value) => MapEntry(key.toString(), DateTime.parse(value)),
+              ),
+            )
+          : null,
+      status: json['status'] ?? 'sent',
+      createdAt: DateTime.parse(
+        json['createdAt'] ??
+            json['created_at'] ??
+            DateTime.now().toIso8601String(),
+      ).toLocal(),
+      updatedAt: DateTime.parse(
+        json['updatedAt'] ??
+            json['updated_at'] ??
+            DateTime.now().toIso8601String(),
+      ).toLocal(),
+      isMine: json['isMine'] ?? json['is_mine'] ?? false,
+      clientTempId: json['clientTempId'] ?? json['client_temp_id'],
+      latitude: (json['latitude'] ?? json['Latitude'])?.toDouble(),
+      longitude: (json['longitude'] ?? json['Longitude'])?.toDouble(),
+      address: json['address'] ?? json['Address'],
+    );
+  }
+
+  Message copyWith({
+    Map<String, List<String>>? reactions,
+    int? totalReactions,
+    bool? isDeleted,
+    String? content,
+    bool? isEdited,
+    String? status,
+    bool? isMine,
+  }) {
+    return Message(
+      id: id,
+      conversationId: conversationId,
+      senderId: senderId,
+      senderName: senderName,
+      senderAvatar: senderAvatar,
+      type: type,
+      content: content ?? this.content,
+      mediaUrl: mediaUrl,
+      thumbnailUrl: thumbnailUrl,
+      fileName: fileName,
+      fileSize: fileSize,
+      duration: duration,
+      localFilePath: localFilePath,
+      replyToMessageId: replyToMessageId,
+      replyToContent: replyToContent,
+      replyToSenderName: replyToSenderName,
+      isForwarded: isForwarded,
+      reactions: reactions ?? this.reactions,
+      totalReactions: totalReactions ?? this.totalReactions,
+      isDeleted: isDeleted ?? this.isDeleted,
+      deletedAt: deletedAt,
+      isEdited: isEdited ?? this.isEdited,
+      editedAt: editedAt,
+      readBy: readBy,
+      deliveredTo: deliveredTo,
+      status: status ?? this.status,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      isMine: isMine ?? this.isMine,
+      clientTempId: clientTempId,
+      latitude: latitude ?? latitude,
+      longitude: longitude ?? longitude,
+      address: address ?? address,
+    );
+  }
+
+  /// Fix isMine dựa vào currentUserId thay vì tin server
+  Message withCurrentUser(String currentUserId) =>
+      copyWith(isMine: senderId == currentUserId);
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'conversation_id': conversationId,
+      'sender_id': senderId,
+      'sender_name': senderName,
+      'sender_avatar': senderAvatar,
+      'type': type,
+      'content': content,
+      'media_url': mediaUrl,
+      'thumbnail_url': thumbnailUrl,
+      'file_name': fileName,
+      'file_size': fileSize,
+      'duration': duration,
+      'reply_to_message_id': replyToMessageId,
+      'reply_to_content': replyToContent,
+      'reply_to_sender_name': replyToSenderName,
+      'is_forwarded': isForwarded,
+      'reactions': reactions,
+      'total_reactions': totalReactions,
+      'is_deleted': isDeleted,
+      'deleted_at': deletedAt?.toIso8601String(),
+      'is_edited': isEdited,
+      'edited_at': editedAt?.toIso8601String(),
+      'status': status,
+      'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt.toIso8601String(),
+      'is_mine': isMine,
+      'latitude': latitude,
+      'longitude': longitude,
+      'address': address,
+    };
+  }
+}
