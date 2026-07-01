@@ -4,3 +4,7 @@
 
 # Firebase credentials
 backend/config/
+backend/FirebaseCredentials/
+
+# Sensitive config
+backend/appsettings.Development.json
