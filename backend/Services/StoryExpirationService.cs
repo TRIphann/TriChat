@@ -42,24 +42,32 @@ namespace backend.Services
 
         logger.LogInformation("[StoryExpiration] Scanning expired stories at {Time}", DateTime.Now);
 
-        // Retrieve stories that haven't been marked as expired but have already passed their expiration date.
+        // Retrieve story-type feeds that haven't been marked as expired yet,
+        // then filter the expiration check in memory. The composite
+        // (type, settings.is_expired, settings.expires_at) index is not
+        // guaranteed to exist on every deployment, so we rely on the
+        // single-field index that Firestore creates by default for `type`.
         var snap = await db.Collection("feeds")
             .WhereEqualTo("type", "story")
-            .WhereEqualTo("settings.is_expired", false)
-            .WhereLessThan("settings.expires_at", now)
             .GetSnapshotAsync();
 
-        if (snap.Count == 0)
+        var expired = snap.Documents
+            .Where(d => TryGetNestedBool(d, "settings.is_expired") == false
+                && TryGetNestedTimestamp(d, "settings.expires_at") is { } ts
+                && ts < now)
+            .ToList();
+
+        if (expired.Count == 0)
         {
             logger.LogInformation("[StoryExpiration] No expired stories found");
             return;
         }
 
-        logger.LogInformation("[StoryExpiration] Found {Count} expired stories, updating...", snap.Count);
+        logger.LogInformation("[StoryExpiration] Found {Count} expired stories, updating...", expired.Count);
 
         // Use batch write to update multiple documents at once (up to 500 documents per batch).
 
-        foreach (var chunk in snap.Documents.Chunk(500))
+        foreach (var chunk in expired.Chunk(500))
         {
             var batch = db.StartBatch();
 
@@ -75,7 +83,40 @@ namespace backend.Services
             logger.LogInformation("[StoryExpiration] Updated {Count} stories in batch", chunk.Length);
         }
 
-        logger.LogInformation("[StoryExpiration] Done marking {Total} expired stories", snap.Count);
+        logger.LogInformation("[StoryExpiration] Done marking {Total} expired stories", expired.Count);
+    }
+
+    private static bool? TryGetNestedBool(DocumentSnapshot doc, string path)
+    {
+        var segments = path.Split('.');
+        object current = doc.ToDictionary();
+        foreach (var seg in segments)
+        {
+            if (current is IDictionary<string, object> dict && dict.TryGetValue(seg, out var next))
+                current = next;
+            else
+                return null;
+        }
+        return current switch
+        {
+            bool b => b,
+            null => null,
+            _ => null
+        };
+    }
+
+    private static Timestamp? TryGetNestedTimestamp(DocumentSnapshot doc, string path)
+    {
+        var segments = path.Split('.');
+        object current = doc.ToDictionary();
+        foreach (var seg in segments)
+        {
+            if (current is IDictionary<string, object> dict && dict.TryGetValue(seg, out var next))
+                current = next;
+            else
+                return null;
+        }
+        return current is Timestamp t ? t : null;
     }
 }
 }

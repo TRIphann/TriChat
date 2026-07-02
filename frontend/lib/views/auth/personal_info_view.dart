@@ -177,31 +177,28 @@ class _PersonalInfoViewState extends State<PersonalInfoView> {
                 child: ElevatedButton(
                   onPressed: _isButtonEnabled
                     ? () async {
-                        SnackBar infoSnackBar = SnackBar(
-                          content: Text(
-                            "Đang đăng ký với:\nEmail: ${widget.email}\nPassword: ${widget.password}\nName: ${widget.name}\nBirth: ${_birthController.text}\nGender: ${_genderController.text}",
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                        );
-                        ScaffoldMessenger.of(context).showSnackBar(infoSnackBar);
-
                         // 1. Hiển thị Loading ngay lập tức
                         LoadingDialog.show(context);
-                        
+
                         try {
+                          // Tách họ/tên: phần đầu tiên là firstName, phần còn lại là lastName
+                          final nameParts = widget.name.trim().split(RegExp(r'\s+'));
+                          final firstName = nameParts.isNotEmpty ? nameParts.first : '';
+                          final lastName = nameParts.length > 1
+                              ? nameParts.sublist(1).join(' ')
+                              : '';
+
                           // 2. Gọi hàm register và đợi kết quả
                           await AuthService.register(
                             RegisterRequest(
                               email: widget.email.trim(),
                               password: widget.password,
-                              firstName: widget.name.split(' ').first,
-                              lastName: widget.name.split(' ').length > 1 
-                                  ? widget.name.split(' ').last 
-                                  : '',
-                              dateOfBirth: _birthController.text.isNotEmpty 
+                              firstName: firstName,
+                              lastName: lastName,
+                              dateOfBirth: _birthController.text.isNotEmpty
                                   ? DateFormat('yyyy-MM-dd').format(
                                     DateFormat('dd/MM/yyyy').parse(_birthController.text),
-                                  ) 
+                                  )
                                   : null,
                               bio: '',
                             ),
@@ -211,10 +208,10 @@ class _PersonalInfoViewState extends State<PersonalInfoView> {
                           LoadingDialog.hide(context); // Tắt loading
 
                           SuccessDialog.show(context, () {
-                            context.pushReplacement('/update-avatar');
+                            context.pushReplacement('/chat-list');
                           });
-                          
-                          
+
+
                         } catch (e) {
                           // 4. Nếu có lỗi (Firebase hoặc API backend trả về error)
                           if (!mounted) return;

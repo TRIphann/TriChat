@@ -128,10 +128,7 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black, size: 20),
-          onPressed: () async => {
-            await AuthService.deleteAccountAndData(),
-            context.pop(), 
-          }
+          onPressed: () => context.pop(),
         ),
         backgroundColor: Colors.white,
       ),

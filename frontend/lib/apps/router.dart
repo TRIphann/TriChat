@@ -47,6 +47,7 @@ GoRouter createRouter() {
       final isSetupRoute =
           location == '/otp' ||
           location == '/enter-name' ||
+          location == '/set-password' ||
           location == '/reset-password' ||
           location == '/personal-info' ||
           location == '/update-avatar';
@@ -84,6 +85,13 @@ GoRouter createRouter() {
       ),
       GoRoute(
         path: '/reset-password',
+        builder: (context, state) {
+          final email = state.extra as String?;
+          return ResetPasswordView(email: email);
+        },
+      ),
+      GoRoute(
+        path: '/set-password',
         builder: (context, state) {
           final email = state.extra as String?;
           return ResetPasswordView(email: email);

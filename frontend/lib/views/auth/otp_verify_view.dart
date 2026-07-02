@@ -213,10 +213,8 @@ class _OtpVerifyViewState extends State<OtpVerifyView> {
         actions: [
           TextButton(
             onPressed: () {
-              // Navigator.pop(context);
-              // Navigate đến trang tin nhắn sau khi xác thực thành công
-              context.push('/reset-password', extra: widget.email); // Truyền email vào trang reset-password
-              // Navigator.pushReplacementNamed(context, '/reset-password');
+              // Navigate đến trang đặt mật khẩu mới sau khi xác thực OTP thành công
+              context.pushReplacement('/set-password', extra: widget.email);
             },
             child: Text(t.get('continue_')),
           ),
