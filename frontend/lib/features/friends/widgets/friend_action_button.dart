@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/config/app_colors.dart';
 
 enum FriendActionStyle { primary, secondary, danger, ghost }
 
@@ -76,21 +77,21 @@ class FriendActionButton extends StatelessWidget {
   _BtnConfig _styleConfig() {
     switch (style) {
       case FriendActionStyle.primary:
-        return _BtnConfig(bg: const Color(0xFF0068FF), fg: Colors.white);
+        return _BtnConfig(bg: AppColors.primaryOrange, fg: Colors.white);
       case FriendActionStyle.secondary:
         return _BtnConfig(
           bg: const Color(0xFFEBF2FF),
-          fg: const Color(0xFF0068FF),
+          fg: AppColors.primaryOrange,
         );
       case FriendActionStyle.danger:
         return _BtnConfig(
           bg: const Color(0xFFFFEBEB),
-          fg: const Color(0xFFE53935),
+          fg: AppColors.accentRed,
         );
       case FriendActionStyle.ghost:
         return _BtnConfig(
           bg: Colors.transparent,
-          fg: const Color(0xFF666666),
+          fg: AppColors.textSecondary,
           border: Border.all(color: const Color(0xFFDDDDDD), width: 1),
         );
     }

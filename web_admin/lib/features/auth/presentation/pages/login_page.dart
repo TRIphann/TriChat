@@ -109,7 +109,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
                                     color: Colors.white, size: 22),
                               ),
                               const SizedBox(width: 12),
-                              Text('Zalo Lite', style: AppTextStyles.h1),
+                              Text('TriChat', style: AppTextStyles.h1),
                             ],
                           ),
                           const SizedBox(height: 36),
@@ -282,7 +282,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
                     ),
                     const SizedBox(height: 32),
                     Text(
-                      'Zalo Lite\nAdmin Dashboard',
+                      'TriChat\nAdmin Dashboard',
                       style: AppTextStyles.displayLarge.copyWith(fontSize: 36),
                     ),
                     const SizedBox(height: 16),

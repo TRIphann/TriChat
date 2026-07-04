@@ -135,7 +135,7 @@ class _SearchOverlayScreenState extends State<SearchOverlayScreen> {
       builder: (context, isDark, _) {
         final bg = AppColors.getBackground(isDark);
         final surface = AppColors.getSurface(isDark);
-        final headerBg = isDark ? const Color(0xFF1A1A1A) : AppColors.primaryBlue;
+        final headerBg = isDark ? AppColors.neutralBlack : AppColors.primaryBlue;
 
         return Scaffold(
           backgroundColor: bg,
@@ -189,7 +189,7 @@ class _SearchOverlayScreenState extends State<SearchOverlayScreen> {
                       style: const TextStyle(color: Colors.white, fontSize: 15),
                       textInputAction: TextInputAction.search,
                       decoration: const InputDecoration(
-                        hintText: 'Tìm tin nhắn, người trong Zalo',
+                        hintText: 'Tìm tin nhắn, người trong TriChat',
                         hintStyle: TextStyle(color: Colors.white70, fontSize: 15),
                         border: InputBorder.none,
                         isDense: true,
@@ -291,7 +291,7 @@ class _SearchOverlayScreenState extends State<SearchOverlayScreen> {
         Expanded(
           child: Center(
             child: Text(
-              'Tìm kiếm người trong danh bạ Zalo',
+              'Tìm kiếm người trong danh bạ TriChat',
               style: TextStyle(
                 color: AppColors.getTextSecondary(isDark),
                 fontSize: 14,
@@ -305,7 +305,7 @@ class _SearchOverlayScreenState extends State<SearchOverlayScreen> {
 
   Widget _buildSearchResults(bool isDark) {
     if (_isLoading) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -406,7 +406,7 @@ class _RecentContactChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final name = contact['name'] ?? '';
-    final avatarColor = contact['avatarColor'] ?? const Color(0xFF4CAF50);
+    final avatarColor = contact['avatarColor'] ?? AppColors.success;
     final avatar = contact['avatar'];
 
     return GestureDetector(
@@ -528,8 +528,8 @@ class _SearchResultTile extends StatelessWidget {
               Container(
                 width: 10,
                 height: 10,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF4CAF50),
+                decoration: BoxDecoration(
+                  color: AppColors.success,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -550,14 +550,14 @@ class _SearchResultTile extends StatelessWidget {
 
   Color _avatarColor(String name) {
     final colors = [
-      const Color(0xFF4CAF50),
-      const Color(0xFF2196F3),
-      const Color(0xFFFF9800),
-      const Color(0xFF9C27B0),
-      const Color(0xFFE91E63),
-      const Color(0xFF00BCD4),
-      const Color(0xFF795548),
-      const Color(0xFF607D8B),
+      AppColors.success,
+      AppColors.primaryOrange,
+      AppColors.primaryOrangeLight,
+      AppColors.accentBrown,
+      AppColors.accentRed,
+      AppColors.accentBrown,
+      AppColors.accentBrown,
+      AppColors.neutralGray700,
     ];
     if (name.isEmpty) return colors[0];
     return colors[name.codeUnitAt(0) % colors.length];

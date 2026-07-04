@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:frontend/config/app_colors.dart';
 
 class SuccessDialog extends StatefulWidget {
   final VoidCallback onRedirect;
@@ -54,9 +55,9 @@ class _SuccessDialogState extends State<SuccessDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
+              Icon(
                 Icons.check_circle,
-                color: Color(0xFF66BB6A), // Màu xanh lá nhẹ chuẩn Zalo
+                color: AppColors.success, // Màu xanh lá nhẹ chuẩn Zalo
                 size: 40,
               ),
               const SizedBox(height: 16),

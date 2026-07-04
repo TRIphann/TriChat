@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/config/app_colors.dart';
 
 /// Avatar tròn có badge online, dùng chung khắp màn hình bạn bè.
 class FriendAvatar extends StatelessWidget {
@@ -47,8 +48,8 @@ class FriendAvatar extends StatelessWidget {
               height: radius * 0.55,
               decoration: BoxDecoration(
                 color: isOnline!
-                    ? const Color(0xFF4CAF50)
-                    : const Color(0xFF9E9E9E),
+                    ? AppColors.success
+                    : AppColors.neutralGray500,
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white, width: 1.5),
               ),
@@ -68,16 +69,16 @@ class FriendAvatar extends StatelessWidget {
 
   Color _colorFromName(String n) {
     const colors = [
-      Color(0xFF4CAF50),
-      Color(0xFF2196F3),
-      Color(0xFFE91E63),
-      Color(0xFF9C27B0),
-      Color(0xFFFF9800),
-      Color(0xFF00BCD4),
-      Color(0xFF795548),
-      Color(0xFF607D8B),
+      AppColors.success,
+      AppColors.primaryOrange,
+      AppColors.accentRed,
+      AppColors.accentBrown,
+      AppColors.primaryOrangeLight,
+      AppColors.accentBrown,
+      AppColors.accentBrown,
+      AppColors.neutralGray700,
       Color(0xFFFF5722),
-      Color(0xFF3F51B5),
+      AppColors.primaryOrange,
     ];
     return colors[n.codeUnitAt(0) % colors.length];
   }

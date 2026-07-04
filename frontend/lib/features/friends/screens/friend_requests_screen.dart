@@ -50,8 +50,8 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
                 SnackBar(
                   content: Text(msg),
                   backgroundColor: isSuccess
-                      ? const Color(0xFF4CAF50)
-                      : const Color(0xFF0068FF),
+                      ? AppColors.success
+                      : AppColors.primaryOrange,
                   behavior: SnackBarBehavior.floating,
                   duration: const Duration(seconds: 4),
                   shape: RoundedRectangleBorder(
@@ -76,7 +76,7 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
     bool isDark,
     FriendProvider provider,
   ) {
-    final headerBg = isDark ? const Color(0xFF1A1A1A) : AppColors.primaryBlue;
+    final headerBg = isDark ? AppColors.neutralBlack : AppColors.primaryBlue;
 
     return Scaffold(
       backgroundColor: AppColors.getBackground(isDark),
@@ -128,7 +128,7 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE53935),
+                            color: AppColors.accentRed,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
@@ -191,7 +191,7 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
   // ── TAB: ĐÃ NHẬN ─────────────────────────────────────────────
   Widget _buildReceivedTab(bool isDark, FriendProvider provider) {
     if (provider.requestsState == LoadingState.loading) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(color: AppColors.primaryBlue),
       );
     }
@@ -351,7 +351,7 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
   // ── TAB: ĐÃ GỬI ──────────────────────────────────────────────
   Widget _buildSentTab(bool isDark, FriendProvider provider) {
     if (provider.requestsState == LoadingState.loading) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(color: AppColors.primaryBlue),
       );
     }

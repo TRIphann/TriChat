@@ -6,6 +6,7 @@ import '../../../models/call_model.dart';
 import '../../../providers/call_provider.dart';
 import '../../../providers/chat_provider.dart';
 import 'call_screen.dart';
+import 'package:frontend/config/app_colors.dart';
 
 class IncomingCallScreen extends StatefulWidget {
   final CallModel call;
@@ -96,7 +97,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
     final call = widget.call;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A2E),
+      backgroundColor: AppColors.darkBackground,
       body: SafeArea(
         child: Column(
           children: [

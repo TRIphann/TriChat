@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Zalo Lite is a Zalo-like chat application with 1-1 and group messaging, built with an ASP.NET Core 8 backend and a Flutter frontend. Real-time communication uses SignalR; data is stored in Firestore; media uploads go through Cloudinary; and Redis is used for caching. A separate `web_admin/` Flutter Web app provides an admin dashboard that reads/writes Firestore directly (no backend API involved). A small `functions/` Node.js Firebase Cloud Function dispatches FCM push notifications when the admin dashboard creates a notification document.
+TriChat is a Zalo-like chat application with 1-1 and group messaging, built with an ASP.NET Core 8 backend and a Flutter frontend. Real-time communication uses SignalR; data is stored in Firestore; media uploads go through Cloudinary; and Redis is used for caching. A separate `web_admin/` Flutter Web app provides an admin dashboard that reads/writes Firestore directly (no backend API involved). A small `functions/` Node.js Firebase Cloud Function dispatches FCM push notifications when the admin dashboard creates a notification document.
+
+**Brand:** The app's visual identity uses a warm palette — black, orange, red, white and brown — defined centrally in `frontend/lib/config/app_colors.dart`. To re-theme the app, edit the constants in that file (`primaryOrange`, `accentRed`, `accentBrown`, `neutralBlack`, `neutralWhite`, etc.). All UI files import colors from there, so a single edit propagates everywhere.
 
 ## Commands
 

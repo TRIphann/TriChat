@@ -168,14 +168,14 @@ class _FeedbackFlowModalState extends State<FeedbackFlowModal> {
         Container(
           width: 80, height: 80,
           decoration: const BoxDecoration(color: Color(0xFFE8F2FF), shape: BoxShape.circle),
-          child: const Center(
+          child: Center(
             child: Icon(Icons.star_rounded, color: AppColors.primaryBlue, size: 44),
           ),
         ),
         const SizedBox(height: 20),
-        const Text(
+        Text(
           'Đánh giá phản hồi',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A1A1A)),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.neutralBlack),
         ),
         const SizedBox(height: 8),
         const Text(
@@ -220,7 +220,7 @@ class _FeedbackFlowModalState extends State<FeedbackFlowModal> {
         const SizedBox(height: 16),
         GestureDetector(
           onTap: () => Navigator.of(context).pop(),
-          child: const Text('Bỏ qua', style: TextStyle(color: AppColors.primaryBlue, fontSize: 15, fontWeight: FontWeight.w500)),
+          child: Text('Bỏ qua', style: TextStyle(color: AppColors.primaryBlue, fontSize: 15, fontWeight: FontWeight.w500)),
         ),
       ],
     );
@@ -242,9 +242,9 @@ class _FeedbackFlowModalState extends State<FeedbackFlowModal> {
               icon: const Icon(Icons.close, color: Colors.black87),
               onPressed: () => Navigator.of(context).pop(),
             ),
-            const Text(
+            Text(
               'Đánh giá phản hồi',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A1A1A)),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.neutralBlack),
             ),
             IconButton(
               icon: const Icon(Icons.more_vert, color: Colors.black87),
@@ -260,7 +260,7 @@ class _FeedbackFlowModalState extends State<FeedbackFlowModal> {
           child: Container(
             width: 70, height: 70,
             decoration: const BoxDecoration(color: Color(0xFFE8F2FF), shape: BoxShape.circle),
-            child: const Center(
+            child: Center(
               child: Icon(Icons.chat_bubble_rounded, color: AppColors.primaryBlue, size: 32),
             ),
           ),
@@ -274,7 +274,7 @@ class _FeedbackFlowModalState extends State<FeedbackFlowModal> {
         const SizedBox(height: 24),
 
         // Trường: Tiêu đề đánh giá
-        const Text('Tiêu đề đánh giá', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1A1A1A))),
+        Text('Tiêu đề đánh giá', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.neutralBlack)),
         const SizedBox(height: 8),
         TextField(
           controller: _titleController,
@@ -307,7 +307,7 @@ class _FeedbackFlowModalState extends State<FeedbackFlowModal> {
         const SizedBox(height: 20),
 
         // Trường: Mô tả chi tiết
-        const Text('Mô tả chi tiết', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1A1A1A))),
+        Text('Mô tả chi tiết', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.neutralBlack)),
         const SizedBox(height: 8),
         TextField(
           controller: _descriptionController,
@@ -390,9 +390,9 @@ class _FeedbackFlowModalState extends State<FeedbackFlowModal> {
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
-        const Text(
+        Text(
           'Feedback Details',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A1A1A)),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.neutralBlack),
         ),
         const SizedBox(height: 32),
 
@@ -416,13 +416,13 @@ class _FeedbackFlowModalState extends State<FeedbackFlowModal> {
         ),
         const SizedBox(height: 24),
 
-        const Text(
+        Text(
           'Gửi đánh giá thành công',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A1A1A)),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.neutralBlack),
         ),
         const SizedBox(height: 8),
         const Text(
-          'Cảm ơn bạn đã đóng góp ý kiến để ZaloLite\nngày càng hoàn thiện hơn.',
+          'Cảm ơn bạn đã đóng góp ý kiến để TriChat\nngày càng hoàn thiện hơn.',
           style: TextStyle(fontSize: 13, color: Color(0xFF7A7A7A), height: 1.4),
           textAlign: TextAlign.center,
         ),
@@ -437,10 +437,10 @@ class _FeedbackFlowModalState extends State<FeedbackFlowModal> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(color: const Color(0xFFE8F2FF), borderRadius: BorderRadius.circular(8)),
-                child: const Icon(Icons.volunteer_activism, color: AppColors.primaryBlue, size: 20),
+                child: Icon(Icons.volunteer_activism, color: AppColors.primaryBlue, size: 20),
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

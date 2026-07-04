@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:frontend/config/app_colors.dart';
 
 class AudioMessagePlayer extends StatefulWidget {
   final String audioUrl;
@@ -146,9 +147,9 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
   @override
   Widget build(BuildContext context) {
     final bool isPlaying = _playerState == PlayerState.playing;
-    final Color primaryColor = widget.isMine ? Colors.white : const Color(0xFF0068FF);
+    final Color primaryColor = widget.isMine ? Colors.white : AppColors.primaryOrange;
     final Color secondaryColor = widget.isMine ? Colors.white70 : Colors.black87;
-    final Color sliderActiveColor = widget.isMine ? Colors.white : const Color(0xFF0068FF);
+    final Color sliderActiveColor = widget.isMine ? Colors.white : AppColors.primaryOrange;
     final Color sliderInactiveColor = widget.isMine ? Colors.white30 : Colors.grey.shade300;
 
     double maxDurationMs = _duration.inMilliseconds.toDouble();

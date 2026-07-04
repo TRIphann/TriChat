@@ -323,7 +323,7 @@ class _OtpVerifyViewState extends State<OtpVerifyView> {
       elevation: 0,
       leading: IconButton(
         onPressed: _onBackPressed,
-        icon: const Icon(Icons.arrow_back_outlined,
+        icon: Icon(Icons.arrow_back_outlined,
             size: 20, color: AppColors.textPrimary),
       ),
     );
@@ -339,7 +339,7 @@ class _OtpVerifyViewState extends State<OtpVerifyView> {
           child: Text(
             t.get('otpTitle'),
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
@@ -352,7 +352,7 @@ class _OtpVerifyViewState extends State<OtpVerifyView> {
           child: RichText(
             textAlign: TextAlign.center,
             text: TextSpan(
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 color: AppColors.textSecondary,
                 height: 1.5,
@@ -361,7 +361,7 @@ class _OtpVerifyViewState extends State<OtpVerifyView> {
                 TextSpan(text: t.get('otpDesc')),
                 TextSpan(
                   text: ' ${widget.email}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
                   ),
@@ -402,11 +402,11 @@ class _OtpVerifyViewState extends State<OtpVerifyView> {
                 contentPadding: const EdgeInsets.symmetric(vertical: 12),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8), // Bo góc nhẹ lại cho thanh thoát
-                  borderSide: const BorderSide(color: AppColors.borderGray),
+                  borderSide: BorderSide(color: AppColors.borderGray),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: AppColors.primaryBlue, width: 2),
+                  borderSide: BorderSide(color: AppColors.primaryBlue, width: 2),
                 ),
               ),
             ),
@@ -473,7 +473,7 @@ class _OtpVerifyViewState extends State<OtpVerifyView> {
       children: [
         Text(
           t.get('otpNotReceived'),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             color: AppColors.textSecondary,
           ),

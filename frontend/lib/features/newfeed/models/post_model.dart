@@ -10,6 +10,7 @@ class PostModel {
   final DateTime createdAt;
   final int likeCount;
   final int commentCount;
+  final int shareCount;
   final bool isLiked;
   final bool isOwner;
 
@@ -25,6 +26,7 @@ class PostModel {
     required this.createdAt,
     this.likeCount = 0,
     this.commentCount = 0,
+    this.shareCount = 0,
     this.isLiked = false,
     this.isOwner = false,
   });
@@ -56,6 +58,7 @@ class PostModel {
           : DateTime.now(),
       likeCount: (stats?['like_count'] ?? stats?['likeCount'] ?? stats?['LikeCount']) ?? 0,
       commentCount: (stats?['comment_count'] ?? stats?['commentCount'] ?? stats?['comments_count'] ?? stats?['commentsCount']) ?? 0,
+      shareCount: (stats?['share_count'] ?? stats?['shareCount'] ?? stats?['ShareCount']) ?? 0,
       isLiked: (stats?['is_liked'] ?? stats?['isLiked'] ?? stats?['IsLiked']) ?? false,
       isOwner: (json['is_owner'] ?? json['isOwner'] ?? json['IsOwner']) ?? false,
     );
@@ -74,6 +77,7 @@ class PostModel {
       'createdAt': createdAt.toIso8601String(),
       'likeCount': likeCount,
       'commentCount': commentCount,
+      'shareCount': shareCount,
       'isLiked': isLiked,
       'isOwner': isOwner,
     };
@@ -91,6 +95,7 @@ class PostModel {
     DateTime? createdAt,
     int? likeCount,
     int? commentCount,
+    int? shareCount,
     bool? isLiked,
     bool? isOwner,
   }) {
@@ -106,6 +111,7 @@ class PostModel {
       createdAt: createdAt ?? this.createdAt,
       likeCount: likeCount ?? this.likeCount,
       commentCount: commentCount ?? this.commentCount,
+      shareCount: shareCount ?? this.shareCount,
       isLiked: isLiked ?? this.isLiked,
       isOwner: isOwner ?? this.isOwner,
     );

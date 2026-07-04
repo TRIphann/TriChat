@@ -214,7 +214,7 @@ class _FriendBirthdayScreenState extends State<FriendBirthdayScreen> {
                 width: double.infinity,
                 color: isToday
                     ? const Color(0xFFE5F0FF)
-                    : const Color(0xFFF5F5F5),
+                    : AppColors.neutralGray100,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 8,
@@ -270,7 +270,7 @@ class _FriendBirthdayScreenState extends State<FriendBirthdayScreen> {
       backgroundColor: Colors.white,
       appBar: _buildAppBar(),
       body: isLoading
-          ? const Center(
+          ? Center(
               child: CircularProgressIndicator(color: AppColors.primaryBlue),
             )
           : (isCalendarView ? _buildCalendarView() : _buildListView()),

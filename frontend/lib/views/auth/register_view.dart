@@ -123,7 +123,7 @@ class _RegisterViewState extends State<RegisterView>
         case 0:
         case 1:
           _passwordStrengthLabel = 'Yếu';
-          _passwordStrengthColor = const Color(0xFFE53935);
+          _passwordStrengthColor = AppColors.accentRed;
           break;
         case 2:
           _passwordStrengthLabel = 'Trung bình';
@@ -154,11 +154,11 @@ class _RegisterViewState extends State<RegisterView>
       confirmText: 'Xác nhận',
       cancelText: 'Hủy',
       builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(
-          colorScheme: const ColorScheme.light(
-            primary: AppColors.primaryBlue,
+          data: Theme.of(context).copyWith(
+          colorScheme: ColorScheme.light(
+            primary: AppColors.primaryOrange,
             onPrimary: Colors.white,
-            onSurface: AppColors.textPrimary,
+            onSurface: AppColors.neutralGray900,
           ),
         ),
         child: child!,
@@ -282,7 +282,7 @@ class _RegisterViewState extends State<RegisterView>
                 ),
               ),
               const SizedBox(height: 20),
-              const Text(
+              Text(
                 'Đăng ký thành công!',
                 style: TextStyle(
                   fontSize: 18,
@@ -291,7 +291,7 @@ class _RegisterViewState extends State<RegisterView>
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Tài khoản của bạn đã được tạo. Hãy đăng nhập để tiếp tục.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -406,7 +406,7 @@ class _RegisterViewState extends State<RegisterView>
         children: [
           IconButton(
             onPressed: () => context.go('/login'),
-            icon: const Icon(
+            icon: Icon(
               Icons.arrow_back_ios_new_rounded,
               size: 20,
               color: AppColors.textPrimary,
@@ -438,8 +438,8 @@ class _RegisterViewState extends State<RegisterView>
                       ),
                     ),
                     const SizedBox(width: 10),
-                    const Text(
-                      'Zalo Lite',
+                    Text(
+                      'TriChat',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
@@ -461,7 +461,7 @@ class _RegisterViewState extends State<RegisterView>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Tạo tài khoản',
           style: TextStyle(
             fontSize: 26,
@@ -683,9 +683,9 @@ class _RegisterViewState extends State<RegisterView>
       ),
       child: Row(
         children: [
-          const Icon(
+          Icon(
             Icons.error_outline_rounded,
-            color: Color(0xFFE53935),
+            color: AppColors.accentRed,
             size: 18,
           ),
           const SizedBox(width: 10),
@@ -753,13 +753,13 @@ class _RegisterViewState extends State<RegisterView>
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text(
+        Text(
           'Đã có tài khoản? ',
           style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
         ),
         GestureDetector(
           onTap: () => context.go('/login'),
-          child: const Text(
+          child: Text(
             'Đăng nhập',
             style: TextStyle(
               fontSize: 14,
@@ -813,8 +813,8 @@ class _RegisterViewState extends State<RegisterView>
     return InputDecoration(
       labelText: label,
       hintText: hint,
-      hintStyle: const TextStyle(color: AppColors.textHint, fontSize: 14),
-      labelStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+      hintStyle: TextStyle(color: AppColors.textHint, fontSize: 14),
+      labelStyle: TextStyle(color: AppColors.textSecondary, fontSize: 14),
       prefixIcon: prefixIcon != null
           ? Icon(prefixIcon, color: AppColors.textHint, size: 20)
           : null,
@@ -830,21 +830,21 @@ class _RegisterViewState extends State<RegisterView>
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.borderGray, width: 1),
+        borderSide: BorderSide(color: AppColors.borderGray, width: 1),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.primaryBlue, width: 1.5),
+        borderSide: BorderSide(color: AppColors.primaryBlue, width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Color(0xFFE53935), width: 1),
+        borderSide: BorderSide(color: AppColors.accentRed, width: 1),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Color(0xFFE53935), width: 1.5),
+        borderSide: BorderSide(color: AppColors.accentRed, width: 1.5),
       ),
-      errorStyle: const TextStyle(fontSize: 12, color: Color(0xFFE53935)),
+      errorStyle: TextStyle(fontSize: 12, color: AppColors.accentRed),
     );
   }
 }

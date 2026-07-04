@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:frontend/apps/app_locale.dart';
 import 'package:frontend/apps/router.dart';
+import 'package:frontend/config/tri_chat_logo.dart';
 import 'package:frontend/features/friends/friends.dart';
 import 'package:frontend/features/newfeed/providers/feed_provider.dart';
 import 'package:frontend/features/newfeed/providers/story_provider.dart';
@@ -58,13 +59,13 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ProfileProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
       ],
-      child: const MyApp(),
+      child: const TriChatApp(),
     ),
   );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class TriChatApp extends StatelessWidget {
+  const TriChatApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +74,7 @@ class MyApp extends StatelessWidget {
       valueListenable: localeNotifier,
       builder: (context, locale, _) {
         return MaterialApp.router(
-          title: 'Zalo Lite',
+          title: 'TriChat',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
           routerConfig: router,
@@ -83,3 +84,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+// Backward compat alias — một số nơi có thể tham chiếu MyApp
+// ignore: camel_case_types
+typedef MyApp = TriChatApp;

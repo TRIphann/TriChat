@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/features/friends/friends.dart';
 import 'package:provider/provider.dart';
+import 'package:frontend/config/app_colors.dart';
 
 enum RelationStatus {
   none,
@@ -19,7 +20,7 @@ class UserProfileScreen extends StatefulWidget {
 }
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
-  static const Color primaryColor = Color(0xFF0068FF);
+  static const Color primaryColor = AppColors.primaryOrange;
   static const Color lightBlue = Color(0xFFE5EFFF);
   static const Color backgroundColor = Color(0xFFF1F2F4);
   static const Color greyText = Color(0xFF767E89);

@@ -1,10 +1,10 @@
-# 💬 Zalo Lite — Messaging Application
+# 💬 TriChat — Messaging Application
 
 ---
 
 ## 📝 Project Description
 
-**Zalo Lite** is a real-time messaging application inspired by Zalo, built with a Client-Server architecture. The project consists of 4 main components:
+**TriChat** is a real-time messaging application inspired by Zalo, built with a Client-Server architecture. The project consists of 4 main components:
 
 | Component      | Description                         | Technology                   |
 | -------------- | ----------------------------------- | ---------------------------- |

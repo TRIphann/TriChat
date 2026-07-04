@@ -8,3 +8,9 @@ backend/FirebaseCredentials/
 
 # Sensitive config
 backend/appsettings.Development.json
+
+# Build/analyze output
+frontend/analyze_output.txt
+frontend/tools/replace_neutral_colors.dart
+frontend/tools/replace_grey_colors.dart
+frontend/tools/add_import.js

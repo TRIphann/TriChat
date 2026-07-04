@@ -263,7 +263,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen>
 
       if (result != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('Đăng tin thành công!'),
             backgroundColor: AppColors.primaryBlue,
             duration: Duration(seconds: 2),

@@ -7,7 +7,7 @@ import 'core/theme/app_theme.dart';
 import 'firebase_options.dart';
 
 // ============================================================
-// MAIN - Zalo Lite Admin Dashboard
+// MAIN - TriChat Admin Dashboard
 // ============================================================
 
 void main() async {
@@ -18,20 +18,20 @@ void main() async {
   );
   runApp(
     const ProviderScope(
-      child: ZaloAdminApp(),
+      child: TriChatAdminApp(),
     ),
   );
 }
 
-class ZaloAdminApp extends ConsumerWidget {
-  const ZaloAdminApp({super.key});
+class TriChatAdminApp extends ConsumerWidget {
+  const TriChatAdminApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(
-      title: 'Zalo Lite Admin',
+      title: 'TriChat Admin',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.dark,
       routerConfig: router,

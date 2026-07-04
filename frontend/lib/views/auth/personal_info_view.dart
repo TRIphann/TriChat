@@ -59,7 +59,7 @@ class _PersonalInfoViewState extends State<PersonalInfoView> {
                   },
                 ),
               ),
-              const Text("Bạn cần đủ 14 tuổi để sử dụng Zalo", 
+              const Text("Bạn cần đủ 14 tuổi để sử dụng TriChat", 
                 style: TextStyle(color: Colors.grey, fontSize: 13)),
               Padding(
                 padding: const EdgeInsets.all(16.0),

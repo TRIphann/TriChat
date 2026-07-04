@@ -7,6 +7,7 @@ import '../../models/chat/message.dart';
 import '../../providers/chat_provider.dart';
 import 'fullscreen_image_viewer.dart';
 import 'audio_message_player.dart';
+import 'package:frontend/config/app_colors.dart';
 
 class MessageBubble extends StatelessWidget {
   final Message message;
@@ -54,7 +55,7 @@ class MessageBubble extends StatelessWidget {
     this.onRetry,
   });
 
-  static const _zaloBlue = Color(0xFF0068FF);
+  static const _zaloBlue = AppColors.primaryOrange;
   static const _receivedBg = Color(0xFFFFFFFF);
   static const _receivedBorder = Color(0xFFE5E5E5);
 
@@ -96,9 +97,9 @@ class MessageBubble extends StatelessWidget {
                         padding: const EdgeInsets.only(left: 4, bottom: 3),
                         child: Text(
                           message.senderName,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
-                            color: Color(0xFF666666),
+                            color: AppColors.textSecondary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -273,7 +274,7 @@ class MessageBubble extends StatelessWidget {
         message.content,
         style: TextStyle(
           fontSize: 14.5,
-          color: message.isMine ? Colors.white : const Color(0xFF1A1A1A),
+          color: message.isMine ? Colors.white : AppColors.neutralBlack,
           height: 1.35,
         ),
       ),
@@ -527,7 +528,7 @@ class MessageBubble extends StatelessWidget {
       textColor = Colors.white;
     } else {
       iconColor = isMissed ? Colors.red.shade400 : _zaloBlue;
-      textColor = isMissed ? Colors.red.shade400 : const Color(0xFF1A1A1A);
+      textColor = isMissed ? Colors.red.shade400 : AppColors.neutralBlack;
     }
 
     return Padding(
@@ -624,16 +625,16 @@ class MessageBubble extends StatelessWidget {
         children: [
           Text(
             DateFormat('HH:mm').format(message.createdAt),
-            style: const TextStyle(fontSize: 10, color: Color(0xFFAAAAAA)),
+            style: TextStyle(fontSize: 10, color: AppColors.textHint),
           ),
           if (message.isMine) ...[const SizedBox(width: 3), _buildStatusIcon()],
           if (message.isEdited) ...[
             const SizedBox(width: 4),
-            const Text(
+            Text(
               '• đã sửa',
               style: TextStyle(
                 fontSize: 10,
-                color: Color(0xFFAAAAAA),
+                color: AppColors.textHint,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -742,7 +743,7 @@ class MessageBubble extends StatelessWidget {
                       height: 46,
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Color(0xFFF5F5F5),
+                        color: AppColors.neutralGray100,
                       ),
                       child: Center(
                         child: Text(e, style: const TextStyle(fontSize: 24)),
@@ -806,7 +807,7 @@ class MessageBubble extends StatelessWidget {
     VoidCallback onTap, {
     Color? color,
   }) {
-    final c = color ?? const Color(0xFF333333);
+    final c = color ?? AppColors.neutralBlack;
     return InkWell(
       onTap: onTap,
       child: Padding(

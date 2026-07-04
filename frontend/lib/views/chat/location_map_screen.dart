@@ -4,6 +4,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map/flutter_map.dart' show InteractiveFlag;
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:frontend/config/app_colors.dart';
 
 class LocationMapScreen extends StatefulWidget {
   final double latitude;
@@ -86,7 +87,7 @@ class _LocationMapScreenState extends State<LocationMapScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0068FF),
+        backgroundColor: AppColors.primaryOrange,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -234,10 +235,10 @@ class _LocationMapScreenState extends State<LocationMapScreen> {
                     children: [
                       Text(
                         widget.senderName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF1A1A1A),
+                          color: AppColors.neutralBlack,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -245,9 +246,9 @@ class _LocationMapScreenState extends State<LocationMapScreen> {
                       const SizedBox(height: 2),
                       Text(
                         displayText,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: Color(0xFF65676B),
+                          color: AppColors.neutralGray700,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -265,7 +266,7 @@ class _LocationMapScreenState extends State<LocationMapScreen> {
                     icon: const Icon(Icons.directions, size: 16),
                     label: const Text('Chỉ đường'),
                     style: TextButton.styleFrom(
-                      backgroundColor: const Color(0xFF0068FF),
+                      backgroundColor: AppColors.primaryOrange,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       shape: RoundedRectangleBorder(
@@ -303,7 +304,7 @@ class _LocationMapScreenState extends State<LocationMapScreen> {
             ),
           ],
         ),
-        child: Icon(icon, size: 22, color: const Color(0xFF333333)),
+        child: Icon(icon, size: 22, color: AppColors.neutralBlack),
       ),
     );
   }
@@ -325,7 +326,7 @@ class _LocationMapScreenState extends State<LocationMapScreen> {
             ),
           ],
         ),
-        child: Icon(icon, size: 20, color: const Color(0xFF0068FF)),
+        child: Icon(icon, size: 20, color: AppColors.primaryOrange),
       ),
     );
   }

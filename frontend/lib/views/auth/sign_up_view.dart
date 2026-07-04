@@ -374,7 +374,7 @@ class _SignUpViewState extends State<SignUpView> with SingleTickerProviderStateM
       elevation: 0,
       leading: IconButton(
         onPressed: _onBackPressed,
-        icon: const Icon(Icons.arrow_back_outlined, size: 20, color: AppColors.textPrimary),
+        icon: Icon(Icons.arrow_back_outlined, size: 20, color: AppColors.textPrimary),
       ),
     );
   }
@@ -383,7 +383,7 @@ class _SignUpViewState extends State<SignUpView> with SingleTickerProviderStateM
     return Text(
       t.get('enterEmail'),
       textAlign: TextAlign.center,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
@@ -422,7 +422,7 @@ class _SignUpViewState extends State<SignUpView> with SingleTickerProviderStateM
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF0068FF), width: 1.5),
+          borderSide: BorderSide(color: AppColors.primaryOrange, width: 1.5),
         ),
         errorStyle: const TextStyle(color: Colors.red, fontSize: 12),
         errorBorder: OutlineInputBorder(
@@ -458,7 +458,7 @@ class _SignUpViewState extends State<SignUpView> with SingleTickerProviderStateM
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -467,7 +467,7 @@ class _SignUpViewState extends State<SignUpView> with SingleTickerProviderStateM
                 if (link.isNotEmpty)
                   Text(
                     " $link",
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.textBlue,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -512,11 +512,11 @@ class _SignUpViewState extends State<SignUpView> with SingleTickerProviderStateM
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(t.get('noAccount'), style: const TextStyle(color: AppColors.textPrimary)),
+          Text(t.get('noAccount'), style: TextStyle(color: AppColors.textPrimary)),
           const SizedBox(width: 4),
           Text(
             t.get('loginNow'),
-            style: const TextStyle(color: AppColors.textBlue, fontWeight: FontWeight.w600),
+            style: TextStyle(color: AppColors.textBlue, fontWeight: FontWeight.w600),
           ),
         ],
       ),

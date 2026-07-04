@@ -65,7 +65,7 @@ class _EnterNameViewState extends State<EnterNameView> {
           children: [
             const Center(
               child: Text(
-                "Nhập tên Zalo",
+                "Nhập tên TriChat",
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),
@@ -114,7 +114,7 @@ class _EnterNameViewState extends State<EnterNameView> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(
+                  borderSide: BorderSide(
                     color: AppColors.primaryBlue,
                     width: 1.5,
                   ),
@@ -127,7 +127,7 @@ class _EnterNameViewState extends State<EnterNameView> {
             _buildConditionItem("Dài từ 2 đến 40 ký tự", _isLongEnough),
             _buildConditionItem("Không chứa số", _hasNoNumbers),
             _buildConditionItem(
-              "Tuân thủ các quy định đặt tên Zalo",
+              "Tuân thủ các quy định đặt tên TriChat",
               true,
               isLink: true,
             ),
@@ -198,10 +198,10 @@ class _EnterNameViewState extends State<EnterNameView> {
               text: TextSpan(
                 style: const TextStyle(fontSize: 14, color: Colors.grey),
                 children: [
-                  TextSpan(text: text.replaceAll("quy định đặt tên Zalo", "")),
+                  TextSpan(text: text.replaceAll("quy định đặt tên TriChat", "")),
                   if (isLink)
                     const TextSpan(
-                      text: "quy định đặt tên Zalo",
+                      text: "quy định đặt tên TriChat",
                       style: TextStyle(
                         color: Colors.blue,
                         fontWeight: FontWeight.w500,

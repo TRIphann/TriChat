@@ -131,7 +131,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
     return Container(
       width: 200,
       padding: const EdgeInsets.symmetric(vertical: 8),
-      color: isDark ? const Color(0xFF1A1A1A) : null,
+      color: isDark ? AppColors.neutralBlack : null,
       child: Column(
         children: [
           ...List.generate(_menuItems.length, (index) {
@@ -344,7 +344,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                       child: Container(
                         width: 10,
                         height: 10,
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: AppColors.primaryBlue,
                           shape: BoxShape.circle,
                         ),

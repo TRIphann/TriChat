@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/config/app_colors.dart';
 
 class TypingIndicator extends StatefulWidget {
   const TypingIndicator({super.key});
@@ -94,8 +95,8 @@ class _Dot extends StatelessWidget {
           child: Container(
             width: 7,
             height: 7,
-            decoration: const BoxDecoration(
-              color: Color(0xFF999999),
+            decoration: BoxDecoration(
+              color: AppColors.textHint,
               shape: BoxShape.circle,
             ),
           ),
