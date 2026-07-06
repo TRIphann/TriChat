@@ -83,12 +83,12 @@ else
     "ApiKey": "${Groq__ApiKey:-}",
     "Model":  "${Groq__Model:-llama-3.1-8b-instant}"
   },
-  "Smtp": {
-    "Host":     "${Smtp__Host:-smtp.gmail.com}",
-    "Port":     "${Smtp__Port:-587}",
-    "Username": "${Smtp__Username:-}",
-    "Password": "${Smtp__Password:-}",
-    "From":     "${Smtp__From:-${Smtp__Username:-}}"
+  "Email": {
+    "SmtpHost":  "${Email__SmtpHost:-smtp.gmail.com}",
+    "Port":      "${Email__Port:-587}",
+    "Username":  "${Email__Username:-}",
+    "Password":  "${Email__Password:-}",
+    "From":      "${Email__From:-${Email__Username:-}}"
   }
 }
 EOF
