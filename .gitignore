@@ -3,10 +3,6 @@
 .env
 .env.*
 *.env
-# Allow the example env files even when *.env is ignored.
-!.env.example
-!backend/.env.example
-!web_admin/.env.example
 
 # Firebase credentials
 backend/config/
@@ -15,9 +11,6 @@ backend/FirebaseCredentials/
 # Sensitive config
 backend/appsettings.Development.json
 backend/appsettings.Production.json
-
-# Decoded Firebase key (only generated locally by scripts/encode-firebase-key.ps1)
-serviceAccountKey.decoded.json
 
 # Docker
 docker-compose.override.yml
@@ -31,4 +24,3 @@ frontend/tools/add_import.js
 # Flutter web build outputs
 frontend/build/
 frontend/.dart_tool/
-

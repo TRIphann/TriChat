@@ -1,7 +1,0 @@
-id_rsa
-*.log
-.DS_Store
-
-# Runtime secrets — never commit
-serviceAccountKey.decoded.json
-backend/.env

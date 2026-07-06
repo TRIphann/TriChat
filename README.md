@@ -129,9 +129,10 @@ Before installation, make sure the following software is installed:
 If you only have Docker installed, you can bring up the backend + Redis with one command:
 
 ```bash
-cp .env.example .env                                    # fill in Firebase + Cloudinary + Groq + SMTP
-pwsh scripts/encode-firebase-key.ps1                    # paste base64 into .env
-docker compose up --build                               # backend ↦ :5244, redis ↦ :6379
+# Generate a base64 of your firebase key once:
+pwsh scripts/encode-firebase-key.ps1
+# create a .env with the variables listed in the Docker Compose section below
+docker compose up --build
 ```
 
 ### Quick choice — Flutter Web on desktop
@@ -145,11 +146,28 @@ flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:5244
 ### Quick choice — local dev with Docker Compose
 
 If you don't want to install the .NET SDK or Redis on your host, the entire
-backend runs in a single command from the **repo root**:
+backend runs in a single command from the **repo root**. First create a `.env`
+file at the repo root with these variables (the entrypoint reads them at
+container start):
+
+```env
+Firebase__ProjectId=<your firebase project id>
+Firebase__CredentialsBase64=<base64 from scripts/encode-firebase-key.ps1>
+Redis__ConnectString=redis:6379
+Cloudinary__CloudName=<your cloudinary cloud>
+Cloudinary__ApiKey=<your api key>
+Cloudinary__ApiSecret=<your api secret>
+Groq__ApiKey=<your groq api key>
+Smtp__Host=smtp.gmail.com
+Smtp__Port=587
+Smtp__Username=<your gmail address>
+Smtp__Password=<your gmail app password 16 chars>
+Smtp__From=<your gmail address>
+```
+
+Then:
 
 ```bash
-cp .env.example .env
-# edit .env — fill FIREBASE_PROJECT_ID, _BASE64, REDIS, CLOUDINARY, GROQ, SMTP
 pwsh scripts/encode-firebase-key.ps1   # base64-encode your serviceAccountKey.json
 docker compose up --build
 ```
@@ -161,9 +179,16 @@ docker compose up --build
 
 ### Production-style deployment to the public web
 
-See **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** for full instructions on:
-Render.com (free), Railway.app, Firebase Hosting + Render, and a self-managed
-VPS. The same `Dockerfile` and `.env.example` work for all four.
+The backend ships with a production-ready `Dockerfile` and `docker-compose.yml`
+that work identically in local dev and on any container host (Render, Railway,
+Fly.io, a $4 VPS, etc.). Bring the stack up locally with:
+
+```bash
+docker compose up --build
+```
+
+For cloud-specific walkthroughs, see the commit history or contact the
+maintainer — the exact steps depend on which platform you pick.
 
 ---
 
