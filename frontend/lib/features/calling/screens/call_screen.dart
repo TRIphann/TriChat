@@ -7,6 +7,7 @@ import '/../config/agora_config.dart';
 import '../../../models/call_model.dart';
 import '../../../providers/call_provider.dart';
 import '../../../providers/chat_provider.dart';
+import 'package:frontend/config/app_colors.dart';
 
 class CallScreen extends StatefulWidget {
   final CallModel call;
@@ -251,7 +252,7 @@ class _CallScreenState extends State<CallScreen> {
 
   Widget _buildWaitingView(CallModel call) {
     return Container(
-      color: const Color(0xFF1A1A2E),
+      color: AppColors.darkBackground,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -287,7 +288,7 @@ class _CallScreenState extends State<CallScreen> {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF0068FF), Color(0xFF004CC8)],
+          colors: [AppColors.primaryOrange, Color(0xFF004CC8)],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),

@@ -152,7 +152,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                   const SizedBox(height: 16),
                   TextButton(
                     onPressed: () => context.pop(),
-                    child: const Text(
+                    child: Text(
                       'Quay lại',
                       style: TextStyle(color: AppColors.primaryBlue),
                     ),
@@ -375,14 +375,14 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
 
   Color _avatarColor(String name) {
     final colors = [
-      const Color(0xFF4CAF50),
-      const Color(0xFF2196F3),
-      const Color(0xFFFF9800),
-      const Color(0xFF9C27B0),
-      const Color(0xFFE91E63),
-      const Color(0xFF00BCD4),
-      const Color(0xFF795548),
-      const Color(0xFF607D8B),
+      AppColors.success,
+      AppColors.primaryOrange,
+      AppColors.primaryOrangeLight,
+      AppColors.accentBrown,
+      AppColors.accentRed,
+      AppColors.accentBrown,
+      AppColors.accentBrown,
+      AppColors.neutralGray700,
     ];
     if (name.isEmpty) return colors[0];
     return colors[name.codeUnitAt(0) % colors.length];

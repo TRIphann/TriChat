@@ -72,7 +72,7 @@ class _GlobalSearchFieldState extends State<GlobalSearchField> {
 
   Widget _buildSearchBar(bool isDark) {
     final bgColor = widget.backgroundColor ??
-        (isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF5F5F5));
+        (isDark ? AppColors.neutralGray900 : AppColors.neutralGray100);
     final textColor =
         widget.textColor ?? AppColors.getTextPrimary(isDark);
     final hintColor = widget.hintColor ??
@@ -245,7 +245,7 @@ class GlobalSearchResults extends StatelessWidget {
             }
 
             final surfaceColor =
-                backgroundColor ?? (isDark ? const Color(0xFF2D2D44) : Colors.white);
+                backgroundColor ?? (isDark ? AppColors.darkCard : Colors.white);
             final dividerColor = isDark
                 ? Colors.white.withValues(alpha: 0.08)
                 : Colors.grey.shade200;
@@ -339,7 +339,7 @@ class _StateWidget extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon == Icons.search) ...[
-            const SizedBox(
+            SizedBox(
               width: 20,
               height: 20,
               child: CircularProgressIndicator(
@@ -370,13 +370,13 @@ class _ResultTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = isDark ? Colors.white : const Color(0xFF1A1A1A);
+    final textColor = isDark ? Colors.white : AppColors.neutralBlack;
     final subColor = isDark ? Colors.white54 : Colors.grey.shade600;
 
     return InkWell(
       onTap: onTap,
       child: Container(
-        color: isDark ? const Color(0xFF2D2D44) : Colors.white,
+        color: isDark ? AppColors.darkCard : Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         child: Row(
           children: [
@@ -425,8 +425,8 @@ class _ResultTile extends StatelessWidget {
               Container(
                 width: 9,
                 height: 9,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF4CAF50),
+                decoration: BoxDecoration(
+                  color: AppColors.success,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -447,14 +447,14 @@ class _ResultTile extends StatelessWidget {
 
   Color _avatarColor(String name) {
     final colors = [
-      const Color(0xFF4CAF50),
-      const Color(0xFF2196F3),
-      const Color(0xFFFF9800),
-      const Color(0xFF9C27B0),
-      const Color(0xFFE91E63),
-      const Color(0xFF00BCD4),
-      const Color(0xFF795548),
-      const Color(0xFF607D8B),
+      AppColors.success,
+      AppColors.primaryOrange,
+      AppColors.primaryOrangeLight,
+      AppColors.accentBrown,
+      AppColors.accentRed,
+      AppColors.accentBrown,
+      AppColors.accentBrown,
+      AppColors.neutralGray700,
     ];
     if (name.isEmpty) return colors[0];
     return colors[name.codeUnitAt(0) % colors.length];

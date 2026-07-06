@@ -41,22 +41,27 @@ public class DisappearingMessageService(
 
         logger.LogInformation("[DisappearingMessages] Scanning at {Time}", DateTime.UtcNow);
 
-        // Firestore inequality queries exclude documents where the field is absent,
-        // so this naturally skips non-disappearing messages.
-        var snap = await db.CollectionGroup("messages")
-            .WhereEqualTo("is_deleted", false)
-            .WhereLessThanOrEqualTo("expires_at", now)
-            .GetSnapshotAsync();
+        // Scan every message in the collection group and evaluate
+        // both predicates in memory: a COLLECTION_GROUP_ASC index for
+        // `is_deleted` is not guaranteed to exist on every deployment,
+        // so we avoid filtered collection-group queries entirely.
+        var snap = await db.CollectionGroup("messages").GetSnapshotAsync();
 
-        if (snap.Count == 0)
+        var expired = snap.Documents
+            .Where(d => d.TryGetValue<bool>("is_deleted", out var deleted) && !deleted
+                && d.TryGetValue<Timestamp>("expires_at", out var ts)
+                && ts <= now)
+            .ToList();
+
+        if (expired.Count == 0)
         {
             logger.LogInformation("[DisappearingMessages] No expired messages found");
             return;
         }
 
-        logger.LogInformation("[DisappearingMessages] Deleting {Count} expired messages", snap.Count);
+        logger.LogInformation("[DisappearingMessages] Deleting {Count} expired messages", expired.Count);
 
-        foreach (var chunk in snap.Documents.Chunk(500))
+        foreach (var chunk in expired.Chunk(500))
         {
             var batch = db.StartBatch();
             foreach (var doc in chunk)
@@ -74,6 +79,6 @@ public class DisappearingMessageService(
             await batch.CommitAsync();
         }
 
-        logger.LogInformation("[DisappearingMessages] Done deleting {Count} messages", snap.Count);
+        logger.LogInformation("[DisappearingMessages] Done deleting {Count} messages", expired.Count);
     }
 }

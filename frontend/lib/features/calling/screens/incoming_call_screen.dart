@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'package:provider/provider.dart';
@@ -6,6 +8,7 @@ import '../../../models/call_model.dart';
 import '../../../providers/call_provider.dart';
 import '../../../providers/chat_provider.dart';
 import 'call_screen.dart';
+import 'package:frontend/config/app_colors.dart';
 
 class IncomingCallScreen extends StatefulWidget {
   final CallModel call;
@@ -22,6 +25,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
   Timer? _countdownTimer;
   bool _isClosing = false; // ngăn double-pop
   late CallProvider _callProvider;
+  final AudioPlayer _webAudio = AudioPlayer(playerId: 'incoming_call_ring');
 
   @override
   void initState() {
@@ -36,13 +40,35 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
   void dispose() {
     _timeoutTimer?.cancel();
     _countdownTimer?.cancel();
-    FlutterRingtonePlayer().stop();
+    if (kIsWeb) {
+      _webAudio.stop();
+      _webAudio.dispose();
+    } else {
+      FlutterRingtonePlayer().stop();
+    }
     _callProvider.removeListener(_onCallChanged);
     super.dispose();
   }
 
-  void _startRingtone() {
-    FlutterRingtonePlayer().playRingtone(looping: true);
+  Future<void> _startRingtone() async {
+    if (kIsWeb) {
+      // Web fallback: play a short bundled mp3 in loop (ringtone plugin is mobile-only).
+      // Place a `ringtone.mp3` under assets/ to enable this.
+      try {
+        await _webAudio.setReleaseMode(ReleaseMode.loop);
+        await _webAudio.play(AssetSource('sounds/ringtone.mp3'));
+      } catch (_) {/* silent */}
+    } else {
+      FlutterRingtonePlayer().playRingtone(looping: true);
+    }
+  }
+
+  Future<void> _stopRingtone() async {
+    if (kIsWeb) {
+      await _webAudio.stop();
+    } else {
+      await FlutterRingtonePlayer().stop();
+    }
   }
 
   void _startTimeout() {
@@ -60,12 +86,12 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
     });
   }
 
-  void _close({required void Function(ChatProvider, CallProvider) action}) {
+  void _close({required void Function(ChatProvider, CallProvider) action}) async {
     if (_isClosing || !mounted) return;
     _isClosing = true;
     _timeoutTimer?.cancel();
     _countdownTimer?.cancel();
-    FlutterRingtonePlayer().stop();
+    await _stopRingtone();
 
     // Capture providers trước khi pop
     final chatProvider = context.read<ChatProvider>();
@@ -96,7 +122,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
     final call = widget.call;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A2E),
+      backgroundColor: AppColors.darkBackground,
       body: SafeArea(
         child: Column(
           children: [
@@ -180,12 +206,12 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
     });
   }
 
-  void _acceptCall(BuildContext ctx) {
+  void _acceptCall(BuildContext ctx) async {
     if (_isClosing || !mounted) return;
     _isClosing = true;
     _timeoutTimer?.cancel();
     _countdownTimer?.cancel();
-    FlutterRingtonePlayer().stop();
+    await _stopRingtone();
 
     final chatProvider = ctx.read<ChatProvider>();
     chatProvider.acceptCall(call.conversationId, call.callerId);

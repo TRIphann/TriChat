@@ -163,7 +163,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
               ),
               const SizedBox(height: 16),
               // Tiêu đề
-              const Text(
+              Text(
                 'Chọn ngôn ngữ',
                 style: TextStyle(
                   fontSize: 16,
@@ -189,7 +189,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     ),
                   ),
                   trailing: isSelected
-                      ? const Icon(Icons.check, color: AppColors.primaryBlue)
+                      ? Icon(Icons.check, color: AppColors.primaryBlue)
                       : null,
                   onTap: () {
                     Navigator.pop(context);
@@ -238,14 +238,14 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   children: [
                     Text(
                       _selectedLanguage,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         color: AppColors.textPrimary,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(width: 4),
-                    const Icon(
+                    Icon(
                       Icons.keyboard_arrow_down_rounded,
                       color: AppColors.textSecondary,
                       size: 20,
@@ -344,7 +344,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   },
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.textPrimary,
-                    side: const BorderSide(
+                    side: BorderSide(
                       color: AppColors.borderGray,
                       width: 1.2,
                     ),

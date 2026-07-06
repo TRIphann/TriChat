@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/story_model.dart';
+import 'story_ring.dart';
+import 'package:frontend/config/app_colors.dart';
 
 class StoryAvatar extends StatelessWidget {
   final UserStory userStory;
@@ -13,75 +15,64 @@ class StoryAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Get the first story's image url or a high-quality fallback gradient
     final latestStory = userStory.stories.isNotEmpty ? userStory.stories.first : null;
-    final bgUrl = latestStory?.imageUrl ?? 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800';
+    final bgUrl = latestStory?.imageUrl ??
+        'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800';
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: 104,
-        height: 150,
+        height: 152,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(14),
           image: DecorationImage(
             image: NetworkImage(bgUrl),
             fit: BoxFit.cover,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
+              color: Colors.black.withValues(alpha: 0.12),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
         child: Stack(
           children: [
-            // Dark gradient overlay
             Container(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(14),
                 gradient: LinearGradient(
                   colors: [
-                    Colors.black.withValues(alpha: 0.65),
+                    Colors.black.withValues(alpha: 0.75),
+                    Colors.black.withValues(alpha: 0.15),
                     Colors.transparent,
+                    Colors.black.withValues(alpha: 0.45),
                   ],
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
+                  stops: const [0.0, 0.35, 0.55, 1.0],
                 ),
               ),
             ),
-            // User Avatar in the middle
-            Align(
-              alignment: Alignment.center,
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: userStory.hasUnseenStories ? const Color(0xFF0068FF) : Colors.white,
-                    width: 2.5,
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(1.5),
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
-                    ),
-                    child: ClipOval(
-                      child: userStory.userAvatar.isNotEmpty
-                          ? Image.network(
-                              userStory.userAvatar,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => _buildInitials(),
-                            )
-                          : _buildInitials(),
-                    ),
-                  ),
+            // Avatar with ring at top
+            Positioned(
+              top: 8,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: StoryRing(
+                  hasUnseen: userStory.hasUnseenStories,
+                  isOwner: userStory.isOwner,
+                  size: 48,
+                  child: userStory.userAvatar.isNotEmpty
+                      ? Image.network(
+                          userStory.userAvatar,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _buildInitials(),
+                        )
+                      : _buildInitials(),
                 ),
               ),
             ),
@@ -91,22 +82,23 @@ class StoryAvatar extends StatelessWidget {
               right: 6,
               bottom: 8,
               child: Text(
-                userStory.userName,
+                userStory.userName.isNotEmpty ? userStory.userName : '...',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.1,
                   shadows: [
                     Shadow(
                       color: Colors.black87,
                       offset: Offset(0, 1),
-                      blurRadius: 2,
+                      blurRadius: 3,
                     ),
                   ],
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
               ),
             ),
           ],
@@ -116,15 +108,15 @@ class StoryAvatar extends StatelessWidget {
   }
 
   Widget _buildInitials() {
-    final initials = userStory.userName.isNotEmpty ? userStory.userName[0].toUpperCase() : '?';
+    final name = userStory.userName.isNotEmpty ? userStory.userName : '?';
     return Container(
-      color: const Color(0xFF0068FF),
+      color: AppColors.primaryOrange,
       alignment: Alignment.center,
       child: Text(
-        initials,
+        name[0].toUpperCase(),
         style: const TextStyle(
           color: Colors.white,
-          fontSize: 16,
+          fontSize: 18,
           fontWeight: FontWeight.bold,
         ),
       ),

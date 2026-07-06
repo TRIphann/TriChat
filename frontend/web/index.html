@@ -18,19 +18,33 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="TriChat - Lightweight messaging application">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="frontend">
+  <meta name="apple-mobile-web-app-title" content="TriChat">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>frontend</title>
+  <title>TriChat</title>
   <link rel="manifest" href="manifest.json">
+
+  <!--
+    FCM: service worker is registered automatically by firebase_messaging when
+    you call `useServiceWorker()` (default behaviour). Place a stub at
+    `web/firebase-messaging-sw.js` before deploying so push notifications work.
+  -->
+
+  <!--
+    Agora Web (alpha) — required only if you enable voice/video calls in the
+    browser build. See: https://pub.dev/packages/agora_rtc_engine
+    Select the version that matches your `agora_rtc_engine` plugin (currently
+    ^6.3.2 → iris-rtc 4.x). Replace the integrity/version below as needed.
+  -->
+  <script src="https://download.agora.io/sdk/release/iris-rtc_4.2.0.js"></script>
 </head>
 <body>
   <!--

@@ -52,7 +52,7 @@ class CallNotificationService {
 
     // Cấu hình CallKeep
     CallKeep.instance.configure(CallKeepConfig(
-      appName: 'Zalo Lite',
+      appName: 'TriChat',
       acceptText: 'Chấp nhận',
       declineText: 'Từ chối',
       missedCallText: 'Cuộc gọi nhỡ',

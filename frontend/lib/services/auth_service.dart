@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -239,33 +240,56 @@ class AuthService {
   static Future<String> updateAvatar(XFile image) async {
     try {
       final bytes = await image.readAsBytes();
-      final safeName = image.name.isNotEmpty ? image.name : 'avatar.jpg';
-      final formData = FormData.fromMap({
-        'File': MultipartFile.fromBytes(bytes, filename: safeName),
-      });
-
-      final response = await DioClient.instance.patch(
-        '/api/user/avatar',
-        data: formData,
-      );
-
-      if (response.statusCode == 200) {
-        final data = response.data as Map<String, dynamic>;
-        final result = data['result'] as Map<String, dynamic>?;
-        final avatarUrl = result?['avatar'] as String?;
-
-        if (avatarUrl != null && avatarUrl.isNotEmpty) {
-          await FirebaseAuth.instance.currentUser?.updatePhotoURL(avatarUrl);
-          return avatarUrl;
-        }
-      }
-
-      throw Exception('Cập nhật avatar thất bại');
+      return _uploadAvatarBytes(bytes, image.name);
     } on DioException catch (e) {
       throw Exception(_handleDioError(e));
     } catch (e) {
       throw Exception('Lỗi hệ thống: $e');
     }
+  }
+
+  /// Upload avatar trực tiếp từ bytes — dùng khi đã có sẵn Uint8List
+  /// (ví dụ khi user vừa pick ảnh từ gallery trong luồng "đổi avatar + đăng bài"
+  /// và file path tạm đã bị giải phóng).
+  static Future<String> updateAvatarFromBytes(
+    Uint8List bytes, {
+    String filename = 'avatar.jpg',
+  }) async {
+    try {
+      return await _uploadAvatarBytes(bytes, filename);
+    } on DioException catch (e) {
+      throw Exception(_handleDioError(e));
+    } catch (e) {
+      throw Exception('Lỗi hệ thống: $e');
+    }
+  }
+
+  static Future<String> _uploadAvatarBytes(
+    Uint8List bytes,
+    String filename,
+  ) async {
+    final safeName = filename.isNotEmpty ? filename : 'avatar.jpg';
+    final formData = FormData.fromMap({
+      'File': MultipartFile.fromBytes(bytes, filename: safeName),
+    });
+
+    final response = await DioClient.instance.patch(
+      '/api/user/avatar',
+      data: formData,
+    );
+
+    if (response.statusCode == 200) {
+      final data = response.data as Map<String, dynamic>;
+      final result = data['result'] as Map<String, dynamic>?;
+      final avatarUrl = result?['avatar'] as String?;
+
+      if (avatarUrl != null && avatarUrl.isNotEmpty) {
+        await FirebaseAuth.instance.currentUser?.updatePhotoURL(avatarUrl);
+        return avatarUrl;
+      }
+    }
+
+    throw Exception('Cập nhật avatar thất bại');
   }
 
   static String _handleDioError(DioException e) {

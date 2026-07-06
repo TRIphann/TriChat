@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:frontend/views/chat/location_map_screen.dart';
+import 'package:frontend/config/app_colors.dart';
 
 class LocationMessageBubble extends StatelessWidget {
   final double latitude;
@@ -49,7 +50,7 @@ class LocationMessageBubble extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF1A1A1A),
+                  color: AppColors.neutralBlack,
                 ),
               ),
             ),
@@ -62,22 +63,22 @@ class LocationMessageBubble extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0068FF).withValues(alpha: 0.1),
+                  color: AppColors.primaryOrange.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.map,
-                  color: Color(0xFF0068FF),
+                  color: AppColors.primaryOrange,
                   size: 22,
                 ),
               ),
               title: const Text(
-                'Xem trong Zalo Lite',
+                'Xem trong TriChat',
                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
               ),
-              subtitle: const Text(
+              subtitle: Text(
                 'Mở bản đồ ngay trong ứng dụng',
-                style: TextStyle(fontSize: 12, color: Color(0xFF65676B)),
+                style: TextStyle(fontSize: 12, color: AppColors.neutralGray700),
               ),
               onTap: () {
                 Navigator.pop(context);
@@ -116,9 +117,9 @@ class LocationMessageBubble extends StatelessWidget {
                 'Mở trong Google Maps',
                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
               ),
-              subtitle: const Text(
+              subtitle: Text(
                 'Chuyển sang ứng dụng bản đồ',
-                style: TextStyle(fontSize: 12, color: Color(0xFF65676B)),
+                style: TextStyle(fontSize: 12, color: AppColors.neutralGray700),
               ),
               onTap: () {
                 Navigator.pop(context);
@@ -156,9 +157,9 @@ class LocationMessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bubbleColor = isMine ? const Color(0xFF0068FF) : Colors.white;
-    final titleColor = isMine ? Colors.white : const Color(0xFF1A1A1A);
-    final subColor = isMine ? Colors.white70 : const Color(0xFF65676B);
+    final bubbleColor = isMine ? AppColors.primaryOrange : Colors.white;
+    final titleColor = isMine ? Colors.white : AppColors.neutralBlack;
+    final subColor = isMine ? Colors.white70 : AppColors.neutralGray700;
     final coordText =
         '${latitude.toStringAsFixed(5)}, ${longitude.toStringAsFixed(5)}';
 
@@ -200,10 +201,10 @@ class LocationMessageBubble extends StatelessWidget {
                       width: 220,
                       height: 120,
                       color: const Color(0xFFE8F0FE),
-                      child: const Icon(
+                      child: Icon(
                         Icons.map_outlined,
                         size: 48,
-                        color: Color(0xFF0068FF),
+                        color: AppColors.primaryOrange,
                       ),
                     ),
                   ),

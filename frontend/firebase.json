@@ -3,20 +3,20 @@
     "platforms": {
       "android": {
         "default": {
-          "projectId": "zalo-lite-v2",
-          "appId": "1:1004023558166:android:6100bcc9041b00ef094537",
+          "projectId": "zalo-lite-f2d28",
+          "appId": "1:704895954808:android:b02245d793cc371a33228d",
           "fileOutput": "android/app/google-services.json"
         }
       },
       "dart": {
         "lib/firebase_options.dart": {
-          "projectId": "zalo-lite-v2",
+          "projectId": "zalo-lite-f2d28",
           "configurations": {
-            "android": "1:1004023558166:android:6100bcc9041b00ef094537",
-            "ios": "1:1004023558166:ios:749e2d878480914f094537",
-            "macos": "1:1004023558166:ios:749e2d878480914f094537",
-            "web": "1:1004023558166:web:e44c5cbc606d7d59094537",
-            "windows": "1:1004023558166:web:f90a6f7dba144809094537"
+            "android": "1:704895954808:android:b02245d793cc371a33228d",
+            "ios": "1:704895954808:ios:placeholder",
+            "macos": "1:704895954808:ios:placeholder",
+            "web": "1:704895954808:web:e3e92bc82bdfac0933228d",
+            "windows": "1:704895954808:web:7d48d5c618e49a3933228d"
           }
         }
       }

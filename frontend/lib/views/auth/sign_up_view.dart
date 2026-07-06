@@ -113,27 +113,45 @@ class _SignUpViewState extends State<SignUpView> with SingleTickerProviderStateM
     });
 
     try {
-      // BƯỚC 1: Kiểm tra email có tồn tại trong Firestore/Auth hay chưa
+      // Kiểm tra email hợp lệ về mặt cú pháp (đã làm ở validator)
       final String email = _emailController.text.trim();
-      final bool isExists = await AuthService.checkEmailExists(email);
 
-      if (isExists) {
-        // Nếu đã tồn tại, hiển thị lỗi ngay dưới field và rung
-        setState(() {
-          _errorMessage = "Email này đã được đăng ký. Vui lòng sử dụng email khác.";
-        });
-        _shakeCtrl.forward(from: 0);
-      } else {
-        // BƯỚC 2: Nếu email chưa tồn tại, hiển thị ConfirmSheet
-        _showConfirmSheet();
-      }
+      // Gọi backend kiểm tra email đã tồn tại chưa (qua OTP flow)
+      // Nếu email đã đăng ký, backend sẽ trả lỗi khi gửi OTP
+      await AuthService.sendOtp(email);
+
+      if (!mounted) return;
+
+      // BƯỚC 2: Email chưa tồn tại hoặc hợp lệ, hiển thị ConfirmSheet
+      _showConfirmSheet();
     } catch (e) {
+      if (!mounted) return;
+      final rawMessage = e.toString().replaceFirst('Exception: ', '');
       setState(() {
-        _errorMessage = "Lỗi kiểm tra hệ thống: $e";
+        _errorMessage = _mapRegisterError(rawMessage);
       });
+      _shakeCtrl.forward(from: 0);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  String _mapRegisterError(String message) {
+    final lower = message.toLowerCase();
+    if (lower.contains('already') ||
+        lower.contains('exists') ||
+        lower.contains('tồn tại') ||
+        lower.contains('đã đăng ký') ||
+        lower.contains('đã được')) {
+      return 'Email này đã được đăng ký. Vui lòng sử dụng email khác.';
+    }
+    if (lower.contains('invalid') && lower.contains('email')) {
+      return 'Địa chỉ email không hợp lệ.';
+    }
+    if (lower.contains('gửi') || lower.contains('send')) {
+      return 'Không thể gửi OTP. Vui lòng thử lại sau.';
+    }
+    return message;
   }
 
 
@@ -148,10 +166,8 @@ class _SignUpViewState extends State<SignUpView> with SingleTickerProviderStateM
         onContinue: () {
           Navigator.pop(context); // Đóng Dialog
           
-          // Chuyển sang trang OTP và truyền email đi
-          // Lưu ý: Không gọi AuthService.register ở đây
-          // context.go('/otp', extra: _emailController.text.trim());
-          context.push('/reset-password', extra: _emailController.text.trim());
+          // Chuyển sang trang nhập OTP để xác minh email
+          context.push('/otp', extra: _emailController.text.trim());
 
         },
         onCancel: () {
@@ -358,7 +374,7 @@ class _SignUpViewState extends State<SignUpView> with SingleTickerProviderStateM
       elevation: 0,
       leading: IconButton(
         onPressed: _onBackPressed,
-        icon: const Icon(Icons.arrow_back_outlined, size: 20, color: AppColors.textPrimary),
+        icon: Icon(Icons.arrow_back_outlined, size: 20, color: AppColors.textPrimary),
       ),
     );
   }
@@ -367,7 +383,7 @@ class _SignUpViewState extends State<SignUpView> with SingleTickerProviderStateM
     return Text(
       t.get('enterEmail'),
       textAlign: TextAlign.center,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
@@ -406,7 +422,7 @@ class _SignUpViewState extends State<SignUpView> with SingleTickerProviderStateM
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF0068FF), width: 1.5),
+          borderSide: BorderSide(color: AppColors.primaryOrange, width: 1.5),
         ),
         errorStyle: const TextStyle(color: Colors.red, fontSize: 12),
         errorBorder: OutlineInputBorder(
@@ -442,7 +458,7 @@ class _SignUpViewState extends State<SignUpView> with SingleTickerProviderStateM
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -451,7 +467,7 @@ class _SignUpViewState extends State<SignUpView> with SingleTickerProviderStateM
                 if (link.isNotEmpty)
                   Text(
                     " $link",
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.textBlue,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -496,11 +512,11 @@ class _SignUpViewState extends State<SignUpView> with SingleTickerProviderStateM
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(t.get('noAccount'), style: const TextStyle(color: AppColors.textPrimary)),
+          Text(t.get('noAccount'), style: TextStyle(color: AppColors.textPrimary)),
           const SizedBox(width: 4),
           Text(
             t.get('loginNow'),
-            style: const TextStyle(color: AppColors.textBlue, fontWeight: FontWeight.w600),
+            style: TextStyle(color: AppColors.textBlue, fontWeight: FontWeight.w600),
           ),
         ],
       ),

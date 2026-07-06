@@ -47,7 +47,7 @@ class _FriendTabViewState extends State<FriendTabView> {
             ],
           ),
         ),
-        const Divider(thickness: 1, color: Color(0xFFEEEEEE), height: 1),
+        Divider(thickness: 1, color: AppColors.divider, height: 1),
 
         if (_selectedFilterIndex == 0) ...[
           if (provider.friendsState == LoadingState.loading)
@@ -214,7 +214,7 @@ class _FriendTabViewState extends State<FriendTabView> {
           border: Border.all(
             color: isSelected
                 ? const Color(0xFF0091FF)
-                : const Color(0xFFEEEEEE),
+                : AppColors.divider,
           ),
         ),
         child: Text(

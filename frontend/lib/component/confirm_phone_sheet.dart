@@ -89,7 +89,7 @@ class ConfirmPhoneSheet extends StatelessWidget {
               ),
 
               SizedBox(height: verticalPadding),
-              const Divider(height: 1, color: AppColors.divider),
+              Divider(height: 1, color: AppColors.divider),
 
               /// BUTTON CONTINUE
               InkWell(
@@ -112,7 +112,7 @@ class ConfirmPhoneSheet extends StatelessWidget {
                 ),
               ),
 
-              const Divider(height: 1, color: AppColors.divider),
+              Divider(height: 1, color: AppColors.divider),
 
               /// BUTTON CHANGE NUMBER
               InkWell(

@@ -148,9 +148,9 @@ class _QrFriendScreenState extends State<QrFriendScreen>
               data: uid,
               version: QrVersions.auto,
               size: 220,
-              eyeStyle: const QrEyeStyle(
+              eyeStyle: QrEyeStyle(
                 eyeShape: QrEyeShape.square,
-                color: Color(0xFF0068FF),
+                color: AppColors.primaryOrange,
               ),
               dataModuleStyle: const QrDataModuleStyle(
                 dataModuleShape: QrDataModuleShape.square,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:frontend/config/app_colors.dart';
 import '../providers/story_provider.dart';
 import 'story_avatar.dart';
 
@@ -20,32 +21,98 @@ class StoryList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.only(bottom: 12, top: 4),
+      padding: const EdgeInsets.only(bottom: 14, top: 6),
       child: Consumer<StoryProvider>(
         builder: (context, provider, _) {
           final stories = provider.userStories;
 
-          return SizedBox(
-            height: 154,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: stories.length + (provider.hasMore ? 2 : 1),
-              separatorBuilder: (_, __) => const SizedBox(width: 10),
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return _buildAddStory(context);
-                }
-                if (index <= stories.length) {
-                  final userStory = stories[index - 1];
-                  return StoryAvatar(
-                    userStory: userStory,
-                    onTap: () => _openStoryViewer(context, index - 1),
-                  );
-                }
-                return _buildSeeMoreButton(context, provider);
-              },
-            ),
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+                child: Row(
+                  children: [
+                    Text(
+                      'Khoảnh khắc',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.neutralBlack,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 1,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.primaryOrange.withValues(alpha: 0.15),
+                            AppColors.primaryOrangeLight.withValues(alpha: 0.15),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ShaderMask(
+                            shaderCallback: (rect) =>
+                                LinearGradient(
+                              colors: [
+                                AppColors.primaryOrangeLight,
+                                AppColors.accentRed,
+                                AppColors.accentBrown,
+                              ],
+                            ).createShader(rect),
+                            child: const Icon(
+                              Icons.auto_awesome,
+                              size: 11,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+                          Text(
+                            'Mới',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.accentRed,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 160,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: stories.length + (provider.hasMore ? 2 : 1),
+                  separatorBuilder: (_, __) => const SizedBox(width: 10),
+                  itemBuilder: (context, index) {
+                    if (index == 0) {
+                      return _buildAddStory(context);
+                    }
+                    if (index <= stories.length) {
+                      final userStory = stories[index - 1];
+                      return StoryAvatar(
+                        userStory: userStory,
+                        onTap: () => _openStoryViewer(context, index - 1),
+                      );
+                    }
+                    return _buildSeeMoreButton(context, provider);
+                  },
+                ),
+              ),
+            ],
           );
         },
       ),
@@ -57,19 +124,28 @@ class StoryList extends StatelessWidget {
       onTap: () => provider.loadMore(),
       child: Container(
         width: 104,
-        height: 150,
+        height: 152,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          color: Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(14),
+          color: AppColors.backgroundGray,
+          border: Border.all(color: AppColors.borderGray, width: 1),
         ),
         child: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.arrow_forward, color: Colors.grey, size: 28),
-            SizedBox(height: 4),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: AppColors.neutralGray700,
+              size: 18,
+            ),
+            SizedBox(height: 6),
             Text(
               'Xem thêm',
-              style: TextStyle(fontSize: 11, color: Colors.grey),
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.neutralGray700,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),
@@ -78,93 +154,106 @@ class StoryList extends StatelessWidget {
   }
 
   Widget _buildAddStory(BuildContext context) {
+    final hasAvatar = currentUserAvatar.isNotEmpty;
     return GestureDetector(
       onTap: () => context.push('/create-story'),
       child: Container(
         width: 104,
-        height: 150,
+        height: 152,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(14),
           color: const Color(0xFF1E1E1E),
-          image: currentUserAvatar.isNotEmpty
+          image: hasAvatar
               ? DecorationImage(
                   image: NetworkImage(currentUserAvatar),
                   fit: BoxFit.cover,
                   colorFilter: ColorFilter.mode(
-                    Colors.black.withValues(alpha: 0.25),
+                    Colors.black.withValues(alpha: 0.2),
                     BlendMode.darken,
                   ),
                 )
               : null,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 4,
+              color: Colors.black.withValues(alpha: 0.12),
+              blurRadius: 6,
               offset: const Offset(0, 2),
             ),
           ],
         ),
         child: Stack(
           children: [
-            // Dark gradient overlay
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.black.withValues(alpha: 0.65),
-                    Colors.transparent,
-                  ],
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                ),
-              ),
-            ),
-            // Center blue circle with camera icon
-            Align(
-              alignment: Alignment.center,
+            Positioned.fill(
               child: Container(
-                width: 42,
-                height: 42,
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF00C6FF), Color(0xFF0072FF)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+                  borderRadius: BorderRadius.circular(14),
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.black.withValues(alpha: 0.7),
+                      Colors.transparent,
+                      Colors.transparent,
+                    ],
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    stops: const [0.0, 0.4, 1.0],
                   ),
-                  border: Border.all(color: Colors.white, width: 2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF0072FF).withValues(alpha: 0.35),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.camera_alt,
-                  color: Colors.white,
-                  size: 18,
                 ),
               ),
             ),
-            // Text "Tạo mới" at the bottom
-            const Positioned(
+            // Gradient ring ở avatar vùng dưới
+            Positioned(
+              top: 8,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.primaryOrangeLight,
+                        AppColors.accentRed,
+                        AppColors.accentBrown,
+                      ],
+                    ),
+                  ),
+                  padding: const EdgeInsets.all(3),
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                    ),
+                    child: ClipOval(
+                      child: hasAvatar
+                          ? Image.network(
+                              currentUserAvatar,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => _buildInitialsBig(),
+                            )
+                          : _buildInitialsBig(),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            // Text "Tạo mới" ở dưới
+            Positioned(
               left: 6,
               right: 6,
               bottom: 8,
-              child: Text(
-                'Tạo mới',
+              child: const Text(
+                'Tạo story',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
                   shadows: [
                     Shadow(
                       color: Colors.black87,
                       offset: Offset(0, 1),
-                      blurRadius: 2,
+                      blurRadius: 3,
                     ),
                   ],
                 ),
@@ -173,7 +262,56 @@ class StoryList extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
             ),
+            // Nút + ở giữa dưới
+            Positioned(
+              bottom: 26,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [AppColors.primaryOrangeLight, AppColors.primaryOrange],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    border: Border.all(color: Colors.white, width: 2.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primaryOrange.withValues(alpha: 0.5),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.add_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                ),
+              ),
+            ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInitialsBig() {
+    final name = currentUserName.isNotEmpty ? currentUserName : '?';
+    return Container(
+      color: AppColors.primaryOrange,
+      alignment: Alignment.center,
+      child: Text(
+        name[0].toUpperCase(),
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 18,
+          fontWeight: FontWeight.w800,
         ),
       ),
     );

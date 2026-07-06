@@ -51,7 +51,7 @@ class FriendRequestScreen extends StatelessWidget {
                 ],
               ),
               child: TabBar(
-                indicator: const UnderlineTabIndicator(
+                indicator: UnderlineTabIndicator(
                   borderSide: BorderSide(color: AppColors.primaryBlue, width: 3.5),
                   insets: EdgeInsets.symmetric(horizontal: 16),
                 ),

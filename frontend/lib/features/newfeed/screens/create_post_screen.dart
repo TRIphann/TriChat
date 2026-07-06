@@ -1,4 +1,6 @@
 import 'dart:typed_data';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -74,14 +76,14 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   Color get _avatarColor {
     final colors = [
-      const Color(0xFF4CAF50),
-      const Color(0xFF2196F3),
-      const Color(0xFFFF9800),
-      const Color(0xFF9C27B0),
-      const Color(0xFFE91E63),
-      const Color(0xFF00BCD4),
-      const Color(0xFF795548),
-      const Color(0xFF607D8B),
+      AppColors.success,
+      AppColors.primaryOrange,
+      AppColors.primaryOrangeLight,
+      AppColors.accentBrown,
+      AppColors.accentRed,
+      AppColors.accentBrown,
+      AppColors.accentBrown,
+      AppColors.neutralGray700,
     ];
     if (widget.currentUserName.isEmpty) return colors[0];
     return colors[widget.currentUserName.codeUnitAt(0) % colors.length];
@@ -226,7 +228,24 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         if (avatarPath == null || avatarPath.isEmpty) {
           throw Exception('Thiếu ảnh để cập nhật avatar');
         }
-        await AuthService.updateAvatar(XFile(avatarPath));
+
+        // Lưu bytes TRƯỚC khi có thể bị mất reference
+        // (file path có thể không tồn tại nếu là XFile tạm thời)
+        final avatarBytes = _selectedImages.isNotEmpty
+            ? _selectedImages.first.bytes
+            : null;
+
+        try {
+          await AuthService.updateAvatar(XFile(avatarPath));
+        } catch (e) {
+          // Nếu path-based fail, fallback thử upload bằng bytes
+          if (avatarBytes != null) {
+            debugPrint('[CreatePost] Path-based avatar upload failed: $e. Retrying with bytes...');
+            await AuthService.updateAvatarFromBytes(avatarBytes);
+          } else {
+            rethrow;
+          }
+        }
       }
 
       // Đóng avatar loading overlay sau khi upload avatar xong (nếu có)
@@ -235,6 +254,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       }
 
       final provider = context.read<FeedProvider>();
+      // Khi "Cả hai", ảnh đầu tiên chính là avatar mới - vẫn đăng làm media
+      // vì user đã chọn như vậy. Nếu không muốn avatar xuất hiện trong bài,
+      // bỏ qua ảnh đầu tiên.
       final xfiles = _selectedImages.map((p) => p.file).toList();
       final success = await provider.createPost(
         content: _contentController.text.trim(),
@@ -248,6 +270,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       setState(() => _isLoading = false);
 
       if (success) {
+        // Reload profile để cập nhật avatar mới (nếu có)
+        if (widget.shouldUpdateAvatarOnSubmit) {
+          try {
+            await FirebaseAuth.instance.currentUser?.reload();
+            // Trigger ProfileProvider reload thông qua avatar URL
+          } catch (_) {}
+        }
         Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -335,13 +364,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    children: const [
+                    children: [
                       SizedBox(
                         width: 44,
                         height: 44,
                         child: CircularProgressIndicator(
                           strokeWidth: 3,
-                          color: AppColors.primaryBlue,
+                          color: AppColors.primaryOrange,
                         ),
                       ),
                       SizedBox(height: 16),
@@ -350,7 +379,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
-                          color: Color(0xFF1A1A1A),
+                          color: AppColors.neutralBlack,
                         ),
                       ),
                     ],
@@ -391,24 +420,24 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             height: 44,
             child: IconButton(
               onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.close, color: Color(0xFF65676B), size: 22),
+              icon: Icon(Icons.close, color: AppColors.neutralGray700, size: 22),
             ),
           ),
           Expanded(
             child: Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF1A1A1A),
+                color: AppColors.neutralBlack,
               ),
             ),
           ),
           TextButton(
             onPressed: _isLoading ? null : _submitPost,
             child: _isLoading
-                ? const SizedBox(
+                ? SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
@@ -416,7 +445,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       color: AppColors.primaryBlue,
                     ),
                   )
-                : const Text(
+                : Text(
                     'Đăng',
                     style: TextStyle(
                       color: AppColors.primaryBlue,
@@ -509,10 +538,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             children: [
               Text(
                 widget.currentUserName,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF1A1A1A),
+                  color: AppColors.neutralBlack,
                 ),
               ),
               GestureDetector(
@@ -532,21 +561,21 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       Icon(
                         _getVisibilityIcon(),
                         size: 12,
-                        color: const Color(0xFF65676B),
+                        color: AppColors.neutralGray700,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         _getVisibilityText(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: Color(0xFF65676B),
+                          color: AppColors.neutralGray700,
                         ),
                       ),
                       const SizedBox(width: 2),
-                      const Icon(
+                      Icon(
                         Icons.keyboard_arrow_down,
                         size: 14,
-                        color: Color(0xFF65676B),
+                        color: AppColors.neutralGray700,
                       ),
                     ],
                   ),
@@ -599,7 +628,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                         height: 16,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: const Color(0xFF4CAF50),
+                          color: AppColors.success,
                         ),
                         child: Center(
                           child: Text(
@@ -617,7 +646,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       const SizedBox(width: 4),
                       Text(
                         friend.fullName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           color: AppColors.primaryBlue,
                         ),
@@ -641,15 +670,15 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         maxLines: null,
         minLines: 1,
         autofocus: true,
-        decoration: const InputDecoration(
+        decoration: InputDecoration(
           hintText: 'Bạn đang nghĩ gì?',
-          hintStyle: TextStyle(color: Color(0xFF999999), fontSize: 15),
+          hintStyle: TextStyle(color: AppColors.textHint, fontSize: 15),
           border: InputBorder.none,
           contentPadding: EdgeInsets.zero,
         ),
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 15,
-          color: Color(0xFF1A1A1A),
+          color: AppColors.neutralBlack,
           height: 1.4,
         ),
       ),
@@ -776,7 +805,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF5F5F5),
+                  color: AppColors.neutralGray100,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -796,9 +825,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    const Text(
+                    Text(
                       'Chọn ảnh từ thiết bị',
-                      style: TextStyle(fontSize: 14, color: Color(0xFF1A1A1A)),
+                      style: TextStyle(fontSize: 14, color: AppColors.neutralBlack),
                     ),
                   ],
                 ),
@@ -832,7 +861,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       case 'friends':
         return 'Bạn bè';
       case 'selected_friends':
-        return 'Bạn bè từ Zalo';
+        return 'Bạn bè từ TriChat';
       case 'only_me':
         return 'Chỉ mình tôi';
       default:
@@ -891,7 +920,7 @@ class _VisibilitySheetState extends State<_VisibilitySheet> {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF1A1A1A),
+                    color: AppColors.neutralBlack,
                   ),
                 ),
               ],
@@ -911,7 +940,7 @@ class _VisibilitySheetState extends State<_VisibilitySheet> {
           ),
           _buildOption(
             icon: Icons.group_add,
-            title: 'Bạn bè từ Zalo',
+            title: 'Bạn bè từ TriChat',
             subtitle: 'Chỉ những bạn bè được chọn mới thấy',
             value: 'selected_friends',
           ),
@@ -974,21 +1003,21 @@ class _VisibilitySheetState extends State<_VisibilitySheet> {
                       fontWeight: FontWeight.w500,
                       color: isSelected
                           ? AppColors.primaryBlue
-                          : const Color(0xFF1A1A1A),
+                          : AppColors.neutralBlack,
                     ),
                   ),
                   Text(
                     subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: Color(0xFF65676B),
+                      color: AppColors.neutralGray700,
                     ),
                   ),
                 ],
               ),
             ),
             if (isSelected)
-              const Icon(Icons.check, color: AppColors.primaryBlue, size: 20),
+              Icon(Icons.check, color: AppColors.primaryBlue, size: 20),
           ],
         ),
       ),
@@ -1058,13 +1087,13 @@ class _FriendSelectorSheet extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF1A1A1A),
+                      color: AppColors.neutralBlack,
                     ),
                   ),
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text(
+                  child: Text(
                     'Xong',
                     style: TextStyle(
                       color: AppColors.primaryBlue,
@@ -1187,18 +1216,18 @@ class _FriendSelectorSheet extends StatelessWidget {
                                 children: [
                                   Text(
                                     friend.fullName,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w500,
-                                      color: Color(0xFF1A1A1A),
+                                      color: AppColors.neutralBlack,
                                     ),
                                   ),
                                   if (friend.friendId.isNotEmpty)
                                     Text(
                                       friend.friendId,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 12,
-                                        color: Color(0xFF65676B),
+                                        color: AppColors.neutralGray700,
                                       ),
                                     ),
                                 ],
@@ -1229,14 +1258,14 @@ class _FriendSelectorSheet extends StatelessWidget {
 
   Color _avatarColor(String name) {
     final colors = [
-      const Color(0xFF4CAF50),
-      const Color(0xFF2196F3),
-      const Color(0xFFFF9800),
-      const Color(0xFF9C27B0),
-      const Color(0xFFE91E63),
-      const Color(0xFF00BCD4),
-      const Color(0xFF795548),
-      const Color(0xFF607D8B),
+      AppColors.success,
+      AppColors.primaryOrange,
+      AppColors.primaryOrangeLight,
+      AppColors.accentBrown,
+      AppColors.accentRed,
+      AppColors.accentBrown,
+      AppColors.accentBrown,
+      AppColors.neutralGray700,
     ];
     if (name.isEmpty) return colors[0];
     return colors[name.codeUnitAt(0) % colors.length];

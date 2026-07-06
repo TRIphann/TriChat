@@ -1,5 +1,5 @@
 /**
- * Cloud Functions for Zalo Lite Admin — Notification Dispatcher
+ * Cloud Functions for TriChat Admin — Notification Dispatcher
  *
  * Trigger: onDocumentCreated('admin_notifications/{notifId}')
  * Purpose: Auto-send FCM push notification when admin creates a notification

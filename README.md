@@ -1,10 +1,10 @@
-# 💬 Zalo Lite — Messaging Application
+# 💬 TriChat — Messaging Application
 
 ---
 
 ## 📝 Project Description
 
-**Zalo Lite** is a real-time messaging application inspired by Zalo, built with a Client-Server architecture. The project consists of 4 main components:
+**TriChat** is a real-time messaging application inspired by Zalo, built with a Client-Server architecture. The project consists of 4 main components:
 
 | Component      | Description                         | Technology                   |
 | -------------- | ----------------------------------- | ---------------------------- |
@@ -120,23 +120,75 @@ Before installation, make sure the following software is installed:
 | Flutter SDK                       | 3.41.9          | [flutter.dev](https://flutter.dev/docs/get-started/install)              |
 | Dart SDK                          | 3.11.5          | (Bundled with Flutter SDK)                                               |
 | .NET SDK                          | 8.0             | [dotnet.microsoft.com](https://dotnet.microsoft.com/download/dotnet/8.0) |
-| Redis Server                      | 7.x             | See installation guide below                                             |
+| Docker Desktop                    | 4.x             | [docker.com](https://www.docker.com/products/docker-desktop/)            |
 | Android Studio / VS Code          | Latest          | Development IDE                                                          |
 | Android Emulator or physical device | Android 6.0+  | Run mobile application                                                   |
 
-### Installing Redis Server on Docker Desktop
+### Quick choice — local dev with Docker (recommended)
 
-#### Install Docker Desktop
-
-Install Docker Desktop (https://docs.docker.com/desktop/setup/install/windows-install/) — Note: Choose the appropriate OS version.
-
-Run the following command in Terminal or Command Prompt:
+If you only have Docker installed, you can bring up the backend + Redis with one command:
 
 ```bash
-docker run -d -p 6379:6379 redis
+# Generate a base64 of your firebase key once:
+pwsh scripts/encode-firebase-key.ps1
+# create a .env with the variables listed in the Docker Compose section below
+docker compose up --build
 ```
 
-After running the command above, open Docker Desktop, select Redis, and ensure the status is "Running".
+### Quick choice — Flutter Web on desktop
+
+```bash
+cd frontend
+flutter pub get
+flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:5244
+```
+
+### Quick choice — local dev with Docker Compose
+
+If you don't want to install the .NET SDK or Redis on your host, the entire
+backend runs in a single command from the **repo root**. First create a `.env`
+file at the repo root with these variables (the entrypoint reads them at
+container start):
+
+```env
+Firebase__ProjectId=<your firebase project id>
+Firebase__CredentialsBase64=<base64 from scripts/encode-firebase-key.ps1>
+Redis__ConnectString=redis:6379
+Cloudinary__CloudName=<your cloudinary cloud>
+Cloudinary__ApiKey=<your api key>
+Cloudinary__ApiSecret=<your api secret>
+Groq__ApiKey=<your groq api key>
+Smtp__Host=smtp.gmail.com
+Smtp__Port=587
+Smtp__Username=<your gmail address>
+Smtp__Password=<your gmail app password 16 chars>
+Smtp__From=<your gmail address>
+```
+
+Then:
+
+```bash
+pwsh scripts/encode-firebase-key.ps1   # base64-encode your serviceAccountKey.json
+docker compose up --build
+```
+
+- Backend ↦ `http://localhost:5244` (Swagger: `/swagger`)
+- Redis ↦ `localhost:6379`
+- Same code path as production; the entrypoint synthesises `appsettings.json`
+  from environment variables.
+
+### Production-style deployment to the public web
+
+The backend ships with a production-ready `Dockerfile` and `docker-compose.yml`
+that work identically in local dev and on any container host (Render, Railway,
+Fly.io, a $4 VPS, etc.). Bring the stack up locally with:
+
+```bash
+docker compose up --build
+```
+
+For cloud-specific walkthroughs, see the commit history or contact the
+maintainer — the exact steps depend on which platform you pick.
 
 ---
 

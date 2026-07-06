@@ -1,4 +1,4 @@
-/// Hệ thống đa ngôn ngữ đơn giản cho Zalo Lite
+/// Hệ thống đa ngôn ngữ đơn giản cho TriChat
 /// Hỗ trợ: Tiếng Việt (vi), English (en)
 ///
 /// Cách dùng:
@@ -49,7 +49,7 @@ class AppLocalizations {
     // ---- TIẾNG VIỆT ----
     'vi': {
       // App chung
-      'appName': 'Zalo',
+      'appName': 'TriChat',
 
       // HomeView (màn hình chào mừng)
       'login': 'Đăng nhập',
@@ -78,13 +78,13 @@ class AppLocalizations {
       'enterEmail': 'Nhập địa chỉ email',
       'emailHint': 'Nhập địa chỉ email của bạn',
       'agreeTerms': 'Tôi đồng ý với các ',
-      'agreeTermsLink': 'Điều khoản sử dụng của Zalo',
+      'agreeTermsLink': 'Điều khoản sử dụng của TriChat',
       'agreePolicy': 'Tôi đồng ý với ',
-      'agreePolicyLink': 'Chính sách Mạng xã hội của Zalo',
+      'agreePolicyLink': 'Chính sách Mạng xã hội của TriChat',
       'continue_': 'Tiếp tục',
       'back': 'Quay lại',
       'confirmPhoneTitle': 'Nhận mã xác thực qua email',
-      'confirmPhoneDesc': 'Zalo sẽ gửi mã xác thực cho bạn qua email này',
+      'confirmPhoneDesc': 'TriChat sẽ gửi mã xác thực cho bạn qua email này',
       'changeNumber': 'Đổi email khác',
       'phoneHintDesc': 'Nhập dãy 6 số đang được gửi đến email',
 
@@ -128,10 +128,10 @@ class AppLocalizations {
       'appearanceDesc': 'Chọn giao diện phù hợp với bạn',
       
       // Welcome panel
-      'welcomeTitle': 'Chào mừng đến với Zalo PC!',
+      'welcomeTitle': 'Chào mừng đến với TriChat!',
       'welcomeDescription': 'Khám phá những tiện ích hỗ trợ làm việc và trò chuyện cùng\nngười thân, bạn bè được tối ưu hoá cho máy tính của bạn.',
       'darkModeTitle': 'Giao diện Dark Mode',
-      'darkModeDescription': 'Thư giãn và bảo vệ mắt với chế độ giao diện tối mới trên Zalo PC',
+      'darkModeDescription': 'Thư giãn và bảo vệ mắt với chế độ giao diện tối mới trên TriChat',
       'tryNow': 'Thử ngay',
 
       // Contacts (Danh bạ)
@@ -152,7 +152,7 @@ class AppLocalizations {
     // ---- ENGLISH ----
     'en': {
       // App chung
-      'appName': 'Zalo',
+      'appName': 'TriChat',
 
       // HomeView (welcome screen)
       'login': 'Log in',
@@ -181,14 +181,14 @@ class AppLocalizations {
       // Register screen (future)
       'enterPhoneNumber': 'Enter phone number',
       'phoneHint': 'Search...',
-      'agreeTerms': 'I agree with Zalo\'s ',
+      'agreeTerms': 'I agree with TriChat\'s ',
       'agreeTermsLink': 'terms of use',
-      'agreePolicy': 'I agree with Zalo\'s ',
+      'agreePolicy': 'I agree with TriChat\'s ',
       'agreePolicyLink': 'social network policy',
       'continue_': 'Continue',
       'back': 'Back',
       'confirmPhoneTitle': 'Receive verification code via',
-      'confirmPhoneDesc': 'Zalo will send a verification code to this email',
+      'confirmPhoneDesc': 'TriChat will send a verification code to this email',
       'changeNumber': 'Change email',
       'phoneHintDesc': 'Enter the 6-digit code sent to your email',
 
@@ -232,10 +232,10 @@ class AppLocalizations {
       'appearanceDesc': 'Choose the appearance that suits you',
       
       // Welcome panel
-      'welcomeTitle': 'Welcome to Zalo PC!',
+      'welcomeTitle': 'Welcome to TriChat!',
       'welcomeDescription': 'Discover useful features to work and chat with\nfamily and friends, optimized for your computer.',
       'darkModeTitle': 'Dark Mode Interface',
-      'darkModeDescription': 'Relax and protect your eyes with the new dark interface on Zalo PC',
+      'darkModeDescription': 'Relax and protect your eyes with the new dark interface on TriChat',
       'tryNow': 'Try now',
 
       // Contacts

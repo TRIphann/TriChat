@@ -89,7 +89,7 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
         case 0:
         case 1:
           _passwordStrengthLabel = 'Yếu';
-          _passwordStrengthColor = const Color(0xFFE53935);
+          _passwordStrengthColor = AppColors.accentRed;
           break;
         case 2:
           _passwordStrengthLabel = 'Trung bình';
@@ -128,10 +128,7 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black, size: 20),
-          onPressed: () async => {
-            await AuthService.deleteAccountAndData(),
-            context.pop(), 
-          }
+          onPressed: () => context.pop(),
         ),
         backgroundColor: Colors.white,
       ),
@@ -144,13 +141,13 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
+                Text(
                   'Cài đặt mật khẩu',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
-                const Text(
+                Text(
                   'Mật khẩu mới phải từ 8 ký tự và bao gồm tối thiểu 1 chữ hoa, 1 chữ số, có thể chứa ký tự đặc biệt.',
                   style: TextStyle(color: AppColors.textSecondary, height: 1.4),
                   textAlign: TextAlign.center,
@@ -263,7 +260,7 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
       decoration: InputDecoration(
         labelText: label,
         labelStyle: const TextStyle(color: Colors.grey, fontSize: 14),
-        floatingLabelStyle: const TextStyle(color: AppColors.primaryBlue, fontWeight: FontWeight.bold),
+        floatingLabelStyle: TextStyle(color: AppColors.primaryBlue, fontWeight: FontWeight.bold),
         
         // Nút HIỆN/ẨN
         suffixIcon: Padding(
@@ -277,7 +274,7 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
             ),
             child: Text(
               isObscured ? 'HIỆN' : 'ẨN',
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.primaryBlue,
                 fontWeight: FontWeight.bold,
                 fontSize: 12,
@@ -298,7 +295,7 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.primaryBlue, width: 1.5),
+          borderSide: BorderSide(color: AppColors.primaryBlue, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),

@@ -66,6 +66,10 @@ class _CreateStoryScreenState extends State<CreateStoryScreen>
   Future<void> _initCamera() async {
     if (_isDisposed) return;
 
+    // Trên web, camera preview chạy nhưng rất hạn chế (chỉ Chrome desktop,
+    // chỉ camera đầu, không torch/flip exposure). Mình vẫn cho gọi
+    // `availableCameras()` để web user có trải nghiệm nhất quán, nhưng nếu
+    // nó ném lỗi thì fallback sang gallery picker.
     try {
       final cameras = await availableCameras();
       if (_isDisposed) return;
@@ -263,7 +267,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen>
 
       if (result != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('Đăng tin thành công!'),
             backgroundColor: AppColors.primaryBlue,
             duration: Duration(seconds: 2),

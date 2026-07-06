@@ -62,7 +62,7 @@ class _FriendTabViewState extends State<FriendTabView> {
             ],
           ),
         ),
-        const Divider(thickness: 1, color: Color(0xFFEEEEEE), height: 1),
+        Divider(thickness: 1, color: AppColors.divider, height: 1),
         if (_selectedFilterIndex == 0) ...[
           if (provider.friendsState == LoadingState.loading)
             const Center(
@@ -178,7 +178,7 @@ class _FriendTabViewState extends State<FriendTabView> {
             children: [
               CircleAvatar(
                 radius: 22,
-                backgroundColor: const Color(0xFF4CAF50),
+                backgroundColor: AppColors.success,
                 backgroundImage: friend.avatar.isNotEmpty ? NetworkImage(friend.avatar) : null,
                 child: friend.avatar.isEmpty
                     ? Text(

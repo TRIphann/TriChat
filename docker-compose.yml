@@ -1,0 +1,47 @@
+# docker-compose.yml — local development stack for TriChat.
+#
+# Brings up Redis + the backend container with secrets from .env.
+# Run from the REPO ROOT (parent folder of backend/ and frontend/):
+#
+#   cp .env.example .env       # then edit values
+#   # generate base64 of your firebase key once:
+#   pwsh scripts/encode-firebase-key.ps1
+#   docker compose up --build
+#
+# Backend is reachable at http://localhost:5244, Redis at localhost:6379.
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: trichat-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend           # build context = backend/
+      dockerfile: Dockerfile
+    container_name: trichat-backend
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - "5244:5244"
+    env_file:
+      - .env                       # secrets live in repo-root .env
+    environment:
+      # Tell the entrypoint where Redis lives (Docker DNS name).
+      Redis__ConnectString: "redis:6379"
+      ASPNETCORE_ENVIRONMENT: "Production"
+
+volumes:
+  redis_data:

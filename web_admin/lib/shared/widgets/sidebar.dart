@@ -169,7 +169,7 @@ class AppSidebar extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Zalo Lite', style: AppTextStyles.h3),
+                Text('TriChat', style: AppTextStyles.h3),
                 Text('Admin',
                     style: AppTextStyles.caption
                         .copyWith(color: AppColors.primary)),

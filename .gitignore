@@ -1,6 +1,26 @@
 .vs/
 .vscode/
 .env
+.env.*
+*.env
 
 # Firebase credentials
 backend/config/
+backend/FirebaseCredentials/
+
+# Sensitive config
+backend/appsettings.Development.json
+backend/appsettings.Production.json
+
+# Docker
+docker-compose.override.yml
+
+# Build/analyze output
+frontend/analyze_output.txt
+frontend/tools/replace_neutral_colors.dart
+frontend/tools/replace_grey_colors.dart
+frontend/tools/add_import.js
+
+# Flutter web build outputs
+frontend/build/
+frontend/.dart_tool/

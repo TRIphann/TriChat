@@ -6,7 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class AppConstants {
   AppConstants._();
 
-  static const String appName = 'Zalo Lite Admin';
+  static const String appName = 'TriChat Admin';
   static const String appVersion = '1.0.0';
 
   // Admin credentials — loaded from .env via flutter_dotenv at runtime

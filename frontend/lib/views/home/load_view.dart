@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../config/app_colors.dart';
 
-/// Màn hình splash (loading) - Hiển thị logo Zalo trên nền xanh
+/// Màn hình splash (loading) - Hiển thị logo TriChat trên nền gradient
 /// Tự động chuyển sang HomeView sau 5 giây với hiệu ứng chuyển cảnh mượt mà
 class LoadView extends StatefulWidget {
   const LoadView({super.key});
@@ -15,7 +15,7 @@ class LoadView extends StatefulWidget {
 }
 
 class _LoadViewState extends State<LoadView> with TickerProviderStateMixin {
-  // Animation cho logo Zalo (fade + scale)
+  // Animation cho logo TriChat (fade + scale)
   late AnimationController _logoController;
   late Animation<double> _logoFadeAnimation;
   late Animation<double> _logoScaleAnimation;
@@ -190,13 +190,13 @@ class _LoadViewState extends State<LoadView> with TickerProviderStateMixin {
     );
   }
 
-  /// Xây dựng logo Zalo chữ trắng lớn, với hiệu ứng glow
+  /// Xây dựng logo TriChat chữ trắng lớn, với hiệu ứng glow
   Widget _buildLogo() {
     final glowOpacity = 0.3 + (_glowAnimation.value * 0.4);
     final glowBlur = 20.0 + (_glowAnimation.value * 30.0);
 
     return Text(
-      'Zalo',
+      'TriChat',
       style: TextStyle(
         fontSize: 72,
         fontWeight: FontWeight.bold,

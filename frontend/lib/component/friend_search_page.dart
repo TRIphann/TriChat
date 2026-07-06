@@ -141,7 +141,7 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
                 child: avatar.isEmpty
                     ? Text(
                         name.isNotEmpty ? name[0].toUpperCase() : '?',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.primaryBlue,
                           fontWeight: FontWeight.bold,
                         ),
@@ -437,7 +437,7 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
                           if (hasMoreFriends)
                             GestureDetector(
                               onTap: () => setState(() => _shownCount = allFriends.length),
-                              child: const Text(
+                              child: Text(
                                 'Xem thêm',
                                 style: TextStyle(
                                   fontSize: 12,
@@ -455,7 +455,7 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
                         child: Center(
                           child: GestureDetector(
                             onTap: () => setState(() => _shownCount = allFriends.length),
-                            child: const Text(
+                            child: Text(
                               'Tải thêm bạn bè',
                               style: TextStyle(
                                 color: AppColors.primaryBlue,

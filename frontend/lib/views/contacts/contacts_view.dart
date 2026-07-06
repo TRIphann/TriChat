@@ -34,14 +34,14 @@ class _ContactsViewState extends State<ContactsView>
       'id': 'g_001',
       'name': 'Nhóm Đồ Ăn',
       'avatar': null,
-      'avatarColor': const Color(0xFF9C27B0),
+      'avatarColor': AppColors.accentBrown,
       'memberCount': 5,
     },
     {
       'id': 'g_002',
       'name': 'Nhóm Lớp K18',
       'avatar': null,
-      'avatarColor': const Color(0xFFFF9800),
+      'avatarColor': AppColors.primaryOrangeLight,
       'memberCount': 45,
     },
   ];
@@ -100,7 +100,7 @@ class _ContactsViewState extends State<ContactsView>
 
   Widget _buildMobileHeader(AppLocalizations t, bool isDark) {
     final Color headerBg =
-        isDark ? const Color(0xFF1A1A1A) : AppColors.primaryBlue;
+        isDark ? AppColors.neutralBlack : AppColors.primaryBlue;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       color: headerBg,
@@ -259,7 +259,7 @@ class _ContactsViewState extends State<ContactsView>
     return Container(
       width: 240,
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A1A1A) : Colors.white,
+        color: isDark ? AppColors.neutralBlack : Colors.white,
         border: Border(
           right: BorderSide(color: AppColors.getDivider(isDark), width: 1),
         ),
@@ -277,8 +277,8 @@ class _ContactsViewState extends State<ContactsView>
                 height: 40,
                 decoration: BoxDecoration(
                   color: isDark
-                      ? const Color(0xFF2A2A2A)
-                      : const Color(0xFFF5F5F5),
+                      ? AppColors.neutralGray900
+                      : AppColors.neutralGray100,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Row(
@@ -316,8 +316,8 @@ class _ContactsViewState extends State<ContactsView>
               child: Material(
                 color: isSelected
                     ? (isDark
-                          ? const Color(0xFF2A2A2A)
-                          : const Color(0xFFE8F0FE))
+                        ? AppColors.neutralGray900
+                        : const Color(0xFFE8F0FE))
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(4),
                 child: InkWell(
@@ -366,7 +366,7 @@ class _ContactsViewState extends State<ContactsView>
 
   Widget _buildWideContent(AppLocalizations t, bool isDark) {
     return Container(
-      color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF5F5F5),
+      color: isDark ? AppColors.neutralBlack : AppColors.neutralGray100,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

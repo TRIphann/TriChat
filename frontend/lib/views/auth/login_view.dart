@@ -153,9 +153,9 @@ class _LoginViewState extends State<LoginView> {
                       width: 1,
                     ),
                   ),
-                  focusedBorder: const UnderlineInputBorder(
+                  focusedBorder: UnderlineInputBorder(
                     borderSide: BorderSide(
-                      color: Color(0xFF0068FF),
+                      color: AppColors.primaryOrange,
                       width: 1.5,
                     ),
                   ),
@@ -195,9 +195,9 @@ class _LoginViewState extends State<LoginView> {
                       width: 1,
                     ),
                   ),
-                  focusedBorder: const UnderlineInputBorder(
+                  focusedBorder: UnderlineInputBorder(
                     borderSide: BorderSide(
-                      color: Color(0xFF0068FF),
+                      color: AppColors.primaryOrange,
                       width: 1.5,
                     ),
                   ),
@@ -213,10 +213,10 @@ class _LoginViewState extends State<LoginView> {
                 alignment: Alignment.centerLeft,
                 child: GestureDetector(
                   onTap: () {},
-                  child: const Text(
+                  child: Text(
                     'Lấy lại mật khẩu',
                     style: TextStyle(
-                      color: Color(0xFF0068FF),
+                      color: AppColors.primaryOrange,
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
                     ),
@@ -229,7 +229,7 @@ class _LoginViewState extends State<LoginView> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _handleLogin,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0068FF),
+                    backgroundColor: AppColors.primaryOrange,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),

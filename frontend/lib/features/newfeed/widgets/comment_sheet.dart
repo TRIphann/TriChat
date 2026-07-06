@@ -141,27 +141,66 @@ class _CommentSheetState extends State<CommentSheet> {
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
 
     return Container(
-      height: MediaQuery.of(context).size.height * 0.75 + keyboardHeight,
+      height: MediaQuery.of(context).size.height * 0.78 + keyboardHeight,
       padding: EdgeInsets.only(bottom: keyboardHeight),
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
         children: [
-          // Drag handle
-          Center(
-            child: Container(
-              margin: const EdgeInsets.symmetric(vertical: 10),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
+          // Drag handle với title
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Column(
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.primaryBlue.withValues(alpha: 0.1),
+                        AppColors.primaryBlue.withValues(alpha: 0.05),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.forum_rounded,
+                        size: 14,
+                        color: AppColors.primaryBlue,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Bình luận',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primaryBlue,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
-          // Comments list
+          Container(height: 1, color: AppColors.divider),
           Expanded(
             child: widget.useProfileProvider
                 ? Consumer<ProfileProvider>(
@@ -169,37 +208,24 @@ class _CommentSheetState extends State<CommentSheet> {
                       final comments = provider.getCommentsForPost(widget.post.id);
 
                       if (provider.isLoading && comments.isEmpty) {
-                        return const Center(
-                          child: CircularProgressIndicator(
-                            color: AppColors.primaryBlue,
-                          ),
-                        );
-                      }
-
-                      if (comments.isEmpty) {
                         return Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(
-                                Icons.chat_bubble_outline,
-                                size: 48,
-                                color: Colors.grey.shade300,
+                              SizedBox(
+                                width: 32,
+                                height: 32,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 3,
+                                  color: AppColors.primaryBlue,
+                                ),
                               ),
                               const SizedBox(height: 12),
                               Text(
-                                'Chưa có bình luận nào',
+                                'Đang tải bình luận...',
                                 style: TextStyle(
-                                  color: Colors.grey.shade500,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Hãy là người đầu tiên chia sẻ cảm nghĩ!',
-                                style: TextStyle(
-                                  color: Colors.grey.shade400,
-                                  fontSize: 12,
+                                  color: AppColors.neutralGray700,
+                                  fontSize: 13,
                                 ),
                               ),
                             ],
@@ -207,16 +233,70 @@ class _CommentSheetState extends State<CommentSheet> {
                         );
                       }
 
+                      if (comments.isEmpty) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: 88,
+                                  height: 88,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        AppColors.primaryBlue.withValues(alpha: 0.1),
+                                        AppColors.primaryBlue.withValues(alpha: 0.04),
+                                      ],
+                                    ),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.chat_bubble_outline_rounded,
+                                    size: 42,
+                                    color: AppColors.primaryBlue.withValues(alpha: 0.7),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Chưa có bình luận nào',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.neutralBlack,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'Hãy là người đầu tiên chia sẻ cảm nghĩ!',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade600,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+
                       return ListView.builder(
                         controller: _scrollController,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
                         itemCount: comments.length,
                         itemBuilder: (context, index) {
                           final comment = comments[index];
                           return _CommentItem(
                             comment: comment,
                             onLikeTap: () {
-                              provider.toggleCommentLike(widget.post.id, comment.id);
+                              provider.toggleCommentLike(
+                                widget.post.id,
+                                comment.id,
+                              );
                             },
                           );
                         },
@@ -228,37 +308,24 @@ class _CommentSheetState extends State<CommentSheet> {
                       final comments = provider.getCommentsForPost(widget.post.id);
 
                       if (provider.isLoadingComments && comments.isEmpty) {
-                        return const Center(
-                          child: CircularProgressIndicator(
-                            color: AppColors.primaryBlue,
-                          ),
-                        );
-                      }
-
-                      if (comments.isEmpty) {
                         return Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(
-                                Icons.chat_bubble_outline,
-                                size: 48,
-                                color: Colors.grey.shade300,
+                              SizedBox(
+                                width: 32,
+                                height: 32,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 3,
+                                  color: AppColors.primaryBlue,
+                                ),
                               ),
                               const SizedBox(height: 12),
                               Text(
-                                'Chưa có bình luận nào',
+                                'Đang tải bình luận...',
                                 style: TextStyle(
-                                  color: Colors.grey.shade500,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Hãy là người đầu tiên chia sẻ cảm nghĩ!',
-                                style: TextStyle(
-                                  color: Colors.grey.shade400,
-                                  fontSize: 12,
+                                  color: AppColors.neutralGray700,
+                                  fontSize: 13,
                                 ),
                               ),
                             ],
@@ -266,16 +333,70 @@ class _CommentSheetState extends State<CommentSheet> {
                         );
                       }
 
+                      if (comments.isEmpty) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: 88,
+                                  height: 88,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        AppColors.primaryBlue.withValues(alpha: 0.1),
+                                        AppColors.primaryBlue.withValues(alpha: 0.04),
+                                      ],
+                                    ),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.chat_bubble_outline_rounded,
+                                    size: 42,
+                                    color: AppColors.primaryBlue.withValues(alpha: 0.7),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Chưa có bình luận nào',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.neutralBlack,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'Hãy là người đầu tiên chia sẻ cảm nghĩ!',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade600,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+
                       return ListView.builder(
                         controller: _scrollController,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
                         itemCount: comments.length,
                         itemBuilder: (context, index) {
                           final comment = comments[index];
                           return _CommentItem(
                             comment: comment,
                             onLikeTap: () {
-                              provider.toggleCommentLike(widget.post.id, comment.id);
+                              provider.toggleCommentLike(
+                                widget.post.id,
+                                comment.id,
+                              );
                             },
                           );
                         },
@@ -298,43 +419,56 @@ class _CommentSheetState extends State<CommentSheet> {
 
   Widget _buildImagePreview() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: Colors.grey.shade50,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primaryBlue.withValues(alpha: 0.04),
+            AppColors.primaryBlue.withValues(alpha: 0.02),
+          ],
+        ),
+        border: Border(
+          top: BorderSide(color: AppColors.divider, width: 0.5),
+        ),
+      ),
       child: Row(
         children: [
           Stack(
             children: [
               ClipRRect(
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(10),
                 child: kIsWeb
                     ? Image.network(
                         _selectedImage!.path,
-                        width: 60,
-                        height: 60,
+                        width: 64,
+                        height: 64,
                         fit: BoxFit.cover,
                       )
                     : Image.file(
                         File(_selectedImage!.path),
-                        width: 60,
-                        height: 60,
+                        width: 64,
+                        height: 64,
                         fit: BoxFit.cover,
                       ),
               ),
               Positioned(
-                top: -2,
-                right: -2,
+                top: -4,
+                right: -4,
                 child: GestureDetector(
                   onTap: _removeSelectedImage,
                   child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(
-                      color: Colors.black54,
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [AppColors.accentRed, AppColors.accentRed],
+                      ),
                       shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
                     ),
                     child: const Icon(
-                      Icons.close,
+                      Icons.close_rounded,
                       color: Colors.white,
-                      size: 14,
+                      size: 12,
                     ),
                   ),
                 ),
@@ -343,12 +477,27 @@ class _CommentSheetState extends State<CommentSheet> {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              'Hình ảnh đã chọn sẵn sàng gửi',
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey.shade600,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Ảnh đính kèm',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.neutralBlack,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Sẵn sàng gửi cùng bình luận',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -358,84 +507,156 @@ class _CommentSheetState extends State<CommentSheet> {
 
   Widget _buildInputBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Colors.grey.shade200, width: 1),
-        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          IconButton(
-            onPressed: () {
-              setState(() {
-                _showEmojiKeyboard = !_showEmojiKeyboard;
-                if (_showEmojiKeyboard) {
-                  FocusScope.of(context).unfocus();
-                }
-              });
-            },
-            icon: Icon(
-              Icons.sentiment_satisfied_alt_outlined,
-              color: _showEmojiKeyboard ? AppColors.primaryBlue : Colors.grey.shade600,
-              size: 24,
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  _showEmojiKeyboard = !_showEmojiKeyboard;
+                  if (_showEmojiKeyboard) FocusScope.of(context).unfocus();
+                });
+              },
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: _showEmojiKeyboard
+                      ? AppColors.primaryBlue.withValues(alpha: 0.12)
+                      : Colors.grey.shade100,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.sentiment_satisfied_alt_rounded,
+                  color: _showEmojiKeyboard
+                      ? AppColors.primaryBlue
+                      : Colors.grey.shade700,
+                  size: 22,
+                ),
+              ),
             ),
           ),
+          const SizedBox(width: 8),
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(20),
+                color: AppColors.backgroundGray,
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(
+                  color: _showEmojiKeyboard
+                      ? AppColors.primaryBlue.withValues(alpha: 0.5)
+                      : Colors.transparent,
+                ),
               ),
               child: TextField(
                 controller: _commentController,
-                maxLines: null,
+                maxLines: 4,
+                minLines: 1,
                 keyboardType: TextInputType.multiline,
                 style: const TextStyle(fontSize: 15),
                 onTap: () {
-                  setState(() {
-                    _showEmojiKeyboard = false;
-                  });
+                  setState(() => _showEmojiKeyboard = false);
                 },
                 decoration: const InputDecoration(
-                  hintText: 'Nhập bình luận',
+                  hintText: 'Viết bình luận...',
                   hintStyle: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 15,
+                    color: Color(0xFF8E8E93),
+                    fontSize: 14.5,
                   ),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   border: InputBorder.none,
                 ),
               ),
             ),
           ),
-          IconButton(
-            onPressed: _pickImage,
-            icon: Icon(
-              Icons.image_outlined,
-              color: _selectedImage != null ? AppColors.primaryBlue : Colors.grey.shade600,
-              size: 24,
+          const SizedBox(width: 8),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: _pickImage,
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: _selectedImage != null
+                      ? AppColors.primaryBlue.withValues(alpha: 0.12)
+                      : Colors.grey.shade100,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.image_rounded,
+                  color: _selectedImage != null
+                      ? AppColors.primaryBlue
+                      : Colors.grey.shade700,
+                  size: 20,
+                ),
+              ),
             ),
           ),
+          const SizedBox(width: 6),
           _isSending
-              ? const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12),
+              ? Container(
+                  width: 40,
+                  height: 40,
+                  alignment: Alignment.center,
                   child: SizedBox(
-                    width: 20,
-                    height: 20,
+                    width: 22,
+                    height: 22,
                     child: CircularProgressIndicator(
-                      strokeWidth: 2,
+                      strokeWidth: 2.5,
                       color: AppColors.primaryBlue,
                     ),
                   ),
                 )
-              : IconButton(
-                  onPressed: _submitComment,
-                  icon: const Icon(
-                    Icons.send,
-                    color: AppColors.primaryBlue,
-                    size: 22,
+              : Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: _submitComment,
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [AppColors.primaryOrange, AppColors.accentBrown],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primaryOrange.withValues(alpha: 0.3),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.send_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                    ),
                   ),
                 ),
         ],
@@ -459,32 +680,39 @@ class _CommentItem extends StatelessWidget {
     final avatarColor = _avatarColor(comment.userName);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 14),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Avatar
+          // Avatar với gradient
           Container(
-            width: 38,
-            height: 38,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: avatarColor,
+              gradient: LinearGradient(
+                colors: [
+                  avatarColor,
+                  avatarColor.withValues(alpha: 0.7),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
             ),
             child: Center(
               child: comment.userAvatar.isNotEmpty
                   ? ClipOval(
                       child: Image.network(
                         comment.userAvatar,
-                        width: 38,
-                        height: 38,
+                        width: 40,
+                        height: 40,
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => Text(
                           initials,
                           style: const TextStyle(
                             color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13.5,
                           ),
                         ),
                       ),
@@ -493,8 +721,8 @@ class _CommentItem extends StatelessWidget {
                       initials,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13.5,
                       ),
                     ),
             ),
@@ -506,39 +734,54 @@ class _CommentItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(12),
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.backgroundGray,
+                        AppColors.backgroundGray.withValues(alpha: 0.95),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(16),
+                      bottomLeft: Radius.circular(16),
+                      bottomRight: Radius.circular(16),
+                      topLeft: Radius.circular(4),
+                    ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        comment.userName,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                          color: Color(0xFF1C1E21),
+                        comment.userName.isNotEmpty
+                            ? comment.userName
+                            : 'Người dùng',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 13.5,
+                          color: AppColors.neutralBlack,
                         ),
                       ),
-                      const SizedBox(height: 3),
+                      const SizedBox(height: 4),
                       if (comment.content.isNotEmpty)
                         Text(
                           comment.content,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
-                            color: Color(0xFF1C1E21),
+                            color: AppColors.neutralBlack,
+                            height: 1.35,
                           ),
                         ),
                     ],
                   ),
                 ),
-                // Comment Image if any
                 if (comment.imageUrl.isNotEmpty) ...[
                   const SizedBox(height: 6),
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(12),
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(
                         maxWidth: 200,
@@ -553,44 +796,67 @@ class _CommentItem extends StatelessWidget {
                             width: 150,
                             height: 150,
                             color: Colors.grey.shade200,
-                            child: const Center(
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: AppColors.primaryBlue,
+                            child: Center(
+                              child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  color: AppColors.primaryBlue,
+                                ),
                               ),
                             ),
                           );
                         },
+                        errorBuilder: (_, __, ___) => Container(
+                          width: 150,
+                          height: 150,
+                          color: Colors.grey.shade300,
+                          child: Icon(
+                            Icons.broken_image_outlined,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ],
-                const SizedBox(height: 4),
-                // Footer (time & like count)
+                const SizedBox(height: 5),
                 Row(
                   children: [
-                    const SizedBox(width: 4),
                     Text(
                       _formatTime(comment.createdAt),
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: 11.5,
                         color: Colors.grey.shade500,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     if (comment.likeCount > 0) ...[
-                      const SizedBox(width: 12),
-                      const Icon(
-                        Icons.favorite,
-                        color: Colors.red,
-                        size: 11,
+                      const SizedBox(width: 14),
+                      Container(
+                        width: 18,
+                        height: 18,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [AppColors.accentRed, AppColors.accentRed],
+                          ),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 1.5),
+                        ),
+                        child: const Icon(
+                          Icons.favorite_rounded,
+                          color: Colors.white,
+                          size: 10,
+                        ),
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 3),
                       Text(
                         '${comment.likeCount}',
                         style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey.shade600,
-                          fontWeight: FontWeight.w500,
+                          fontSize: 11.5,
+                          color: Colors.grey.shade700,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -602,13 +868,27 @@ class _CommentItem extends StatelessWidget {
           const SizedBox(width: 8),
           // Heart like button
           GestureDetector(
-            onTap: onLikeTap,
+            onTap: () {
+              onLikeTap();
+              // Simple scale animation feedback
+            },
             child: Padding(
-              padding: const EdgeInsets.only(top: 8, right: 4),
-              child: Icon(
-                comment.isLiked ? Icons.favorite : Icons.favorite_border,
-                color: comment.isLiked ? Colors.red : Colors.grey.shade400,
-                size: 20,
+              padding: const EdgeInsets.only(top: 6, right: 4),
+              child: Container(
+                width: 32,
+                height: 32,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: comment.isLiked
+                      ? AppColors.accentRed.withValues(alpha: 0.1)
+                      : Colors.transparent,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  comment.isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                  color: comment.isLiked ? AppColors.accentRed : Colors.grey.shade500,
+                  size: 18,
+                ),
               ),
             ),
           ),
@@ -618,15 +898,13 @@ class _CommentItem extends StatelessWidget {
   }
 
   Color _avatarColor(String name) {
-    final colors = [
-      const Color(0xFF4CAF50),
-      const Color(0xFF2196F3),
-      const Color(0xFFFF9800),
-      const Color(0xFF9C27B0),
-      const Color(0xFFE91E63),
-      const Color(0xFF00BCD4),
-      const Color(0xFF795548),
-      const Color(0xFF607D8B),
+    const colors = [
+      AppColors.primaryOrange,
+      AppColors.primaryOrangeLight,
+      AppColors.success,
+      AppColors.primaryOrangeLight,
+      AppColors.accentBrown,
+      AppColors.accentRed,
     ];
     if (name.isEmpty) return colors[0];
     return colors[name.codeUnitAt(0) % colors.length];

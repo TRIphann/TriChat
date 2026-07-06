@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/config/app_colors.dart';
 
 class GroupItemWidget extends StatelessWidget {
   final String name;
@@ -25,9 +26,9 @@ class GroupItemWidget extends StatelessWidget {
         child: ListTile(
           // Tăng padding vertical để đồng bộ với nút "Tạo nhóm"
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          leading: const CircleAvatar(
+          leading: CircleAvatar(
             radius: 26, 
-            backgroundColor: Color(0xFFE0E0E0),
+            backgroundColor: AppColors.borderGray,
             // child: Icon(Icons.groups, color: Colors.white), // Có thể thêm icon mặc định
           ),
           title: Text(
