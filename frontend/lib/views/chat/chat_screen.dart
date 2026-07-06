@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
@@ -1144,7 +1146,18 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       source: ImageSource.gallery,
       imageQuality: 85,
     );
-    if (image != null) _sendImage(File(image.path));
+    if (image != null) {
+      if (kIsWeb) {
+        // Trên web, XFile.path là blob URL; gửi ảnh qua REST với byte payload
+        // cần một endpoint riêng — chưa được thêm vào backend. Tạm thời báo
+        // cho người dùng biết để tránh lỗi runtime.
+        if (mounted) {
+          _showInfo('Gửi ảnh từ trình duyệt web đang được phát triển');
+        }
+      } else {
+        _sendImage(File(image.path));
+      }
+    }
   }
 
   void _pickImageFromCamera() async {
@@ -1153,7 +1166,17 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       source: ImageSource.camera,
       imageQuality: 85,
     );
-    if (image != null) _sendImage(File(image.path));
+    if (image != null) {
+      if (kIsWeb) {
+        // Camera capture on web is not available in all browsers (e.g. iOS Safari);
+        // gallery fallback is handled by _pickImageFromGallery instead.
+        if (mounted) {
+          _showInfo('Chụp ảnh từ web chưa hỗ trợ — vui lòng chọn từ thư viện');
+        }
+      } else {
+        _sendImage(File(image.path));
+      }
+    }
   }
 
   void _sendImage(File imageFile) {
@@ -1173,8 +1196,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final picker = ImagePicker();
     final video = await picker.pickVideo(source: ImageSource.gallery);
     if (video != null) {
-      // TODO: Upload and send
-      _showInfo('Đang gửi video...');
+      if (kIsWeb) {
+        // Web: video blob URL — chuyển sang byte nếu cần.
+        // TODO: stream upload qua backend rồi Cloudinary.
+        _showInfo('Video từ web đang được phát triển');
+      } else {
+        // TODO: Upload and send
+        _showInfo('Đang gửi video...');
+      }
     }
   }
 
@@ -1289,16 +1318,25 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       }
 
       // 2. Chuẩn bị đường dẫn lưu file ghi âm tạm thời (.m4a)
-      final tempDir = await getTemporaryDirectory();
-      final path =
-          '${tempDir.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
-      debugPrint('[ChatScreen] Target path for temp audio file: $path');
+      //    Web: truyền path = null để record dùng MediaRecorder + trả về blob URL.
+      String? path;
+      if (!kIsWeb) {
+        final tempDir = await getTemporaryDirectory();
+        path =
+            '${tempDir.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
+      }
+      debugPrint('[ChatScreen] Target path for temp audio file: ${path ?? "<web-blob>"}');
 
       // 3. Khởi chạy ghi âm
       if (await _audioRecorder.hasPermission()) {
+        // `record` yêu cầu `path` là required named param. Trên web nó chỉ là
+        // tên blob; backend sẽ nhận file blob riêng nên path không quan trọng.
+        final effectivePath = kIsWeb
+            ? 'audio_${DateTime.now().millisecondsSinceEpoch}.webm'
+            : path!;
         await _audioRecorder.start(
           const RecordConfig(encoder: AudioEncoder.aacLc),
-          path: path,
+          path: effectivePath,
         );
         debugPrint('[ChatScreen] AudioRecorder successfully started recording');
 
@@ -1342,7 +1380,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _recordingTimer?.cancel();
       final path = await _audioRecorder.stop();
       debugPrint('[ChatScreen] AudioRecorder stopped. Temp path: $path');
-      if (path != null) {
+      if (path != null && !kIsWeb) {
+        // Web trả về blob URL — không cần xoá file tạm.
         final file = File(path);
         if (await file.exists()) {
           await file.delete();
@@ -1377,22 +1416,31 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       });
 
       if (path != null && finalDuration > 0) {
-        final file = File(path);
-        if (await file.exists()) {
-          debugPrint(
-            '[ChatScreen] File exists at $path. Triggering sendAudioMessage on ChatProvider. Duration: $finalDuration',
-          );
-          if (!mounted) return;
-          // Gửi tin nhắn thoại thông qua ChatProvider
-          await context.read<ChatProvider>().sendAudioMessage(
-            file,
-            finalDuration,
-          );
-          _scrollToBottom();
+        if (kIsWeb) {
+          // Trên web, `path` là blob URL. Upload trực tiếp qua cloudinary
+          // qua provider hỗ trợ bytes. Tạm thời thông báo để người dùng
+          // biết là chưa hỗ trợ (sẽ implement khi cần).
+          if (mounted) {
+            _showInfo('Gửi tin nhắn thoại từ web đang được phát triển');
+          }
         } else {
-          throw Exception(
-            'Không tìm thấy tệp ghi âm tạm thời sau khi dừng ghi.',
-          );
+          final file = File(path);
+          if (await file.exists()) {
+            debugPrint(
+              '[ChatScreen] File exists at $path. Triggering sendAudioMessage on ChatProvider. Duration: $finalDuration',
+            );
+            if (!mounted) return;
+            // Gửi tin nhắn thoại thông qua ChatProvider
+            await context.read<ChatProvider>().sendAudioMessage(
+              file,
+              finalDuration,
+            );
+            _scrollToBottom();
+          } else {
+            throw Exception(
+              'Không tìm thấy tệp ghi âm tạm thời sau khi dừng ghi.',
+            );
+          }
         }
       } else {
         debugPrint(

@@ -120,23 +120,50 @@ Before installation, make sure the following software is installed:
 | Flutter SDK                       | 3.41.9          | [flutter.dev](https://flutter.dev/docs/get-started/install)              |
 | Dart SDK                          | 3.11.5          | (Bundled with Flutter SDK)                                               |
 | .NET SDK                          | 8.0             | [dotnet.microsoft.com](https://dotnet.microsoft.com/download/dotnet/8.0) |
-| Redis Server                      | 7.x             | See installation guide below                                             |
+| Docker Desktop                    | 4.x             | [docker.com](https://www.docker.com/products/docker-desktop/)            |
 | Android Studio / VS Code          | Latest          | Development IDE                                                          |
 | Android Emulator or physical device | Android 6.0+  | Run mobile application                                                   |
 
-### Installing Redis Server on Docker Desktop
+### Quick choice — local dev with Docker (recommended)
 
-#### Install Docker Desktop
-
-Install Docker Desktop (https://docs.docker.com/desktop/setup/install/windows-install/) — Note: Choose the appropriate OS version.
-
-Run the following command in Terminal or Command Prompt:
+If you only have Docker installed, you can bring up the backend + Redis with one command:
 
 ```bash
-docker run -d -p 6379:6379 redis
+cp .env.example .env                                    # fill in Firebase + Cloudinary + Groq + SMTP
+pwsh scripts/encode-firebase-key.ps1                    # paste base64 into .env
+docker compose up --build                               # backend ↦ :5244, redis ↦ :6379
 ```
 
-After running the command above, open Docker Desktop, select Redis, and ensure the status is "Running".
+### Quick choice — Flutter Web on desktop
+
+```bash
+cd frontend
+flutter pub get
+flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:5244
+```
+
+### Quick choice — local dev with Docker Compose
+
+If you don't want to install the .NET SDK or Redis on your host, the entire
+backend runs in a single command from the **repo root**:
+
+```bash
+cp .env.example .env
+# edit .env — fill FIREBASE_PROJECT_ID, _BASE64, REDIS, CLOUDINARY, GROQ, SMTP
+pwsh scripts/encode-firebase-key.ps1   # base64-encode your serviceAccountKey.json
+docker compose up --build
+```
+
+- Backend ↦ `http://localhost:5244` (Swagger: `/swagger`)
+- Redis ↦ `localhost:6379`
+- Same code path as production; the entrypoint synthesises `appsettings.json`
+  from environment variables.
+
+### Production-style deployment to the public web
+
+See **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** for full instructions on:
+Render.com (free), Railway.app, Firebase Hosting + Render, and a self-managed
+VPS. The same `Dockerfile` and `.env.example` work for all four.
 
 ---
 

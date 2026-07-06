@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_callkeep/flutter_callkeep.dart';
@@ -79,7 +80,7 @@ class ChatListViewState extends State<ChatListView> {
       }
 
       if (mounted) CallNotificationService.checkPendingCall(_handleFcmCall);
-      _pollActiveCalls();
+      if (!kIsWeb) _pollActiveCalls();
       MessageNotificationService.onNotificationTap = _openConversationById;
       MessageNotificationService.checkInitialMessage();
     });
