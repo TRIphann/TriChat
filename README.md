@@ -1,5 +1,7 @@
 # 💬 TriChat — Messaging Application
 
+**🌐 Live Web App:** [https://trichatt.netlify.app/](https://trichatt.netlify.app/)
+
 ---
 
 ## 📝 Project Description
@@ -8,10 +10,23 @@
 
 | Component      | Description                         | Technology                   |
 | -------------- | ----------------------------------- | ---------------------------- |
+| **frontend/**  | Mobile + Web Messaging Application  | Flutter / Dart               |
 | **backend/**   | REST API & WebSocket Server         | ASP.NET Core 8.0 (C#)       |
-| **frontend/**  | Mobile Application (Android/iOS)    | Flutter / Dart               |
-| **web_admin/** | Admin Dashboard                     | Flutter Web                  |
+| **web_admin/** | Admin Dashboard (local dev only)    | Flutter Web                  |
 | **functions/** | Cloud Functions (Push Notification) | Firebase Functions (Node.js) |
+
+> **🚀 Deployment:** The **frontend** (the messaging app) has been deployed as a Flutter Web build to **[https://trichatt.netlify.app/](https://trichatt.netlify.app/)**. The `web_admin/` dashboard is **not** deployed — it is intended for local development only. See the [Deployment](#-deployment) section for details.
+
+---
+
+## 🌐 Live Demo
+
+| App                       | URL                                                                            | Platform             |
+| ------------------------- | ------------------------------------------------------------------------------ | -------------------- |
+| **TriChat Messaging App** | **[https://trichatt.netlify.app/](https://trichatt.netlify.app/)**             | Flutter Web (Netlify) |
+| Android Mobile            | Build APK from source (see [Build APK Guide](#-build-apk-guide-android))       | Android (Flutter)    |
+
+> `web_admin/` is a developer/admin tool and is **not deployed** — run it locally with `cd web_admin && flutter run -d chrome`.
 
 ---
 
@@ -303,6 +318,221 @@ flutter run -d chrome
 ```
 
 > Web Admin will open at: `http://localhost:xxxx` (port is automatically assigned by Flutter)
+
+> **Production build:** To deploy to Netlify or another static host, see the [Deployment](#-deployment) section below.
+
+---
+
+## 🌐 Deployment
+
+The TriChat **messaging app** (`frontend/`, Flutter Web build) has been deployed to **[https://trichatt.netlify.app/](https://trichatt.netlify.app/)**.
+
+The `web_admin/` dashboard is **not deployed** anywhere — it is a developer tool meant to be run locally with `flutter run -d chrome`. It talks directly to Firestore and is only useful during development.
+
+### Deploy the Frontend (Messaging App) to Netlify
+
+1. **Build the web bundle:**
+   ```bash
+   cd frontend
+   flutter pub get
+   flutter build web --release --dart-define=API_BASE_URL=https://your-backend.example.com
+   ```
+   The build output is generated in `frontend/build/web/`.
+
+2. **Create `_redirects` file** in `frontend/build/web/` (required for SPA routing) with the content:
+   ```
+   /*    /index.html   200
+   ```
+
+3. **Deploy to Netlify:**
+   - Drag-and-drop the `frontend/build/web/` folder to Netlify Drop, OR
+   - Connect your Git repo on Netlify and set:
+     - **Base directory:** `frontend`
+     - **Build command:** `flutter build web --release --dart-define=API_BASE_URL=https://your-backend.example.com`
+     - **Publish directory:** `frontend/build/web`
+   - Add environment variables in Netlify dashboard if you read them via `--dart-define-from-file`:
+     - `API_BASE_URL`, `AGORA_APP_ID`, `AGORA_APP_CERTIFICATE`
+
+4. **Firebase Hosting (alternative):**
+   ```bash
+   cd frontend
+   firebase init hosting    # set public = build/web
+   flutter build web --release
+   firebase deploy --only hosting
+   ```
+
+> **Important:** Since the SPA runs entirely in the browser, the backend must be reachable from public networks and the `API_BASE_URL` baked into the build must be a publicly accessible URL (not `localhost` or `10.0.2.2`). SignalR hubs require the backend to support WebSocket connections — confirm your host does.
+
+### Run Web Admin Locally (Not Deployed)
+
+```bash
+cd web_admin
+flutter pub get
+flutter run -d chrome
+```
+
+### Deploy the Backend
+
+The backend (`backend/`) ships with a production-ready `Dockerfile` and `docker-compose.yml`. Deploy to any container host (Render, Railway, Fly.io, a $4 VPS, etc.) with:
+
+```bash
+docker compose up --build
+```
+
+Configure the environment variables listed in the **Quick choice — local dev with Docker Compose** section above.
+
+### Deploy Firebase Cloud Functions
+
+```bash
+cd functions
+npm install
+firebase deploy --only functions
+```
+
+> **Note:** The `web_admin/` dashboard is intentionally **not** part of the public deployment — it's a developer/admin tool. Only `frontend/` (the messaging app) is published.
+
+---
+
+## 📦 Build APK Guide (Android)
+
+This guide walks you through building a release APK for the Flutter mobile app (`frontend/`).
+
+### Prerequisites
+
+| Tool                | Version  | Purpose                          |
+| ------------------- | -------- | -------------------------------- |
+| Flutter SDK         | 3.41.9+  | Build the app                    |
+| Android SDK         | Latest   | Android build platform           |
+| Java JDK            | 17+      | Required by Gradle               |
+| Android Studio      | Latest   | SDK Manager, device/emulator     |
+
+> Verify with: `flutter doctor` — resolve any red errors before proceeding.
+
+### Step 1: Configure `frontend/.env`
+
+Before building the APK, make sure your `.env` file in `frontend/` has the correct backend URL. For a real device, point it at your public backend (or LAN IP):
+
+```env
+API_BASE_URL=https://your-backend.example.com
+AGORA_APP_ID=<your-agora-app-id>
+AGORA_APP_CERTIFICATE=<your-agora-app-certificate>
+```
+
+> If you skip `API_BASE_URL`, the app defaults to `http://10.0.2.2:5244` (Android emulator only).
+
+### Step 2: Get Dependencies
+
+```bash
+cd frontend
+flutter pub get
+```
+
+### Step 3: Build a Debug APK (Quick Test)
+
+```bash
+flutter build apk --debug
+```
+
+Output: `frontend/build/app/outputs/flutter-apk/app-debug.apk`
+
+### Step 4: Build a Release APK (Production)
+
+#### Option A — Quick release (uses debug signing key)
+
+Suitable for internal testing only. Not for the Play Store.
+
+```bash
+flutter build apk --release
+```
+
+Output: `frontend/build/app/outputs/flutter-apk/app-release.apk`
+
+#### Option B — Signed release APK (recommended for distribution)
+
+1. **Generate a keystore** (one-time):
+   ```bash
+   keytool -genkey -v -keystore android/app/trichat-release.jks ^
+     -keyalg RSA -keysize 2048 -validity 10000 ^
+     -alias trichat
+   ```
+   > Save the keystore file and passwords securely. **If you lose them, you cannot update your app on the Play Store.**
+
+2. **Create `frontend/android/key.properties`:**
+   ```properties
+   storePassword=<your-store-password>
+   keyPassword=<your-key-password>
+   keyAlias=trichat
+   storeFile=trichat-release.jks
+   ```
+
+3. **Update `frontend/android/app/build.gradle.kts`** — replace the `buildTypes` block:
+   ```kotlin
+   import java.util.Properties
+   import java.io.FileInputStream
+
+   val keystoreProperties = Properties().apply {
+       val f = rootProject.file("key.properties")
+       if (f.exists()) load(FileInputStream(f))
+   }
+
+   android {
+       // ... existing config ...
+
+       signingConfigs {
+           create("release") {
+               keyAlias = keystoreProperties["keyAlias"] as String
+               keyPassword = keystoreProperties["keyPassword"] as String
+               storeFile = file(keystoreProperties["storeFile"] as String)
+               storePassword = keystoreProperties["storePassword"] as String
+           }
+       }
+
+       buildTypes {
+           release {
+               signingConfig = signingConfigs.getByName("release")
+               isMinifyEnabled = true
+               isShrinkResources = true
+           }
+       }
+   }
+   ```
+
+4. **Build the signed APK:**
+   ```bash
+   flutter build apk --release
+   ```
+
+5. **Build split APKs per ABI** (smaller file size per device):
+   ```bash
+   flutter build apk --release --split-per-abi
+   ```
+   This produces `app-armeabi-v7a-release.apk`, `app-arm64-v8a-release.apk`, `app-x86_64-release.apk`.
+
+6. **Build an Android App Bundle** (for Google Play Store):
+   ```bash
+   flutter build appbundle --release
+   ```
+   Output: `frontend/build/app/outputs/bundle/release/app-release.aab`
+
+### Step 5: Install the APK on a Device
+
+```bash
+# Via ADB
+adb install build/app/outputs/flutter-apk/app-release.apk
+
+# Or transfer the .apk file to the phone and tap to install
+# (you may need to enable "Install from unknown sources" in Settings)
+```
+
+### Common Issues
+
+| Problem                                          | Solution                                                                              |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| `Execution failed for task ':app:minifyEnabled'` | The release build uses R8/ProGuard; check `proguard-rules.pro` if you have one.      |
+| `Could not find method isMinifyEnabled()`        | Upgrade AGP: `android/settings.gradle.kts` should have AGP ≥ 7.0.                     |
+| `flutter_dotenv` not loading in release          | Ensure `.env` is listed in `pubspec.yaml` under `flutter.assets:` (already configured). |
+| App can't reach backend                          | Use the public backend URL in `frontend/.env` (`API_BASE_URL=https://...`), not `localhost`. |
+| Network errors with `cleartext` traffic          | Add `android:usesCleartextTraffic="true"` in `AndroidManifest.xml` (HTTP only) or use HTTPS. |
 
 ---
 

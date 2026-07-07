@@ -1,0 +1,106 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(userId);
+      match /{document=**} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    match /conversations/{conversationId} {
+      // Participant mới đọc/ghi conversation
+      allow read, write: if isSignedIn()
+        && request.auth.uid in resource.data.participant_ids;
+
+      match /messages/{messageId} {
+        allow read: if isSignedIn()
+          && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participant_ids;
+
+        // Participant mới được gửi tin nhắn, và phải ghi sender_id = chính mình
+        allow create: if isSignedIn()
+          && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participant_ids
+          && request.resource.data.sender_id == request.auth.uid;
+
+        // Chỉ người gửi mới được sửa/xoá tin nhắn của mình
+        allow update, delete: if isSignedIn()
+          && resource.data.sender_id == request.auth.uid;
+      }
+    }
+
+    match /feeds/{feedId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.user_id == request.auth.uid;
+      allow update, delete: if isSignedIn()
+        && resource.data.user_id == request.auth.uid;
+    }
+
+    match /friendships/{friendshipId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      // Chỉ 2 bên liên quan mới được update friendship (accept/decline/block)
+      allow update: if isSignedIn()
+        && (resource.data.sender_id == request.auth.uid
+          || resource.data.addressee_id == request.auth.uid);
+      allow delete: if isSignedIn()
+        && (resource.data.sender_id == request.auth.uid
+          || resource.data.addressee_id == request.auth.uid);
+    }
+
+    // Admin-only collections
+    match /admin_notifications/{notifId} {
+      // Bất kỳ user đăng nhập nào cũng có thể đọc thông báo gửi cho mình
+      allow read: if isSignedIn()
+        && (resource.data.target_audience == 'all'
+          || resource.data.target_user_id == request.auth.uid);
+      // Chỉ admin tạo/cập nhật
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if false; // chỉ tạo thủ công trong console
+    }
+
+    match /feedbacks/{feedbackId} {
+      allow create: if isSignedIn();
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /hidden_posts/{postId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /reports/{reportId} {
+      allow create: if isSignedIn();
+      allow read, update, delete: if isAdmin();
+    }
+
+    // FCM tokens collection (chat_provider lưu token ở đây)
+    match /fcm_tokens/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // User settings / typing indicators (tuỳ chọn)
+    match /typing/{conversationId} {
+      allow read, write: if isSignedIn();
+    }
+  }
+}

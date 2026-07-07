@@ -89,10 +89,16 @@ builder.Services.AddSwaggerGen(options =>
     options.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
 });
 
-builder.Services.AddSignalR()
-    .AddJsonProtocol(opts =>
-        opts.PayloadSerializerOptions.PropertyNamingPolicy =
-            System.Text.Json.JsonNamingPolicy.SnakeCaseLower);
+// CORS — allow Netlify SPA and SignalR WebSocket connections
+var allowedOrigins = builder.Environment.IsDevelopment()
+    ? new[] {
+        "http://localhost:5000", "http://localhost:5244",
+        "http://127.0.0.1:5000", "http://127.0.0.1:5244"
+      }
+    : new[] {
+        "https://trichatt.netlify.app",
+        "https://www.trichatt.netlify.app"
+      };
 
 builder.Services.AddCors(opt =>
 {
@@ -100,9 +106,18 @@ builder.Services.AddCors(opt =>
         policy
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .SetIsOriginAllowed(_ => true)
+            .WithOrigins(allowedOrigins)
             .AllowCredentials());
 });
+
+// SignalR — configured with larger message size for web
+builder.Services.AddSignalR(opts =>
+{
+    opts.MaximumReceiveMessageSize = 102400; // 100 KB
+})
+    .AddJsonProtocol(opts =>
+        opts.PayloadSerializerOptions.PropertyNamingPolicy =
+            System.Text.Json.JsonNamingPolicy.SnakeCaseLower);
 
 var app = builder.Build();
 

@@ -1,12 +1,12 @@
 {
-    "name": "frontend",
-    "short_name": "frontend",
+    "name": "TriChat",
+    "short_name": "TriChat",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#FFFFFF",
+    "theme_color": "#F26101",
+    "description": "TriChat - Real-time messaging application",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {

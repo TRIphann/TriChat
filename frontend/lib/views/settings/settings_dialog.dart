@@ -52,11 +52,14 @@ class _SettingsDialogState extends State<SettingsDialog> {
           valueListenable: localeNotifier,
           builder: (context, locale, _) {
             final t = AppLocalizations(locale);
+            final screenSize = MediaQuery.of(context).size;
+            final dialogWidth = screenSize.width * 0.85 > 680 ? 680 : screenSize.width * 0.85;
+            final dialogHeight = screenSize.height * 0.85 > 480 ? 480 : screenSize.height * 0.85;
             return Dialog(
               backgroundColor: Colors.transparent,
               child: Container(
-                width: 680,
-                height: 480,
+                width: dialogWidth,
+                height: dialogHeight,
                 decoration: BoxDecoration(
                   color: AppColors.getSurface(isDark),
                   borderRadius: BorderRadius.circular(8),
@@ -128,8 +131,9 @@ class _SettingsDialogState extends State<SettingsDialog> {
   }
 
   Widget _buildLeftMenu(AppLocalizations t, bool isDark) {
+    final menuWidth = MediaQuery.of(context).size.width * 0.22;
     return Container(
-      width: 200,
+      width: menuWidth > 200 ? 200 : menuWidth,
       padding: const EdgeInsets.symmetric(vertical: 8),
       color: isDark ? AppColors.neutralBlack : null,
       child: Column(

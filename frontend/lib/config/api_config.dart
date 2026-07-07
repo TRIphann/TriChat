@@ -5,40 +5,51 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 /// Centralised API endpoint resolution.
 ///
 /// Priority (highest first):
-///   1. `--dart-define=API_BASE_URL=...`               (used by Docker/CI/build)
-///   2. `API_BASE_URL` from `.env`                     (mobile dev only)
-///   3. `window.location.origin`  when `kIsWeb`        (same-host deploy — Firebase Hosting → /api/* rewrite)
-///   4. `http://10.0.2.2:5244` for Android emulator    (dev machine localhost)
-///   5. `http://localhost:5244`  otherwise             (iOS simulator / desktop / older web default)
+///   1. `--dart-define=API_BASE_URL=...`   (used by Netlify/CI/build)
+///   2. `API_BASE_URL` from `.env`           (mobile/desktop dev)
+///   3. `window.location.origin`  when web    (same-host SPA deploy)
+///   4. `http://10.0.2.2:5244` Android emulator
+///   5. `http://localhost:5244`  otherwise
 class ApiConfig {
   static String get baseUrl {
-    const dartDefine = String.fromEnvironment('API_BASE_URL');
-    if (dartDefine.isNotEmpty) return dartDefine;
+    // 1. Dart define (always available — set at build time)
+    const defined = String.fromEnvironment('API_BASE_URL');
+    if (defined.isNotEmpty) return defined;
 
-    final envUrl = dotenv.env['API_BASE_URL'];
+    // 2. .env — guard against NotInitializedError on web
+    final envUrl = _tryGetDotenv('API_BASE_URL');
     if (envUrl != null && envUrl.isNotEmpty) return envUrl;
 
+    // 3. Web: use same origin as the browser
     if (kIsWeb) {
-      // On web, "localhost" is the user's browser. The SPA is usually deployed
-      // behind the same origin as the backend (e.g. Firebase Hosting rewrites
-      // /api/* and /hubs/* to the ASP.NET Core service), so default to the
-      // current origin which will work out-of-the-box.
-      try {
-        // ignore: avoid_web_libraries_in_flutter
-        return _webOrigin();
-      } catch (_) {
-        return 'http://localhost:5244';
-      }
+      return _webOrigin();
     }
+
+    // 4. Mobile / desktop defaults
     if (Platform.isAndroid) return 'http://10.0.2.2:5244';
     return 'http://localhost:5244';
   }
 
+  /// SignalR hub base URL — same as baseUrl but without the trailing path.
+  /// For web, SignalR must use the same WebSocket scheme (wss:// if https).
+  static String get hubUrl => baseUrl;
+
+  /// Web origin helper — reads window.location.origin safely.
   static String _webOrigin() {
-    // We cannot import dart:html on non-web platforms. Guarded by kIsWeb at
-    // the call site, so this body is only reached in the browser.
-    // Keep the helper tiny and defensive.
-    // ignore: avoid_web_libraries_in_flutter
-    return Uri.base.origin;
+    try {
+      return Uri.base.origin;
+    } catch (_) {
+      return 'http://localhost:5244';
+    }
+  }
+
+  /// Read a dotenv key safely. Returns null if dotenv is not loaded yet
+  /// (which happens on web because we skip dotenv.load() there).
+  static String? _tryGetDotenv(String key) {
+    try {
+      return dotenv.env[key];
+    } catch (_) {
+      return null;
+    }
   }
 }
