@@ -1,10 +1,7 @@
 [build]
-  base    = "frontend"
-  command = "flutter build web --release"
-  publish = "build/web"
-
-[[plugins]]
-  package = "@nicholasmireles/flutter-build-static-assets"
+  base    = "."
+  command = "curl -fsSL https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.24.0-stable.tar.xz | tar xJ && export PATH=\"$PWD/flutter/bin:$PATH\" && cd frontend && flutter pub get && flutter build web --release"
+  publish = "frontend/build/web"
 
 [environment]
   API_BASE_URL = "https://trichat.onrender.com"
