@@ -1,6 +1,6 @@
 [build]
   base    = "frontend"
-  command = "rm -rf .flutter && git clone --depth 1 https://github.com/flutter/flutter.git .flutter 2>&1 && export PATH=\"$PWD/.flutter/bin:$PATH\" && flutter precache --web && flutter pub get && flutter build web --release"
+  command = "bash -c 'rm -rf .flutter && git clone --depth 1 https://github.com/flutter/flutter.git .flutter && .flutter/bin/flutter precache --web && .flutter/bin/flutter pub get && .flutter/bin/flutter build web --release'"
   publish = "build/web"
 
 [environment]
