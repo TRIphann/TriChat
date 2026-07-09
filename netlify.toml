@@ -4,7 +4,8 @@
   publish = "build/web"
 
 [[plugins]]
-  package = "netlify-plugin-flutter"
+  package = "@nicholasmireles/flutter-build-static-assets"
+  version = "latest"
 
-[plugins.inputs]
-  channel = "stable"
+[environment]
+  API_BASE_URL = "https://trichat.onrender.com"

@@ -546,6 +546,59 @@ public class ChatHub : Hub
 
     #endregion
 
+    #region WebRTC Signaling
+
+    /// <summary>
+    /// Caller sends SDP offer to callee (used by PeerRTC-based clients).
+    /// Relay the offer to the callee via their user group.
+    /// </summary>
+    public async Task SendOffer(string conversationId, string calleeId, string sdp)
+    {
+        var callerId = GetCurrentUserId();
+        if (callerId == null) return;
+
+        await _hubContext.Clients.Group($"user_{calleeId}").SendAsync("WebRTC Offer", new
+        {
+            conversation_id = conversationId,
+            caller_id      = callerId,
+            sdp
+        });
+    }
+
+    /// <summary>
+    /// Callee sends SDP answer back to caller (used by PeerRTC-based clients).
+    /// </summary>
+    public async Task SendAnswer(string conversationId, string callerId, string sdp)
+    {
+        var calleeId = GetCurrentUserId();
+        if (calleeId == null) return;
+
+        await _hubContext.Clients.Group($"user_{callerId}").SendAsync("WebRTC Answer", new
+        {
+            conversation_id = conversationId,
+            callee_id      = calleeId,
+            sdp
+        });
+    }
+
+    /// <summary>
+    /// Exchange ICE candidates between peers.
+    /// </summary>
+    public async Task SendIceCandidate(string conversationId, string targetUserId, string candidate)
+    {
+        var senderId = GetCurrentUserId();
+        if (senderId == null) return;
+
+        await _hubContext.Clients.Group($"user_{targetUserId}").SendAsync("WebRTC IceCandidate", new
+        {
+            conversation_id = conversationId,
+            sender_id      = senderId,
+            candidate
+        });
+    }
+
+    #endregion
+
     #region Helper Methods
 
     private async Task SendToUser(string userId, string method, object data)

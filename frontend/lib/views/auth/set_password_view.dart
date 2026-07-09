@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/component/loading_dialog.dart';
 import 'package:frontend/config/app_colors.dart';
-import 'package:frontend/services/auth_service.dart';
 import 'package:frontend/utils/validator.dart';
 import 'package:go_router/go_router.dart';
 

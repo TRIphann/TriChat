@@ -1,8 +1,5 @@
 import 'dart:async';
-import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'package:provider/provider.dart';
 import '../../../models/call_model.dart';
 import '../../../providers/call_provider.dart';
@@ -23,15 +20,13 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
   Timer? _timeoutTimer;
   int _remainingSeconds = 30;
   Timer? _countdownTimer;
-  bool _isClosing = false; // ngăn double-pop
-  late CallProvider _callProvider;
-  final AudioPlayer _webAudio = AudioPlayer(playerId: 'incoming_call_ring');
+  bool _isClosing = false;
 
   @override
   void initState() {
     super.initState();
-    _callProvider = context.read<CallProvider>();
-    _callProvider.addListener(_onCallChanged);
+    final callProvider = context.read<CallProvider>();
+    callProvider.addListener(_onCallChanged);
     _startRingtone();
     _startTimeout();
   }
@@ -40,35 +35,18 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
   void dispose() {
     _timeoutTimer?.cancel();
     _countdownTimer?.cancel();
-    if (kIsWeb) {
-      _webAudio.stop();
-      _webAudio.dispose();
-    } else {
-      FlutterRingtonePlayer().stop();
-    }
-    _callProvider.removeListener(_onCallChanged);
+    final callProvider = context.read<CallProvider>();
+    callProvider.removeListener(_onCallChanged);
     super.dispose();
   }
 
   Future<void> _startRingtone() async {
-    if (kIsWeb) {
-      // Web fallback: play a short bundled mp3 in loop (ringtone plugin is mobile-only).
-      // Place a `ringtone.mp3` under assets/ to enable this.
-      try {
-        await _webAudio.setReleaseMode(ReleaseMode.loop);
-        await _webAudio.play(AssetSource('sounds/ringtone.mp3'));
-      } catch (_) {/* silent */}
-    } else {
-      FlutterRingtonePlayer().playRingtone(looping: true);
-    }
+    // Ringtone được xử lý bởi incoming_call_screen_widget.dart
+    // hoặc hệ điều hành (CallKit/CallKeep trên mobile)
   }
 
   Future<void> _stopRingtone() async {
-    if (kIsWeb) {
-      await _webAudio.stop();
-    } else {
-      await FlutterRingtonePlayer().stop();
-    }
+    // Ringtone được xử lý bởi incoming_call_screen_widget.dart
   }
 
   void _startTimeout() {
@@ -93,13 +71,11 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
     _countdownTimer?.cancel();
     await _stopRingtone();
 
-    // Capture providers trước khi pop
     final chatProvider = context.read<ChatProvider>();
     final callProvider = context.read<CallProvider>();
 
     Navigator.of(context, rootNavigator: true).pop();
 
-    // Thực hiện action sau khi đã đóng màn hình
     action(chatProvider, callProvider);
   }
 

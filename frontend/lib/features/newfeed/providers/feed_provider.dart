@@ -171,11 +171,7 @@ class FeedProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      if (wasLiked) {
-        await FeedService.unlikePost(postId);
-      } else {
-        await FeedService.likePost(postId);
-      }
+      await FeedService.likePost(postId);
     } catch (e) {
       _allPosts[index] = post;
       notifyListeners();

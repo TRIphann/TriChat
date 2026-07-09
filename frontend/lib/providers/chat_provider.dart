@@ -144,6 +144,10 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
     signalR.onCallEnded = _onCallEnded;
     signalR.onConnectionLost = _onConnectionLost;
     signalR.onError = _onSignalRError;
+    // WebRTC signaling callbacks — CallScreen sẽ gán handler cụ thể khi bắt đầu cuộc gọi
+    signalR.onWebRtcOffer = _onWebRtcOffer;
+    signalR.onWebRtcAnswer = _onWebRtcAnswer;
+    signalR.onWebRtcIceCandidate = _onWebRtcIceCandidate;
 
     try {
       final token = await FirebaseAuth.instance.currentUser?.getIdToken(false);
@@ -1034,6 +1038,21 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
       );
     }
     callProvider.onCallEnded();
+  }
+
+  // ── WebRTC signaling stubs — CallScreen gán handler cụ thể ─────────
+
+  void _onWebRtcOffer(String conversationId, String callerId, String sdp) {
+    debugPrint('[ChatProvider] WebRTC Offer from $callerId in conv $conversationId');
+    // Handler cụ thể được gán bởi CallScreen khi bắt đầu cuộc gọi
+  }
+
+  void _onWebRtcAnswer(String conversationId, String calleeId, String sdp) {
+    debugPrint('[ChatProvider] WebRTC Answer from $calleeId in conv $conversationId');
+  }
+
+  void _onWebRtcIceCandidate(String conversationId, String senderId, String candidate) {
+    debugPrint('[ChatProvider] WebRTC ICE from $senderId in conv $conversationId');
   }
 
   Future<void> initiateCall({

@@ -212,8 +212,8 @@ maintainer — the exact steps depend on which platform you pick.
 ### Step 1: Clone the project
 
 ```bash
-git clone https://github.com/TRIphann/ZaloLite.git
-cd ZaloLite
+git clone https://github.com/TRIphann/TriChat.git
+cd TriChat
 ```
 
 ### Step 2: Configure required environment variables (the project will not run without these)
@@ -229,7 +229,7 @@ Configure the necessary files for each component:
 ## 📂 Project Structure After Setup
 
 ```
-ZaloLite/
+TriChat/
 │
 ├── backend/                          # Backend API (ASP.NET Core 8.0)
 │   ├── Controllers/                  # API Controllers
@@ -558,7 +558,7 @@ adb install build/app/outputs/flutter-apk/app-release.apk
 ## 📂 Full Project Directory Structure
 
 ```
-ZaloLite/
+TriChat/
 │
 ├── backend/                          # Backend API (ASP.NET Core 8.0)
 │   ├── Controllers/                  # API Controllers

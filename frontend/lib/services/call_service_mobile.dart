@@ -4,6 +4,7 @@ import 'package:permission_handler/permission_handler.dart';
 class CallService {
   CameraController? cameraController;
 
+  // Kiểm tra và xin quyền
   Future<bool> requestPermissions() async {
     Map<Permission, PermissionStatus> statuses = await [
       Permission.camera,
@@ -12,25 +13,13 @@ class CallService {
     return statuses[Permission.camera]!.isGranted && statuses[Permission.microphone]!.isGranted;
   }
 
-  /// Returns the best available camera (back camera preferred).
-  CameraDescription? _selectCamera(List<CameraDescription> cameras) {
-    if (cameras.isEmpty) return null;
-    // Prefer back camera
-    final back = cameras.where((c) => c.lensDirection == CameraLensDirection.back).toList();
-    if (back.isNotEmpty) return back.first;
-    // Fall back to front camera
-    final front = cameras.where((c) => c.lensDirection == CameraLensDirection.front).toList();
-    if (front.isNotEmpty) return front.first;
-    return cameras.first;
-  }
-
+  // Khởi tạo camera cho Video Call
   Future<CameraController?> initCamera() async {
     final cameras = await availableCameras();
-    final selected = _selectCamera(cameras);
-    if (selected == null) return null;
-
+    if (cameras.isEmpty) return null;
+    
     cameraController = CameraController(
-      selected,
+      cameras[1], // Camera trước
       ResolutionPreset.high,
       enableAudio: true,
     );

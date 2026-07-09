@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:frontend/apps/app_locale.dart';
 import 'package:frontend/apps/router.dart';
-import 'package:frontend/config/tri_chat_logo.dart';
 import 'package:frontend/features/friends/friends.dart';
 import 'package:frontend/features/newfeed/providers/feed_provider.dart';
 import 'package:frontend/features/newfeed/providers/story_provider.dart';

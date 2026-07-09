@@ -53,8 +53,8 @@ class _SettingsDialogState extends State<SettingsDialog> {
           builder: (context, locale, _) {
             final t = AppLocalizations(locale);
             final screenSize = MediaQuery.of(context).size;
-            final dialogWidth = screenSize.width * 0.85 > 680 ? 680 : screenSize.width * 0.85;
-            final dialogHeight = screenSize.height * 0.85 > 480 ? 480 : screenSize.height * 0.85;
+            final dialogWidth = (screenSize.width * 0.85 > 680 ? 680 : screenSize.width * 0.85).toDouble();
+            final dialogHeight = (screenSize.height * 0.85 > 480 ? 480 : screenSize.height * 0.85).toDouble();
             return Dialog(
               backgroundColor: Colors.transparent,
               child: Container(

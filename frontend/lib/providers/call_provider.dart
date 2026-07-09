@@ -37,7 +37,6 @@ class CallProvider with ChangeNotifier {
     _isVideoOff = false;
     notifyListeners();
 
-    // Timeout 30s nếu không ai bắt
     _timeoutTimer?.cancel();
     _timeoutTimer = Timer(const Duration(seconds: 30), () {
       if (_currentCall?.status == CallStatus.dialing) {
@@ -58,9 +57,8 @@ class CallProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // ── Both sides ───────────────────────────────────────────────────
+  // ── Both sides ──────────────────────────────────────────────────
 
-  /// Gọi khi đối phương chấp nhận (caller nhận CallAccepted)
   void onCallAccepted() {
     if (_currentCall == null) return;
     _timeoutTimer?.cancel();
@@ -69,7 +67,6 @@ class CallProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// Gọi khi callee bấm chấp nhận
   void acceptCall() {
     if (_currentCall == null) return;
     _timeoutTimer?.cancel();
@@ -78,23 +75,20 @@ class CallProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// Gọi khi reject
   void rejectCall() {
     _currentCall?.status = CallStatus.rejected;
     notifyListeners();
     Future.delayed(const Duration(milliseconds: 500), endCall);
   }
 
-  /// Đối phương từ chối
   void onCallRejected() {
     if (_currentCall == null) return;
-    _timeoutTimer?.cancel(); // tránh double-save nếu timer chưa kịp fire
+    _timeoutTimer?.cancel();
     _currentCall!.status = CallStatus.rejected;
     notifyListeners();
     Future.delayed(const Duration(milliseconds: 500), endCall);
   }
 
-  /// Đối phương kết thúc cuộc gọi
   void onCallEnded() {
     if (_currentCall == null) return;
     _currentCall!.status = CallStatus.ended;
@@ -107,6 +101,9 @@ class CallProvider with ChangeNotifier {
     _timeoutTimer?.cancel();
     _currentCall = null;
     _seconds = 0;
+    _isMuted = false;
+    _isSpeakerOn = false;
+    _isVideoOff = false;
     notifyListeners();
   }
 

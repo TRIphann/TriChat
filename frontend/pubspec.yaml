@@ -14,10 +14,10 @@ dependencies:
   go_router: ^17.1.0
   cupertino_icons: ^1.0.8
 
-  firebase_core: ^2.31.0
-  firebase_auth: ^4.19.0
-  cloud_firestore: ^4.17.5
-  firebase_messaging: ^14.9.4
+  firebase_core: ^3.13.0
+  firebase_auth: ^5.5.0
+  cloud_firestore: ^5.6.0
+  firebase_messaging: ^15.2.0
   flutter_local_notifications: ^17.2.4
   flutter_callkeep: ^1.0.0
   uuid: ^4.5.1
@@ -40,9 +40,10 @@ dependencies:
   intl: ^0.19.0
   image_picker: ^1.1.2
 
-  agora_rtc_engine: ^6.3.2
-  agora_token_generator: ^1.0.0
+  # video/audio call
+  flutter_webrtc: ^1.5.2
   flutter_dotenv: ^6.0.1
+  agora_token_generator: ^1.0.0
 
   qr_flutter: ^4.1.0
   mobile_scanner: ^5.2.3

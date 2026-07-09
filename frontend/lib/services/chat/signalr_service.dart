@@ -49,6 +49,11 @@ class SignalRService {
   // Mất kết nối SignalR (mất mạng/app bị tạm dừng) — dùng để kết thúc cuộc gọi cục bộ nếu đang active
   Function()? onConnectionLost;
 
+  // WebRTC signaling callbacks
+  Function(String conversationId, String callerId, String sdp)? onWebRtcOffer;
+  Function(String conversationId, String calleeId, String sdp)? onWebRtcAnswer;
+  Function(String conversationId, String senderId, String candidate)? onWebRtcIceCandidate;
+
   SignalRService({required this.baseUrl, required this.userId});
 
   Future<void> connect({String? accessToken}) async {
@@ -108,6 +113,10 @@ class SignalRService {
     _hubConnection!.on('CallRejected', (args) => _handleCallRejected(args));
     _hubConnection!.on('CallEnded', (args) => _handleCallEnded(args));
     _hubConnection!.onreconnecting(({error}) => onConnectionLost?.call());
+    // WebRTC signaling handlers
+    _hubConnection!.on('WebRTC Offer', (args) => _handleWebRtcOffer(args));
+    _hubConnection!.on('WebRTC Answer', (args) => _handleWebRtcAnswer(args));
+    _hubConnection!.on('WebRTC IceCandidate', (args) => _handleWebRtcIceCandidate(args));
 
     await _hubConnection!.start();
     debugPrint('SignalR Connected');
@@ -495,6 +504,38 @@ class SignalRService {
     onCallEnded?.call(d['conversation_id'] ?? '');
   }
 
+  // ── WebRTC Signaling handlers ──────────────────────────────────────
+
+  void _handleWebRtcOffer(List<Object?>? args) {
+    if (args == null || args.isEmpty) return;
+    final d = _toMap(args[0]);
+    onWebRtcOffer?.call(
+      d['conversation_id'] ?? '',
+      d['caller_id'] ?? '',
+      d['sdp'] ?? '',
+    );
+  }
+
+  void _handleWebRtcAnswer(List<Object?>? args) {
+    if (args == null || args.isEmpty) return;
+    final d = _toMap(args[0]);
+    onWebRtcAnswer?.call(
+      d['conversation_id'] ?? '',
+      d['callee_id'] ?? '',
+      d['sdp'] ?? '',
+    );
+  }
+
+  void _handleWebRtcIceCandidate(List<Object?>? args) {
+    if (args == null || args.isEmpty) return;
+    final d = _toMap(args[0]);
+    onWebRtcIceCandidate?.call(
+      d['conversation_id'] ?? '',
+      d['sender_id'] ?? '',
+      d['candidate'] ?? '',
+    );
+  }
+
   // ── Helpers ─────────────────────────────────────────────────────
 
   // signalr_netcore có thể trả về Map<Object?, Object?> thay vì Map<String, dynamic>
@@ -543,5 +584,10 @@ class SignalRService {
 
   Future<void> endCallSignal(String conversationId, String otherUserId) async {
     await _hubConnection?.send('EndCall', args: [conversationId, otherUserId]);
+  }
+
+  /// Generic send — used for WebRTC signaling (SendOffer, SendAnswer, SendIceCandidate).
+  Future<void> send(String method, {required List<Object> args}) async {
+    await _hubConnection?.send(method, args: args);
   }
 }

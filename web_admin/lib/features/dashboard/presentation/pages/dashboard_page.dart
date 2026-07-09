@@ -331,7 +331,7 @@ class _FriendshipPieChartState extends State<_FriendshipPieChart> {
     final accepted = widget.stats.totalAccepted.toDouble();
     final pending = ((widget.stats.totalFriendships - widget.stats.totalAccepted)
         .toDouble()
-        .clamp(0.0, double.infinity)) as double;
+        .clamp(0.0, double.infinity));
 
     return SectionCard(
       title: 'Friendship Status',

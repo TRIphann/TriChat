@@ -1,9 +1,7 @@
-import 'package:agora_rtc_engine/agora_rtc_engine.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_callkeep/flutter_callkeep.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:provider/provider.dart';
-import '/../config/agora_config.dart';
 import '../../../models/call_model.dart';
 import '../../../providers/call_provider.dart';
 import '../../../providers/chat_provider.dart';
@@ -19,95 +17,222 @@ class CallScreen extends StatefulWidget {
 }
 
 class _CallScreenState extends State<CallScreen> {
-  late RtcEngine _engine;
-  late String _channelName;
-  int? _remoteUid;
-  bool _localJoined = false;
-  bool _hasPopped = false; // chống double-pop
+  bool _hasPopped = false;
+  bool _remoteStreamReady = false;
+
+  RTCPeerConnection? _pc;
+  MediaStream? _localStream;
+  MediaStream? _remoteStream;
+  final RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
+  final RTCVideoRenderer _localRenderer = RTCVideoRenderer();
+  bool _rendererInited = false;
 
   @override
   void initState() {
     super.initState();
-    final call = widget.call;
-    _channelName = AgoraConfig.generateChannelName(call.callerId, call.calleeId);
-    _initAgora().catchError((e) {
-      debugPrint('[Agora] _initAgora failed: $e');
-    });
+    _initRenderers();
   }
 
-  Future<void> _initAgora() async {
-    await [Permission.camera, Permission.microphone].request();
+  Future<void> _initRenderers() async {
+    await _remoteRenderer.initialize();
+    await _localRenderer.initialize();
+    if (mounted) setState(() => _rendererInited = true);
+    await _initPeerConnection();
+  }
 
-    _engine = createAgoraRtcEngine();
-    await _engine.initialize(RtcEngineContext(appId: AgoraConfig.appId));
+  Future<void> _initPeerConnection() async {
+    final call = widget.call;
 
-    _engine.registerEventHandler(
-      RtcEngineEventHandler(
-        onJoinChannelSuccess: (conn, elapsed) {
-          debugPrint('[Agora] joinChannel success — channel=${conn.channelId} uid=${conn.localUid}');
-          setState(() => _localJoined = true);
-        },
-        onUserJoined: (_, uid, __) {
-          debugPrint('[Agora] remote user joined: uid=$uid');
-          setState(() => _remoteUid = uid);
-        },
-        onUserOffline: (_, uid, __) {
-          debugPrint('[Agora] remote user offline: uid=$uid');
-          setState(() => _remoteUid = null);
-          _onRemoteLeft();
-        },
-        onError: (err, msg) {
-          debugPrint('[Agora] ERROR: code=$err msg=$msg');
-        },
-      ),
+    // 1. Get local media
+    _localStream = await navigator.mediaDevices.getUserMedia(
+      call.isVideo
+          ? {'video': true, 'audio': true}
+          : {'audio': true},
     );
+    await _localRenderer.setSrcObject(stream: _localStream!);
+    if (mounted) setState(() {});
 
-    if (widget.call.isVideo) {
-      await _engine.enableVideo();
-      await _engine.startPreview();
-    } else {
-      await _engine.enableAudio();
-      await _engine.adjustRecordingSignalVolume(400);  // mic volume: 0-400, default 100
-      await _engine.adjustPlaybackSignalVolume(400);   // speaker volume: 0-400, default 100
+    // 2. Create peer connection with public STUN servers
+    _pc = await createPeerConnection({
+      'iceServers': [
+        {'urls': 'stun:stun.l.google.com:19302'},
+        {'urls': 'stun:stun1.l.google.com:19302'},
+      ],
+    });
+
+    // 3. Add local tracks to peer connection
+    for (final track in _localStream!.getTracks()) {
+      _pc!.addTrack(track, _localStream!);
     }
 
-    final token = AgoraConfig.appCertificate.isEmpty
-        ? ''
-        : AgoraConfig.generateToken(_channelName);
-    debugPrint('[Agora] joining channel=$_channelName token=${token.isEmpty ? "(empty)" : "${token.substring(0, 20)}..."}');
+    // 4. Listen for remote tracks
+    _pc!.onTrack = (RTCTrackEvent event) {
+      if (event.streams.isNotEmpty) {
+        _remoteStream = event.streams[0];
+        _remoteRenderer.setSrcObject(stream: _remoteStream);
+        if (mounted) {
+          setState(() => _remoteStreamReady = true);
+        }
+      }
+    };
 
-    await _engine.joinChannel(
-      token: token,
-      channelId: _channelName,
-      uid: 0,
-      options: ChannelMediaOptions(
-        publishCameraTrack: widget.call.isVideo,
-        publishMicrophoneTrack: true,
-        clientRoleType: ClientRoleType.clientRoleBroadcaster,
-      ),
+    // 5. Gather ICE candidates and send via SignalR
+    _pc!.onIceCandidate = (RTCIceCandidate candidate) {
+      _sendIceCandidate(candidate);
+    };
+
+    // 6. Listen for ICE connection state changes
+    _pc!.onIceConnectionState = (RTCIceConnectionState state) {
+      debugPrint('[PeerConnection] ICE state: $state');
+      if (state == RTCIceConnectionState.RTCIceConnectionStateFailed) {
+        debugPrint('[PeerConnection] ICE failed — retry with new candidates');
+        _pc?.restartIce();
+      }
+    };
+
+    // 7. Register WebRTC signaling handlers from SignalR
+    _registerSignalingHandlers();
+
+    // 8. Initiate or respond based on call direction
+    if (call.isIncoming) {
+      // Callee: wait for offer (already received via IncomingCall signal)
+    } else {
+      // Caller: create offer and send
+      await _createOffer();
+    }
+  }
+
+  void _registerSignalingHandlers() {
+    final chatProvider = context.read<ChatProvider>();
+    final signalR = chatProvider.signalR;
+    if (signalR == null) return;
+
+    signalR.onWebRtcOffer = _handleOffer;
+    signalR.onWebRtcAnswer = _handleAnswer;
+    signalR.onWebRtcIceCandidate = _handleIceCandidate;
+  }
+
+  Future<void> _createOffer() async {
+    final call = widget.call;
+    final chatProvider = context.read<ChatProvider>();
+    final signalR = chatProvider.signalR;
+    if (signalR == null || _pc == null) return;
+
+    final offer = await _pc!.createOffer();
+    await _pc!.setLocalDescription(offer);
+
+    await signalR.send(
+      'SendOffer',
+      args: [
+        call.conversationId,
+        call.remoteUserId,
+        offer.sdp ?? '',
+      ],
     );
   }
 
-  void _onRemoteLeft() {
-    // Đối phương thoát → kết thúc cuộc gọi
-    _endCall(remoteLeft: true);
+  Future<void> _handleOffer(String conversationId, String callerId, String sdp) async {
+    final call = widget.call;
+    if (call.conversationId != conversationId) return;
+
+    debugPrint('[CallScreen] Received WebRTC offer from $callerId');
+
+    try {
+      await _pc?.setRemoteDescription(
+        RTCSessionDescription(sdp, 'offer'),
+      );
+
+      final answer = await _pc!.createAnswer();
+      await _pc!.setLocalDescription(answer);
+
+      final signalR = context.read<ChatProvider>().signalR;
+      await signalR?.send(
+        'SendAnswer',
+        args: [
+          conversationId,
+          callerId,
+          answer.sdp ?? '',
+        ],
+      );
+    } catch (e) {
+      debugPrint('[CallScreen] Error handling offer: $e');
+    }
+  }
+
+  Future<void> _handleAnswer(String conversationId, String calleeId, String sdp) async {
+    final call = widget.call;
+    if (call.conversationId != conversationId) return;
+
+    debugPrint('[CallScreen] Received WebRTC answer from $calleeId');
+
+    try {
+      await _pc?.setRemoteDescription(
+        RTCSessionDescription(sdp, 'answer'),
+      );
+    } catch (e) {
+      debugPrint('[CallScreen] Error handling answer: $e');
+    }
+  }
+
+  Future<void> _handleIceCandidate(
+    String conversationId,
+    String senderId,
+    String candidateStr,
+  ) async {
+    final call = widget.call;
+    if (call.conversationId != conversationId) return;
+
+    debugPrint('[CallScreen] Received ICE candidate from $senderId');
+
+    try {
+      final parts = candidateStr.split('|');
+      if (parts.length >= 3) {
+        final candidate = RTCIceCandidate(
+          parts[2], // sdp
+          parts[0], // sdpMid
+          int.tryParse(parts[1]) ?? 0, // sdpMLineIndex
+        );
+        await _pc?.addCandidate(candidate);
+      }
+    } catch (e) {
+      debugPrint('[CallScreen] Error adding ICE candidate: $e');
+    }
+  }
+
+  Future<void> _sendIceCandidate(RTCIceCandidate candidate) async {
+    final call = widget.call;
+    final signalR = context.read<ChatProvider>().signalR;
+    if (signalR == null) return;
+
+    final candidateStr = [
+      candidate.sdpMid ?? '',
+      candidate.sdpMLineIndex.toString(),
+      candidate.candidate,
+    ].join('|');
+
+    await signalR.send(
+      'SendIceCandidate',
+      args: [
+        call.conversationId,
+        call.remoteUserId,
+        candidateStr,
+      ],
+    );
   }
 
   Future<void> _endCall({bool remoteLeft = false}) async {
-    if (_hasPopped) return; // đã đóng rồi
+    if (_hasPopped) return;
     _hasPopped = true;
 
     final callProvider = context.read<CallProvider>();
     final chatProvider = context.read<ChatProvider>();
     final call = widget.call;
 
-    // Luôn ghi log qua phía người thực hiện cuộc gọi (caller), bất kể ai là
-    // người chủ động kết thúc — tránh cả 2 máy cùng lưu trùng 1 bản ghi.
     if (!chatProvider.callLogSaved &&
         call.status == CallStatus.active &&
         !call.isIncoming) {
       chatProvider.markCallLogSaved();
-      chatProvider.saveCallMessage(
+      await chatProvider.saveCallMessage(
         conversationId: call.conversationId,
         callType: call.isVideo ? 'video' : 'voice',
         status: 'answered',
@@ -116,9 +241,8 @@ class _CallScreenState extends State<CallScreen> {
     } else if (!chatProvider.callLogSaved &&
         call.status == CallStatus.dialing &&
         !remoteLeft) {
-      // Caller chủ động hủy khi cuộc gọi còn đang đổ chuông (chưa ai bắt máy)
       chatProvider.markCallLogSaved();
-      chatProvider.saveCallMessage(
+      await chatProvider.saveCallMessage(
         conversationId: call.conversationId,
         callType: call.isVideo ? 'video' : 'voice',
         status: 'cancelled',
@@ -127,31 +251,42 @@ class _CallScreenState extends State<CallScreen> {
     }
 
     if (!remoteLeft) {
-      chatProvider.endCallSignal(call.conversationId, call.remoteUserId);
+      await chatProvider.endCallSignal(call.conversationId, call.remoteUserId);
     }
 
+    await _cleanup();
     callProvider.endCall();
-    await CallKeep.instance.endAllCalls();
-    await _engine.leaveChannel();
-    await _engine.release();
+
     if (mounted) Navigator.of(context, rootNavigator: true).pop();
+  }
+
+  Future<void> _cleanup() async {
+    await _pc?.close();
+    await _localStream?.dispose();
+    await _remoteStream?.dispose();
+    _remoteRenderer.dispose();
+    _localRenderer.dispose();
   }
 
   @override
   void dispose() {
-    _engine.leaveChannel();
-    _engine.release();
+    _unregisterSignalingHandlers();
+    _cleanup();
     super.dispose();
+  }
+
+  void _unregisterSignalingHandlers() {
+    final signalR = context.read<ChatProvider>().signalR;
+    signalR?.onWebRtcOffer = null;
+    signalR?.onWebRtcAnswer = null;
+    signalR?.onWebRtcIceCandidate = null;
   }
 
   @override
   Widget build(BuildContext context) {
     final callProvider = context.watch<CallProvider>();
     final call = widget.call;
-    final isMuted = callProvider.isMuted;
-    final isVideoOff = callProvider.isVideoOff;
 
-    // Đóng màn hình khi: call null, hoặc bị từ chối/nhỡ/kết thúc
     final shouldClose = !callProvider.hasActiveCall ||
         call.status == CallStatus.rejected ||
         call.status == CallStatus.missed ||
@@ -167,22 +302,14 @@ class _CallScreenState extends State<CallScreen> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // ── Video / background ──────────────────────────────────
-          if (call.isVideo)
-            _remoteUid != null
-                ? AgoraVideoView(
-                    controller: VideoViewController.remote(
-                      rtcEngine: _engine,
-                      canvas: VideoCanvas(uid: _remoteUid),
-                      connection: RtcConnection(channelId: _channelName),
-                    ),
-                  )
-                : Positioned.fill(child: _buildWaitingView(call))
+          // Video or voice background
+          if (call.isVideo && _remoteStreamReady && _rendererInited)
+            Positioned.fill(child: RTCVideoView(_remoteRenderer))
           else
             Positioned.fill(child: _buildVoiceCallView(call, callProvider)),
 
-          // Self-view (góc trên phải, chỉ video call)
-          if (call.isVideo && _localJoined && !isVideoOff)
+          // Local video preview
+          if (call.isVideo && _rendererInited && _localStream != null)
             Positioned(
               top: 60,
               right: 16,
@@ -190,16 +317,11 @@ class _CallScreenState extends State<CallScreen> {
               height: 140,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: AgoraVideoView(
-                  controller: VideoViewController(
-                    rtcEngine: _engine,
-                    canvas: const VideoCanvas(uid: 0),
-                  ),
-                ),
+                child: RTCVideoView(_localRenderer),
               ),
             ),
 
-          // ── Controls ────────────────────────────────────────────
+          // Controls
           Positioned(
             bottom: 48,
             left: 0,
@@ -207,16 +329,16 @@ class _CallScreenState extends State<CallScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                // Mic
                 _ControlBtn(
-                  icon: isMuted ? Icons.mic_off : Icons.mic,
-                  label: isMuted ? 'Bật mic' : 'Tắt mic',
+                  icon: callProvider.isMuted ? Icons.mic_off : Icons.mic,
+                  label: callProvider.isMuted ? 'Bật mic' : 'Tắt mic',
                   onTap: () {
                     callProvider.toggleMute();
-                    _engine.muteLocalAudioStream(!isMuted);
+                    _localStream?.getAudioTracks().forEach((track) {
+                      track.enabled = !callProvider.isMuted;
+                    });
                   },
                 ),
-                // Cúp máy
                 _ControlBtn(
                   icon: Icons.call_end,
                   label: 'Cúp máy',
@@ -224,23 +346,17 @@ class _CallScreenState extends State<CallScreen> {
                   size: 64,
                   onTap: () => _endCall(),
                 ),
-                // Camera (video) hoặc Speaker (voice)
                 if (call.isVideo)
                   _ControlBtn(
                     icon: Icons.flip_camera_ios,
                     label: 'Đổi cam',
-                    onTap: () => _engine.switchCamera(),
+                    onTap: _switchCamera,
                   )
                 else
                   _ControlBtn(
-                    icon: callProvider.isSpeakerOn
-                        ? Icons.volume_up
-                        : Icons.hearing,
+                    icon: callProvider.isSpeakerOn ? Icons.volume_up : Icons.hearing,
                     label: callProvider.isSpeakerOn ? 'Tai nghe' : 'Loa ngoài',
-                    onTap: () {
-                      callProvider.toggleSpeaker();
-                      _engine.setEnableSpeakerphone(!callProvider.isSpeakerOn);
-                    },
+                    onTap: () => callProvider.toggleSpeaker(),
                   ),
               ],
             ),
@@ -250,38 +366,12 @@ class _CallScreenState extends State<CallScreen> {
     );
   }
 
-  Widget _buildWaitingView(CallModel call) {
-    return Container(
-      color: AppColors.darkBackground,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircleAvatar(
-            radius: 56,
-            backgroundImage: call.remoteAvatar.isNotEmpty
-                ? NetworkImage(call.remoteAvatar)
-                : null,
-            backgroundColor: Colors.white24,
-            child: call.remoteAvatar.isEmpty
-                ? Text(call.remoteName[0].toUpperCase(),
-                    style: const TextStyle(
-                        fontSize: 40,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold))
-                : null,
-          ),
-          const SizedBox(height: 20),
-          Text(call.remoteName,
-              style: const TextStyle(
-                  color: Colors.white, fontSize: 22, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
-          Text(
-            call.isIncoming ? 'Đang kết nối...' : 'Đang gọi...',
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 14),
-          ),
-        ],
-      ),
-    );
+  Future<void> _switchCamera() async {
+    if (_localStream == null) return;
+    final videoTrack = _localStream!.getVideoTracks().firstOrNull;
+    if (videoTrack != null) {
+      await Helper.switchCamera(videoTrack);
+    }
   }
 
   Widget _buildVoiceCallView(CallModel call, CallProvider provider) {
@@ -319,7 +409,7 @@ class _CallScreenState extends State<CallScreen> {
             call.status == CallStatus.active
                 ? provider.formattedDuration
                 : 'Đang gọi...',
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 16),
+            style: const TextStyle(color: Colors.white70, fontSize: 16),
           ),
         ],
       ),

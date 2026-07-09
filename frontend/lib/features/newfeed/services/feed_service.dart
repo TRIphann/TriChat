@@ -76,14 +76,7 @@ class FeedService {
 
   static Future<void> likePost(String postId) async {
     try {
-      await _dio.post('/api/feed/$postId/like');
-    } on DioException catch (e) {
-      throw Exception(_handleError(e));
-    }
-  }
-
-  static Future<void> unlikePost(String postId) async {
-    try {
+      // Backend ToggleLike is idempotent — same endpoint for like/unlike.
       await _dio.post('/api/feed/$postId/like');
     } on DioException catch (e) {
       throw Exception(_handleError(e));
