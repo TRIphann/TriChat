@@ -1,6 +1,6 @@
 [build]
   base    = "."
-  command = "curl -fsSL https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_4.0.0-stable.tar.xz | tar xJ && export PATH=\"$PWD/flutter/bin:$PATH\" && cd frontend && flutter pub get && flutter build web --release"
+  command = "curl -fsSL https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.44.5-stable.tar.xz | tar xJ && export PATH=\"$PWD/flutter/bin:$PATH\" && cd frontend && flutter pub get && flutter build web --release"
   publish = "frontend/build/web"
 
 [environment]
