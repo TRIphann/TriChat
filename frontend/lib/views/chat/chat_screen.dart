@@ -1,15 +1,14 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:record/record.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:frontend/services/geolocator.dart';
+import 'package:frontend/services/permission_handler.dart';
+import 'package:frontend/services/record.dart';
+import 'package:frontend/services/file_helper.dart';
 import '../../features/calling/screens/call_screen.dart';
 import '../../models/call_model.dart';
 import '../../models/chat/conversation.dart';
@@ -21,6 +20,9 @@ import '../../widgets/chat/typing_indicator.dart';
 import '../../widgets/emoji_picker_widget.dart';
 import 'group_info_screen.dart';
 import 'package:frontend/config/app_colors.dart';
+
+// Re-export file_helper types for convenience
+export 'package:frontend/services/file_helper.dart' show FileHelper;
 
 class ChatScreen extends StatefulWidget {
   final Conversation conversation;
@@ -68,8 +70,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _historyLoaded = false;
       _scrolledToUnread = false;
       _initialUnreadCount = 0;
-      // Wide-screen: conversation thay đổi nhưng widget không rebuild lại từ đầu,
-      // cần trigger lại visibility để reset badge và markAsRead đúng lúc
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           context.read<ChatProvider>().setConversationVisible(true);
@@ -141,7 +141,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   void _setupScrollListener() {
     _scrollController.addListener(() {
-      // reverse: true → offset 0 = bottom (tin mới nhất)
       final atBottom = _scrollController.offset <= 80;
       if (atBottom && _showScrollToBottom) {
         setState(() => _showScrollToBottom = false);
@@ -152,13 +151,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   void _setupSignalR() {
-    // ChatProvider handles all SignalR events via its callbacks.
-    // State is synced in build() via context.watch<ChatProvider>().
+    // ChatProvider handles all SignalR events
   }
 
   Future<void> _loadMessages() async {
-    // openConversation() was already called from ChatListView before navigating here.
-    // Messages will arrive via ChatProvider notifyListeners() → build() sync below.
     _scrollToBottom();
   }
 
@@ -189,7 +185,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final key = _messageKeys[messageId];
     if (key?.currentContext == null) return;
 
-    // Scroll đến tin nhắn gốc (instant)
     await Scrollable.ensureVisible(
       key!.currentContext!,
       alignment: 0.3,
@@ -197,7 +192,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       curve: Curves.easeOut,
     );
 
-    // Highlight flash → fade
     if (!mounted) return;
     setState(() => _highlightedMessageId = messageId);
     await Future.delayed(const Duration(milliseconds: 900));
@@ -207,7 +201,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   void _scrollToBottom({bool instant = false}) {
     if (!_scrollController.hasClients) return;
-    // reverse: true → "bottom" (tin mới nhất) = minScrollExtent (0)
     if (instant) {
       _scrollController.jumpTo(0);
     } else {
@@ -239,21 +232,18 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    // Sync state from provider on each rebuild triggered by ChatProvider.notifyListeners()
     final chat = context.watch<ChatProvider>();
     _messages = chat.messages;
     _isTyping = chat.isOtherTyping;
     _typingUserId = chat.typingUserId;
     _isLoading = chat.messagesState == ChatLoadingState.loading;
 
-    // Đánh dấu toàn bộ tin nhắn đã load là history (không animate)
     if (!_historyLoaded && chat.messagesState == ChatLoadingState.success) {
       _historyIds.addAll(_messages.map((m) => m.id));
       _initialUnreadCount = chat.openedWithUnreadCount;
       _historyLoaded = true;
     }
 
-    // Scroll đến tin chưa đọc đầu tiên (1 lần duy nhất)
     if (_historyLoaded && !_scrolledToUnread && _messages.isNotEmpty) {
       _scrolledToUnread = true;
       if (_initialUnreadCount > 0 && _initialUnreadCount < _messages.length) {
@@ -270,9 +260,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       }
     }
 
-    // Scroll to bottom khi:
-    // 1. Lần đầu messages load xong
-    // 2. Có tin nhắn mới (count tăng)
     final currentCount = _messages.length;
     if (currentCount > 0 &&
         (!_initialScrollDone || currentCount > _prevMessageCount)) {
@@ -280,7 +267,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       if (!_initialScrollDone) _initialScrollDone = true;
       WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     }
-    // Scroll khi typing indicator xuất hiện
     if (_isTyping) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     }
@@ -304,7 +290,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               _buildPinnedMessage(
                 chat.activeConversation ?? widget.conversation,
               ),
-
             Expanded(
               child: Stack(
                 children: [
@@ -347,11 +332,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 ],
               ),
             ),
-
             if (_replyToMessage != null) _buildReplyPreview(),
-
             _buildInputArea(),
-
             if (_showEmojiKeyboard)
               EmojiPickerWidget(onEmojiSelected: _insertEmoji),
           ],
@@ -549,8 +531,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       );
     }
 
-    // reverse: true — index 0 = bottom (tin mới nhất / typing indicator)
-    // Khi bàn phím mở, bottom luôn visible → không cần scroll thủ công
     final totalItems = _messages.length + (_isTyping ? 1 : 0);
 
     return ListView.builder(
@@ -559,22 +539,20 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: totalItems,
       itemBuilder: (context, index) {
-        // index 0 = bottom = typing indicator (nếu có)
         if (_isTyping && index == 0) {
           return const TypingIndicator(key: ValueKey('typing'));
         }
 
-        // Tính index thực trong _messages (0 = cũ nhất, length-1 = mới nhất)
         final msgIndex = _messages.length - 1 - (_isTyping ? index - 1 : index);
         if (msgIndex < 0 || msgIndex >= _messages.length) {
           return const SizedBox.shrink();
         }
 
         final message = _messages[msgIndex];
-        final prev = msgIndex > 0 ? _messages[msgIndex - 1] : null; // cũ hơn
+        final prev = msgIndex > 0 ? _messages[msgIndex - 1] : null;
         final next = msgIndex < _messages.length - 1
             ? _messages[msgIndex + 1]
-            : null; // mới hơn
+            : null;
 
         final sameAsPrev =
             prev != null &&
@@ -588,17 +566,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         final isLastInGroup = !sameAsNext;
         final isFirstInGroup = !sameAsPrev;
 
-        // Date separator: hiện ở trên tin nhắn CŨ NHẤT của mỗi ngày
         final showDateSeparator =
             prev == null ||
             prev.createdAt.day != message.createdAt.day ||
             prev.createdAt.month != message.createdAt.month ||
             prev.createdAt.year != message.createdAt.year;
 
-        // Tạo / tái dùng GlobalKey cho mỗi message
         final msgKey = _messageKeys.putIfAbsent(message.id, () => GlobalKey());
 
-        // Kiểm tra tin reply-to có phải của mình không
         final replyToIsMine =
             message.replyToMessageId != null &&
             _messages.any((m) => m.id == message.replyToMessageId && m.isMine);
@@ -649,7 +624,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             ? _AnimatedBubble(isMine: message.isMine, child: bubble)
             : bubble;
 
-        // Hiện divider "X tin chưa đọc" tại tin chưa đọc đầu tiên
         final isFirstUnread =
             _initialUnreadCount > 0 &&
             msgIndex == _messages.length - _initialUnreadCount;
@@ -695,7 +669,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   Widget _buildDateSeparator(DateTime date) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Center(
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -751,7 +725,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           GestureDetector(
             onTap: () => setState(() => _replyToMessage = null),
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               child: Icon(Icons.close, size: 18, color: AppColors.textHint),
             ),
           ),
@@ -795,14 +769,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              // + button bên trái
               iconBtn(
                 Icons.add_circle_outline_rounded,
                 _showAttachmentOptions,
                 size: 26,
               ),
-
-              // Text field giữa
               Expanded(
                 child: Container(
                   constraints: const BoxConstraints(
@@ -832,7 +803,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                               fontSize: 15,
                             ),
                             border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(
+                            contentPadding: const EdgeInsets.symmetric(
                               horizontal: 14,
                               vertical: 9,
                             ),
@@ -843,7 +814,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           textCapitalization: TextCapitalization.sentences,
                         ),
                       ),
-                      // Emoji icon bên phải trong field
                       Padding(
                         padding: const EdgeInsets.only(right: 4, bottom: 2),
                         child: InkWell(
@@ -864,8 +834,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   ),
                 ),
               ),
-
-              // Bên phải: khi chưa gõ → sticker + ảnh + mic; khi gõ → send
               if (hasText) ...[
                 GestureDetector(
                   onTap: _sendMessage,
@@ -894,22 +862,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
   }
 
-  // Widget _inputIconBtn(IconData icon, {required VoidCallback onPressed}) {
-  //   return SizedBox(
-  //     width: 40,
-  //     height: 40,
-  //     child: InkWell(
-  //       onTap: onPressed,
-  //       borderRadius: BorderRadius.circular(20),
-  //       child: Icon(icon, color: AppColors.neutralGray700, size: 22),
-  //     ),
-  //   );
-  // }
-
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final yesterday = today.subtract(Duration(days: 1));
+    final yesterday = today.subtract(const Duration(days: 1));
     final messageDate = DateTime(date.year, date.month, date.day);
 
     if (messageDate == today) {
@@ -921,22 +877,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
   }
 
-  // String _getTypingUserName() {
-  //   final participant = widget.conversation.participants.firstWhere(
-  //     (p) => p.userId == _typingUserId,
-  //     orElse: () => widget.conversation.participants.first,
-  //   );
-  //   return participant.displayName;
-  // }
-
   void _showAttachmentOptions() {
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) => Container(
-        padding: EdgeInsets.symmetric(vertical: 20),
+        padding: const EdgeInsets.symmetric(vertical: 20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -969,7 +917,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -1027,14 +975,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             ),
             child: Icon(icon, color: color, size: 28),
           ),
-          SizedBox(height: 8),
-          Text(label, style: TextStyle(fontSize: 12)),
+          const SizedBox(height: 8),
+          Text(label, style: const TextStyle(fontSize: 12)),
         ],
       ),
     );
   }
 
-  // Actions
   void _openConversationInfo() {
     if (widget.conversation.type == 'group') {
       Navigator.push(
@@ -1044,8 +991,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               GroupInfoScreen(conversation: widget.conversation),
         ),
       );
-    } else {
-      // Open user profile
     }
   }
 
@@ -1147,14 +1092,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
     if (image != null) {
       if (kIsWeb) {
-        // Trên web, XFile.path là blob URL; gửi ảnh qua REST với byte payload
-        // cần một endpoint riêng — chưa được thêm vào backend. Tạm thời báo
-        // cho người dùng biết để tránh lỗi runtime.
         if (mounted) {
           _showInfo('Gửi ảnh từ trình duyệt web đang được phát triển');
         }
       } else {
-        _sendImage(File(image.path));
+        final file = FileHelper.createFile(image.path);
+        _sendImage(file);
       }
     }
   }
@@ -1167,18 +1110,18 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
     if (image != null) {
       if (kIsWeb) {
-        // Camera capture on web is not available in all browsers (e.g. iOS Safari);
-        // gallery fallback is handled by _pickImageFromGallery instead.
         if (mounted) {
           _showInfo('Chụp ảnh từ web chưa hỗ trợ — vui lòng chọn từ thư viện');
         }
       } else {
-        _sendImage(File(image.path));
+        final file = FileHelper.createFile(image.path);
+        _sendImage(file);
       }
     }
   }
 
-  void _sendImage(File imageFile) {
+  void _sendImage(dynamic imageFile) {
+    if (imageFile == null) return;
     _showInfo('Đang gửi hình ảnh...');
     context
         .read<ChatProvider>()
@@ -1196,23 +1139,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final video = await picker.pickVideo(source: ImageSource.gallery);
     if (video != null) {
       if (kIsWeb) {
-        // Web: video blob URL — chuyển sang byte nếu cần.
-        // TODO: stream upload qua backend rồi Cloudinary.
         _showInfo('Video từ web đang được phát triển');
       } else {
-        // TODO: Upload and send
         _showInfo('Đang gửi video...');
       }
     }
   }
 
   void _pickFile() async {
-    // TODO: Implement file picker when package is added
-    // final result = await FilePicker.platform.pickFiles();
-    // if (result != null) {
-    //   // TODO: Upload and send
-    //   _showInfo('Đang gửi tệp...');
-    // }
     _showInfo('Tính năng chọn tệp đang được phát triển');
   }
 
@@ -1233,7 +1167,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Row(
             children: [
-              // Hủy ghi âm
               IconButton(
                 icon: const Icon(
                   Icons.delete_outline,
@@ -1243,8 +1176,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 onPressed: _cancelRecording,
               ),
               const SizedBox(width: 8),
-
-              // Thanh hiển thị trạng thái và thời gian
               Expanded(
                 child: Container(
                   height: 40,
@@ -1279,8 +1210,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 ),
               ),
               const SizedBox(width: 8),
-
-              // Hoàn thành ghi âm và gửi
               GestureDetector(
                 onTap: _stopAndSendRecording,
                 child: Container(
@@ -1305,7 +1234,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (_isRecordingActionInProgress) return;
     _isRecordingActionInProgress = true;
     try {
-      // 1. Kiểm tra và yêu cầu quyền microphone
       final status = await Permission.microphone.request();
       debugPrint('[ChatScreen] Microphone permission status: $status');
       if (status != PermissionStatus.granted) {
@@ -1316,20 +1244,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         return;
       }
 
-      // 2. Chuẩn bị đường dẫn lưu file ghi âm tạm thời (.m4a)
-      //    Web: truyền path = null để record dùng MediaRecorder + trả về blob URL.
       String? path;
       if (!kIsWeb) {
-        final tempDir = await getTemporaryDirectory();
-        path =
-            '${tempDir.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
+        final tempDir = await FileHelper.getTempDirectory();
+        path = '$tempDir/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
       }
       debugPrint('[ChatScreen] Target path for temp audio file: ${path ?? "<web-blob>"}');
 
-      // 3. Khởi chạy ghi âm
       if (await _audioRecorder.hasPermission()) {
-        // `record` yêu cầu `path` là required named param. Trên web nó chỉ là
-        // tên blob; backend sẽ nhận file blob riêng nên path không quan trọng.
         final effectivePath = kIsWeb
             ? 'audio_${DateTime.now().millisecondsSinceEpoch}.webm'
             : path!;
@@ -1344,14 +1266,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           _recordingDuration = 0;
         });
 
-        // 4. Bắt đầu đếm thời gian
         _recordingTimer?.cancel();
         _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
           if (mounted) {
             setState(() {
               _recordingDuration++;
             });
-            // Giới hạn ghi âm tối đa là 5 phút (300 giây)
             if (_recordingDuration >= 300) {
               debugPrint(
                 '[ChatScreen] Recording duration limit (300s) reached. Stopping and sending.',
@@ -1380,12 +1300,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       final path = await _audioRecorder.stop();
       debugPrint('[ChatScreen] AudioRecorder stopped. Temp path: $path');
       if (path != null && !kIsWeb) {
-        // Web trả về blob URL — không cần xoá file tạm.
-        final file = File(path);
-        if (await file.exists()) {
-          await file.delete();
-          debugPrint('[ChatScreen] Deleted temp audio file at: $path');
-        }
+        await FileHelper.deleteFile(path);
       }
       setState(() {
         _isRecording = false;
@@ -1416,29 +1331,21 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
       if (path != null && finalDuration > 0) {
         if (kIsWeb) {
-          // Trên web, `path` là blob URL. Upload trực tiếp qua cloudinary
-          // qua provider hỗ trợ bytes. Tạm thời thông báo để người dùng
-          // biết là chưa hỗ trợ (sẽ implement khi cần).
           if (mounted) {
             _showInfo('Gửi tin nhắn thoại từ web đang được phát triển');
           }
         } else {
-          final file = File(path);
-          if (await file.exists()) {
+          final file = FileHelper.createFile(path);
+          if (file != null) {
             debugPrint(
-              '[ChatScreen] File exists at $path. Triggering sendAudioMessage on ChatProvider. Duration: $finalDuration',
+              '[ChatScreen] File exists. Triggering sendAudioMessage on ChatProvider. Duration: $finalDuration',
             );
             if (!mounted) return;
-            // Gửi tin nhắn thoại thông qua ChatProvider
             await context.read<ChatProvider>().sendAudioMessage(
               file,
               finalDuration,
             );
             _scrollToBottom();
-          } else {
-            throw Exception(
-              'Không tìm thấy tệp ghi âm tạm thời sau khi dừng ghi.',
-            );
           }
         }
       } else {
@@ -1470,7 +1377,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _shareLocation() async {
-    // 1. Kiểm tra & xin quyền
+    if (kIsWeb) {
+      _showInfo('Chia sẻ vị trí từ web đang được phát triển');
+      return;
+    }
+
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
@@ -1487,7 +1398,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       return;
     }
 
-    // 2. Hiện loading
     if (!mounted) return;
     showDialog(
       context: context,
@@ -1510,15 +1420,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
 
     try {
-      // 3. Lấy GPS
       final pos = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
 
       if (!mounted) return;
-      Navigator.pop(context); // đóng loading dialog
+      Navigator.pop(context);
 
-      // 4. Gửi message type = 'location'
       await context.read<ChatProvider>().sendMessage(
         content: 'Đã chia sẻ vị trí',
         type: 'location',
@@ -1529,7 +1437,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _scrollToBottom();
     } catch (e) {
       if (!mounted) return;
-      Navigator.pop(context); // đóng loading dialog
+      Navigator.pop(context);
       _showError('Không thể lấy vị trí: $e');
     }
   }
@@ -1540,29 +1448,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   void _showStickerPicker() {
     _showInfo('Tính năng sticker đang được phát triển');
-  }
-
-  void _confirmClearHistory() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Xóa lịch sử trò chuyện'),
-        content: Text('Bạn có chắc chắn muốn xóa toàn bộ lịch sử trò chuyện?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Hủy'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _showSuccess('Đã xóa lịch sử trò chuyện');
-            },
-            child: Text('Xóa', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
   }
 
   void _showError(String message) {
@@ -1579,12 +1464,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   void _showInfo(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), duration: Duration(seconds: 1)),
+      SnackBar(content: Text(message), duration: const Duration(seconds: 1)),
     );
   }
 }
 
-/// Swipe-to-reply: kéo phải (tin người khác) hoặc kéo trái (tin mình)
 class _SwipeToReplyWrapper extends StatefulWidget {
   final Widget child;
   final bool isMine;
@@ -1642,7 +1526,6 @@ class _SwipeToReplyWrapperState extends State<_SwipeToReplyWrapper>
   void _onUpdate(DragUpdateDetails d) {
     if (_ctrl.isAnimating) return;
     final dx = d.delta.dx;
-    // isMine: chỉ kéo trái (dx < 0), other: chỉ kéo phải (dx > 0)
     if (widget.isMine && dx > 0) return;
     if (!widget.isMine && dx < 0) return;
 
@@ -1677,7 +1560,6 @@ class _SwipeToReplyWrapperState extends State<_SwipeToReplyWrapper>
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          // Icon reply xuất hiện phía sau khi kéo
           Positioned(
             left: widget.isMine ? null : 10,
             right: widget.isMine ? 10 : null,
@@ -1705,7 +1587,6 @@ class _SwipeToReplyWrapperState extends State<_SwipeToReplyWrapper>
               ),
             ),
           ),
-          // Bubble trượt theo ngón tay
           Transform.translate(offset: Offset(_offset, 0), child: widget.child),
         ],
       ),
@@ -1713,7 +1594,6 @@ class _SwipeToReplyWrapperState extends State<_SwipeToReplyWrapper>
   }
 }
 
-/// Slide + fade animation cho tin nhắn mới xuất hiện
 class _AnimatedBubble extends StatefulWidget {
   final Widget child;
   final bool isMine;
@@ -1738,7 +1618,6 @@ class _AnimatedBubbleState extends State<_AnimatedBubble>
       duration: const Duration(milliseconds: 220),
     );
 
-    // Slide từ bên phải (mine) hoặc bên trái + nhẹ từ dưới lên
     _slide = Tween<Offset>(
       begin: Offset(widget.isMine ? 0.25 : -0.25, 0.08),
       end: Offset.zero,

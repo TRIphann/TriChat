@@ -8,3 +8,5 @@
 
 [environment]
   API_BASE_URL = "https://trichat.onrender.com"
+  AGORA_APP_ID = ""
+  AGORA_APP_CERTIFICATE = ""

@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_callkeep/flutter_callkeep.dart';
+import 'package:frontend/services/flutter_callkeep.dart';
 import 'package:frontend/apps/app_locale.dart';
 import 'package:frontend/config/app_colors.dart';
 import 'package:frontend/config/dark_mode_config.dart';
