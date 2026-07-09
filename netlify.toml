@@ -1,6 +1,6 @@
 [build]
   base    = "frontend"
-  command = "git clone --depth 1 --branch stable https://github.com/flutter/flutter.git .flutter && export PATH=\"$PWD/.flutter/bin:$PATH\" && flutter pub get && flutter build web --release"
+  command = "git clone --depth 1 https://github.com/flutter/flutter.git .flutter && export PATH=\"$PWD/.flutter/bin:$PATH\" && flutter pub get && flutter build web --release"
   publish = "build/web"
 
 [environment]
