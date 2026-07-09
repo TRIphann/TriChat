@@ -1,7 +1,7 @@
 [build]
-  base    = "."
-  command = "wget -q https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.44.5-stable.tar.xz -O flutter.tar.xz && tar xf flutter.tar.xz && export PATH=\"$PWD/flutter/bin:$PATH\" && cd frontend && flutter pub get && flutter build web --release"
-  publish = "frontend/build/web"
+  base    = "frontend"
+  command = "git clone --depth 1 --branch stable https://github.com/flutter/flutter.git /opt/flutter && export PATH=\"/opt/flutter/bin:$PATH\" && flutter pub get && flutter build web --release"
+  publish = "build/web"
 
 [environment]
   API_BASE_URL = "https://trichat.onrender.com"
