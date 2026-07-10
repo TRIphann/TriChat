@@ -1,3 +1,4 @@
+// AuthService - works on both web and native platforms
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -6,9 +7,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/services/dio_client.dart';
 import 'package:image_picker/image_picker.dart';
-
-export 'auth_service_web.dart'
-    if (dart.library.io) 'auth_service_io.dart';
 
 class UserModel {
   final String email;
@@ -53,8 +51,6 @@ class RegisterRequest {
   final String lastName;
   final String? dateOfBirth;
   final String? bio;
-  final Uint8List? avatarBytes;
-  final String? avatarFileName;
 
   const RegisterRequest({
     required this.email,
@@ -63,8 +59,6 @@ class RegisterRequest {
     required this.lastName,
     this.dateOfBirth,
     this.bio,
-    this.avatarBytes,
-    this.avatarFileName,
   });
 }
 
@@ -252,9 +246,6 @@ class AuthService {
     }
   }
 
-  /// Upload avatar trực tiếp từ bytes — dùng khi đã có sẵn Uint8List
-  /// (ví dụ khi user vừa pick ảnh từ gallery trong luồng "đổi avatar + đăng bài"
-  /// và file path tạm đã bị giải phóng).
   static Future<String> updateAvatarFromBytes(
     Uint8List bytes, {
     String filename = 'avatar.jpg',
