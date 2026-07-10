@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:frontend/component/loading_dialog.dart';
 import 'package:image_picker/image_picker.dart';
@@ -95,15 +94,10 @@ Future<void> _uploadAvatar() async {
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
                     ),
-                    child: kIsWeb
-                        ? Image.network(
-                            _imageFile!.path, // web dùng network
-                            fit: BoxFit.contain,
-                          )
-                        : Image.file(
-                            File(_imageFile!.path), // mobile dùng file
-                            fit: BoxFit.contain,
-                          ),
+                    child: Image.network(
+                      _imageFile!.path, // works for both web and mobile
+                      fit: BoxFit.contain,
+                    ),
                   ),
               ),
             ),

@@ -1092,12 +1092,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
     if (image != null) {
       if (kIsWeb) {
+        // Read bytes directly for web
+        final bytes = await image.readAsBytes();
         if (mounted) {
-          _showInfo('Gửi ảnh từ trình duyệt web đang được phát triển');
+          _sendImageWithBytes(image.name, bytes);
         }
       } else {
         final file = FileHelper.createFile(image.path);
-        _sendImage(file);
+        final bytes = await file.readAsBytes();
+        _sendImageWithBytes(image.name, bytes);
       }
     }
   }
@@ -1115,23 +1118,27 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         }
       } else {
         final file = FileHelper.createFile(image.path);
-        _sendImage(file);
+        final bytes = await file.readAsBytes();
+        _sendImageWithBytes(image.name, bytes);
       }
     }
   }
 
-  void _sendImage(dynamic imageFile) {
-    if (imageFile == null) return;
+  void _sendImageWithBytes(String fileName, List<int> bytes) {
     _showInfo('Đang gửi hình ảnh...');
     context
         .read<ChatProvider>()
-        .sendImageMessage(imageFile)
+        .sendImageMessage(fileName, bytes, fileName)
         .then((_) {
           _scrollToBottom();
         })
         .catchError((error) {
           if (mounted) _showError('Không thể gửi hình ảnh');
         });
+  }
+
+  void _sendImage(dynamic imageFile) {
+    // Legacy method - redirect to bytes version
   }
 
   void _pickVideo() async {
@@ -1341,9 +1348,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               '[ChatScreen] File exists. Triggering sendAudioMessage on ChatProvider. Duration: $finalDuration',
             );
             if (!mounted) return;
+            final bytes = await file.readAsBytes();
+            final fileName = 'recording_${DateTime.now().millisecondsSinceEpoch}.m4a';
             await context.read<ChatProvider>().sendAudioMessage(
-              file,
+              path,
+              bytes,
               finalDuration,
+              fileName: fileName,
             );
             _scrollToBottom();
           }

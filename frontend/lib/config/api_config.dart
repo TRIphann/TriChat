@@ -1,6 +1,7 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+import 'platform.dart' if (dart.library.io) 'dart:io' as io;
 
 /// Centralised API endpoint resolution.
 ///
@@ -26,7 +27,8 @@ class ApiConfig {
     }
 
     // 4. Mobile / desktop defaults
-    if (Platform.isAndroid) return 'http://10.0.2.2:5244';
+    if (!kIsWeb && io.Platform.isAndroid) return 'http://10.0.2.2:5244';
+    if (!kIsWeb) return 'http://localhost:5244';
     return 'http://localhost:5244';
   }
 

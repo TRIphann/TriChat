@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/widgets.dart';
 import 'package:frontend/config/api_config.dart';
@@ -10,6 +10,7 @@ import 'package:frontend/providers/call_provider.dart';
 import 'package:frontend/services/call_notification_service.dart';
 import 'package:frontend/services/chat/chat_service.dart';
 import 'package:frontend/services/chat/signalr_service.dart';
+import 'package:frontend/services/file_ops.dart';
 import 'package:frontend/services/message_notification_service.dart';
 import 'package:provider/provider.dart';
 
@@ -447,8 +448,8 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   /// Gửi ảnh: hiện preview local NGAY (① render trước), upload + gửi ở nền (② call API sau).
-  Future<void> sendImageMessage(File imageFile) async {
-    debugPrint('[ChatProvider] sendImageMessage called. FilePath: ${imageFile.path}');
+  Future<void> sendImageMessage(String localFilePath, List<int> bytes, String fileName) async {
+    debugPrint('[ChatProvider] sendImageMessage called. FilePath: $localFilePath');
     final conv = _activeConversation;
     if (conv == null) {
       debugPrint('[ChatProvider] sendImageMessage error: No active conversation');
@@ -465,7 +466,7 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
       senderAvatar: '',
       type: 'image',
       content: 'Hình ảnh',
-      localFilePath: imageFile.path,
+      localFilePath: localFilePath,
       isForwarded: false,
       isDeleted: false,
       isEdited: false,
@@ -482,20 +483,26 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
     await _uploadAndSendImage(
       tempId: tempId,
       conversationId: conv.id,
-      localFilePath: imageFile.path,
+      bytes: bytes,
+      fileName: fileName,
+      mimeType: _getMimeType(fileName),
     );
   }
 
   Future<void> _uploadAndSendImage({
     required String tempId,
     required String conversationId,
-    required String localFilePath,
+    required List<int> bytes,
+    required String fileName,
+    required String mimeType,
   }) async {
     debugPrint('[ChatProvider] _uploadAndSendImage called for tempId: $tempId');
     try {
       final result = await _chatService.uploadMedia(
         conversationId: conversationId,
-        file: File(localFilePath),
+        bytes: bytes,
+        fileName: fileName,
+        mimeType: mimeType,
       );
       debugPrint('[ChatProvider] _uploadAndSendImage upload success: $result');
       await _trySendViaSignalR(
@@ -519,8 +526,8 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   /// Gửi tin nhắn thoại: hiện preview local và duration NGAY, upload + gửi ở nền.
-  Future<void> sendAudioMessage(File audioFile, int durationSeconds) async {
-    debugPrint('[ChatProvider] sendAudioMessage called. Path: ${audioFile.path}, Duration: $durationSeconds s');
+  Future<void> sendAudioMessage(String localFilePath, List<int> bytes, int durationSeconds, {String? fileName}) async {
+    debugPrint('[ChatProvider] sendAudioMessage called. Path: $localFilePath, Duration: $durationSeconds s');
     final conv = _activeConversation;
     if (conv == null) {
       debugPrint('[ChatProvider] sendAudioMessage error: No active conversation');
@@ -529,7 +536,8 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
 
     // ① Optimistic UI: hiện audio local ngay lập tức
     final tempId = '_pending_${DateTime.now().millisecondsSinceEpoch}';
-    final fileSize = await audioFile.length();
+    final fileSize = bytes.length;
+    final name = fileName ?? 'recording_${DateTime.now().millisecondsSinceEpoch}.m4a';
     final optimistic = Message(
       id: tempId,
       conversationId: conv.id,
@@ -538,7 +546,7 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
       senderAvatar: '',
       type: 'audio',
       content: 'Tin nhắn thoại',
-      localFilePath: audioFile.path,
+      localFilePath: localFilePath,
       fileSize: fileSize,
       duration: durationSeconds,
       isForwarded: false,
@@ -557,7 +565,9 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
     await _uploadAndSendAudio(
       tempId: tempId,
       conversationId: conv.id,
-      localFilePath: audioFile.path,
+      bytes: bytes,
+      fileName: name,
+      mimeType: 'audio/m4a',
       duration: durationSeconds,
     );
   }
@@ -565,18 +575,18 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> _uploadAndSendAudio({
     required String tempId,
     required String conversationId,
-    required String localFilePath,
+    required List<int> bytes,
+    required String fileName,
+    required String mimeType,
     required int duration,
   }) async {
     debugPrint('[ChatProvider] _uploadAndSendAudio called for tempId: $tempId');
     try {
-      final file = File(localFilePath);
-      if (!await file.exists()) {
-        throw Exception('Không tìm thấy tệp ghi âm local tại đường dẫn: $localFilePath');
-      }
       final result = await _chatService.uploadMedia(
         conversationId: conversationId,
-        file: file,
+        bytes: bytes,
+        fileName: fileName,
+        mimeType: mimeType,
       );
       debugPrint('[ChatProvider] _uploadAndSendAudio upload success: $result');
       await _trySendViaSignalR(
@@ -597,6 +607,27 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
       _errorMessage = e.toString();
       debugPrint('[ChatProvider] _uploadAndSendAudio error: $e');
       notifyListeners();
+    }
+  }
+
+  String _getMimeType(String fileName) {
+    final ext = fileName.split('.').last.toLowerCase();
+    switch (ext) {
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'webp':
+        return 'image/webp';
+      case 'mp4':
+        return 'video/mp4';
+      case 'mov':
+        return 'video/quicktime';
+      default:
+        return 'application/octet-stream';
     }
   }
 

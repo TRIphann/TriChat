@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:frontend/widgets/location_message_bubble.dart';
 import 'package:intl/intl.dart';
@@ -300,12 +299,19 @@ class MessageBubble extends StatelessWidget {
       );
     } else if (hasLocal) {
       // Đang upload/gửi — hiện ảnh local ngay, chưa cần URL từ Cloudinary
+      // On web, localFilePath is a blob URL or data URL
       image = Stack(
         children: [
-          Image.file(
-            File(message.localFilePath!),
+          Image.network(
+            message.localFilePath!,
             width: 220,
             fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(
+              width: 220,
+              height: 180,
+              color: Colors.grey[200],
+              child: const Icon(Icons.broken_image, color: Colors.grey),
+            ),
           ),
           if (message.status == 'sending')
             Positioned.fill(
@@ -348,7 +354,7 @@ class MessageBubble extends StatelessWidget {
                           m.mediaUrl != null &&
                           m.mediaUrl!.isNotEmpty)
                       .toList();
-                  
+
                   final imageUrls = imageMessages.map((m) => m.mediaUrl!).toList();
                   int initialIndex = imageMessages.indexWhere((m) => m.id == message.id);
                   if (initialIndex == -1) {

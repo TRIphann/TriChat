@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -437,19 +436,12 @@ class _CommentSheetState extends State<CommentSheet> {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: kIsWeb
-                    ? Image.network(
-                        _selectedImage!.path,
-                        width: 64,
-                        height: 64,
-                        fit: BoxFit.cover,
-                      )
-                    : Image.file(
-                        File(_selectedImage!.path),
-                        width: 64,
-                        height: 64,
-                        fit: BoxFit.cover,
-                      ),
+                child: Image.network(
+                  _selectedImage!.path,
+                  width: 64,
+                  height: 64,
+                  fit: BoxFit.cover,
+                ),
               ),
               Positioned(
                 top: -4,

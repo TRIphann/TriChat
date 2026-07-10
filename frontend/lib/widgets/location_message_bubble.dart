@@ -1,8 +1,10 @@
-import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:frontend/views/chat/location_map_screen.dart';
 import 'package:frontend/config/app_colors.dart';
+
+import 'platform.dart' if (dart.library.io) 'dart:io' as io;
 
 class LocationMessageBubble extends StatelessWidget {
   final double latitude;
@@ -136,9 +138,9 @@ class LocationMessageBubble extends StatelessWidget {
 
   Future<void> _openExternalMap() async {
     Uri uri;
-    if (Platform.isAndroid) {
+    if (!kIsWeb && io.Platform.isAndroid) {
       uri = Uri.parse('geo:$latitude,$longitude?q=$latitude,$longitude');
-    } else if (Platform.isIOS) {
+    } else if (!kIsWeb && io.Platform.isIOS) {
       final googleMaps = Uri.parse('comgooglemaps://?q=$latitude,$longitude');
       if (await canLaunchUrl(googleMaps)) {
         await launchUrl(googleMaps, mode: LaunchMode.externalApplication);
