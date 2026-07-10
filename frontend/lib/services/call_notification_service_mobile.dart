@@ -10,10 +10,8 @@ import 'package:uuid/uuid.dart';
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  debugPrint('[FCM-BG] received: ${message.data}');
 
   if (message.data['type'] == 'incoming_call') {
-    debugPrint('[FCM-BG] showing incoming call UI');
     await CallNotificationService.showIncomingCall(message.data);
   }
 }
@@ -21,12 +19,10 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 class CallNotificationService {
   static final _fcm = FirebaseMessaging.instance;
 
-  /// ValueNotifier — persist qua widget lifecycle, không bị miss
   static final ValueNotifier<CallEvent?> acceptedCall  = ValueNotifier(null);
   static final ValueNotifier<CallEvent?> declinedCall  = ValueNotifier(null);
   static final ValueNotifier<CallEvent?> incomingCall  = ValueNotifier(null);
 
-  /// Hiện native incoming call UI (dùng cả từ background handler)
   static Future<void> showIncomingCall(Map<String, dynamic> data) async {
     final uuid = const Uuid().v4();
     final callEvent = CallEvent(
@@ -34,7 +30,7 @@ class CallNotificationService {
       callerName: data['caller_name'] ?? 'Cuộc gọi đến',
       handle:     data['caller_id'] ?? '',
       hasVideo:   data['call_type'] == 'video',
-      duration:   30000, // 30 giây timeout
+      duration:   30000,
       extra: {
         'conversation_id': data['conversation_id'] ?? '',
         'caller_id':       data['caller_id'] ?? '',
@@ -46,11 +42,9 @@ class CallNotificationService {
     await CallKeep.instance.displayIncomingCall(callEvent);
   }
 
-  /// Khởi tạo — gọi 1 lần trong main()
   static Future<void> initialize() async {
     await _fcm.requestPermission(alert: true, badge: true, sound: true);
 
-    // Cấu hình CallKeep
     CallKeep.instance.configure(CallKeepConfig(
       appName: 'TriChat',
       acceptText: 'Chấp nhận',
@@ -78,48 +72,37 @@ class CallNotificationService {
       ),
     ));
 
-    // Handler dùng ValueNotifier — ChatListView listen sẽ nhận được ngay
     CallKeep.instance.handler = CallEventHandler(
       onCallIncoming: (event) {
-        debugPrint('[CallKeep] onCallIncoming: ${event.callerName} extra=${event.extra}');
         incomingCall.value = event;
       },
       onCallAccepted: (event) {
-        debugPrint('[CallKeep] onCallAccepted: ${event.callerName} extra=${event.extra}');
         acceptedCall.value = event;
       },
       onCallDeclined: (event) {
-        debugPrint('[CallKeep] onCallDeclined: ${event.callerName}');
         declinedCall.value = event;
       },
       onCallEnded: (_) {
-        debugPrint('[CallKeep] onCallEnded');
         acceptedCall.value = null;
       },
     );
   }
 
-  /// Lưu FCM token lên server
   static Future<void> saveTokenToServer() async {
     try {
       final token = await _fcm.getToken();
       if (token != null) await ChatService().saveFcmToken(token);
       _fcm.onTokenRefresh.listen((t) => ChatService().saveFcmToken(t));
-    } catch (e) {
-      debugPrint('[FCM] saveTokenToServer error: $e');
-    }
+    } catch (_) {}
   }
 
-  /// Kiểm tra pending call khi app mở từ notification
   static Future<void> checkPendingCall(
       Function(Map<String, String>) onIncomingCall) async {
-    // App bị kill → mở bởi tap notification
     final initial = await _fcm.getInitialMessage();
     if (initial != null && initial.data['type'] == 'incoming_call') {
       onIncomingCall(Map<String, String>.from(initial.data));
     }
 
-    // App background → tap notification
     FirebaseMessaging.onMessageOpenedApp.listen((message) {
       if (message.data['type'] == 'incoming_call') {
         onIncomingCall(Map<String, String>.from(message.data));

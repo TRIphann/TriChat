@@ -38,7 +38,6 @@ class ChatListViewState extends State<ChatListView> {
   String _filterMode = 'all';
   int _selectedNavIndex = 0;
   Conversation? _selectedConversation;
-  bool? _wasWideScreen;
   bool _coldStartCallHandled = false;
   bool _callScreenOpened = false;
   late CallProvider _callProvider;
@@ -250,49 +249,31 @@ class ChatListViewState extends State<ChatListView> {
           valueListenable: localeNotifier,
           builder: (context, locale, _) {
             final t = AppLocalizations(locale);
+            final screenWidth = MediaQuery.of(context).size.width;
+            final isWideScreen = screenWidth >= 900;
+            final isVeryWideScreen = screenWidth >= 1200;
+
             return Scaffold(
               backgroundColor: AppColors.getBackground(isDark),
               body: SafeArea(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    final isWideScreen = constraints.maxWidth >= 700;
-                    if (_wasWideScreen != null && _wasWideScreen != isWideScreen) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (!isWideScreen) {
-                          setState(() => _selectedConversation = null);
-                        }
-                      });
-                    }
-                    _wasWideScreen = isWideScreen;
+                    final maxWidth = isVeryWideScreen ? 1400.0 : (isWideScreen ? 1100.0 : double.infinity);
 
                     if (isWideScreen) {
-                      return Row(
-                        children: [
-                          _buildSidebar(isDark),
-                          if (_selectedNavIndex == 0) ...[
-                            _buildChatListPanelWide(t, isDark),
-                            Expanded(
-                              child: _selectedConversation == null
-                                  ? _buildWelcomePanel(t, isDark)
-                                  : ChatScreen(conversation: _selectedConversation!),
-                            ),
-                          ] else if (_selectedNavIndex == 1)
-                            const Expanded(child: ContactsView(isWideScreen: true))
-                          else if (_selectedNavIndex == 2)
-                            const Expanded(child: NewfeedScreen())
-                          else if (_selectedNavIndex == 3)
-                            const Expanded(child: ProfileScreen())
-                          else ...[
-                            _buildChatListPanelWide(t, isDark),
-                            Expanded(
-                              child: _selectedConversation == null
-                                  ? _buildWelcomePanel(t, isDark)
-                                  : ChatScreen(conversation: _selectedConversation!),
-                            ),
-                          ],
-                        ],
+                      return Center(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: maxWidth),
+                          child: Row(
+                            children: [
+                              _buildSidebar(isDark),
+                              _buildMainContent(t, isDark, isWideScreen, isVeryWideScreen),
+                            ],
+                          ),
+                        ),
                       );
                     }
+
                     return _buildMobileView(t, isDark);
                   },
                 ),
@@ -304,58 +285,146 @@ class ChatListViewState extends State<ChatListView> {
     );
   }
 
+  Widget _buildMainContent(AppLocalizations t, bool isDark, bool isWideScreen, bool isVeryWideScreen) {
+    if (_selectedNavIndex == 0) {
+      return Expanded(
+        child: Row(
+          children: [
+            Expanded(
+              flex: isVeryWideScreen ? 4 : 5,
+              child: _buildChatListPanelWide(t, isDark),
+            ),
+            Expanded(
+              flex: isVeryWideScreen ? 7 : 6,
+              child: _selectedConversation == null
+                  ? _buildWelcomePanel(t, isDark)
+                  : ChatScreen(conversation: _selectedConversation!),
+            ),
+          ],
+        ),
+      );
+    } else if (_selectedNavIndex == 1) {
+      return const Expanded(child: ContactsView(isWideScreen: true));
+    } else if (_selectedNavIndex == 2) {
+      return const Expanded(child: NewfeedScreen());
+    } else if (_selectedNavIndex == 3) {
+      return const Expanded(child: ProfileScreen());
+    } else {
+      return Expanded(
+        child: Row(
+          children: [
+            Expanded(
+              flex: isVeryWideScreen ? 4 : 5,
+              child: _buildChatListPanelWide(t, isDark),
+            ),
+            Expanded(
+              flex: isVeryWideScreen ? 7 : 6,
+              child: _selectedConversation == null
+                  ? _buildWelcomePanel(t, isDark)
+                  : ChatScreen(conversation: _selectedConversation!),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
   Widget _buildSidebar(bool isDark) {
+    final screenHeight = MediaQuery.of(context).size.height;
     return Container(
-      width: 64,
+      width: 72,
       color: isDark ? AppColors.neutralBlack : AppColors.sidebarDark,
       child: Column(
         children: [
-          const SizedBox(height: 12),
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 2),
-            ),
-            child: const CircleAvatar(
-              backgroundColor: AppColors.success,
-              child: Text('U', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
-          ),
-          const SizedBox(height: 20),
-          _buildSidebarItem(Icons.chat_bubble, 0, isDark),
-          _buildSidebarItem(Icons.contacts_outlined, 1, isDark),
-          _buildSidebarItem(Icons.auto_stories, 2, isDark),
-          _buildSidebarItem(Icons.person_outline, 3, isDark),
+          const SizedBox(height: 16),
+          _buildUserAvatar(),
+          const SizedBox(height: 24),
+          _buildSidebarItem(Icons.chat_bubble, 0, isDark, tooltip: 'Tin nhắn'),
+          _buildSidebarItem(Icons.contacts_outlined, 1, isDark, tooltip: 'Bạn bè'),
+          _buildSidebarItem(Icons.auto_stories, 2, isDark, tooltip: 'Bảng tin'),
+          _buildSidebarItem(Icons.person_outline, 3, isDark, tooltip: 'Cá nhân'),
           const Spacer(),
+          _buildSidebarItem(Icons.settings_outlined, 4, isDark, tooltip: 'Cài đặt'),
+          const SizedBox(height: 16),
         ],
       ),
     );
   }
 
-  Widget _buildSidebarItem(IconData icon, int index, bool isDark) {
-    final isSelected = _selectedNavIndex == index;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+  Widget _buildUserAvatar() {
+    final firebaseUser = FirebaseAuth.instance.currentUser;
+    final avatarUrl = firebaseUser?.photoURL ?? '';
+    final displayName = firebaseUser?.displayName ?? 'U';
+
+    return Tooltip(
+      message: displayName,
       child: Container(
-        width: 48,
-        height: 48,
+        width: 52,
+        height: 52,
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white.withValues(alpha: 0.15) : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primaryOrange.withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
-        child: IconButton(
-          onPressed: () {
-            setState(() {
-              _selectedNavIndex = index;
-              _selectedConversation = null;
-            });
-          },
-          icon: Icon(icon, color: Colors.white, size: 24),
+        child: CircleAvatar(
+          backgroundImage: avatarUrl.isNotEmpty ? NetworkImage(avatarUrl) : null,
+          backgroundColor: AppColors.primaryOrange,
+          child: avatarUrl.isEmpty
+              ? Text(
+                  displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                )
+              : null,
         ),
       ),
     );
+  }
+
+  Widget _buildSidebarItem(IconData icon, int index, bool isDark, {String? tooltip}) {
+    final isSelected = _selectedNavIndex == index;
+    final button = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Tooltip(
+        message: tooltip ?? '',
+        child: Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            color: isSelected
+                ? AppColors.primaryOrange.withValues(alpha: 0.2)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
+            border: isSelected
+                ? Border.all(color: AppColors.primaryOrange.withValues(alpha: 0.3), width: 1)
+                : null,
+          ),
+          child: IconButton(
+            onPressed: () {
+              setState(() {
+                _selectedNavIndex = index;
+                _selectedConversation = null;
+              });
+            },
+            icon: Icon(
+              icon,
+              color: isSelected ? AppColors.primaryOrange : Colors.white70,
+              size: 26,
+            ),
+          ),
+        ),
+      ),
+    );
+    return button;
   }
 
   Widget _buildChatListPanel(AppLocalizations t, bool isDark) {

@@ -8,20 +8,12 @@ class CallNotificationService {
   static final ValueNotifier<dynamic> declinedCall = ValueNotifier(null);
   static final ValueNotifier<dynamic> incomingCall = ValueNotifier(null);
 
-  static Future<void> showIncomingCall(Map<String, dynamic> data) async {
-    debugPrint('[CallNotificationService Web] showIncomingCall called');
-  }
+  static Future<void> showIncomingCall(Map<String, dynamic> data) async {}
 
-  static Future<void> initialize() async {
-    debugPrint('[CallNotificationService Web] initialized (stub)');
-  }
+  static Future<void> initialize() async {}
 
-  static Future<void> saveTokenToServer() async {
-    debugPrint('[CallNotificationService Web] saveTokenToServer called');
-  }
+  static Future<void> saveTokenToServer() async {}
 
   static Future<void> checkPendingCall(
-      Function(Map<String, String>) onIncomingCall) async {
-    debugPrint('[CallNotificationService Web] checkPendingCall called');
-  }
+      Function(Map<String, String>) onIncomingCall) async {}
 }

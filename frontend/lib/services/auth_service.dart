@@ -149,18 +149,15 @@ class AuthService {
 
   static Future<void> sendOtp(String email) async {
     try {
-      final response = await DioClient.instance.post(
+      await DioClient.instance.post(
         '/api/otp/generate',
         queryParameters: {'email': email.trim()},
       );
-      if (response.statusCode == 200) {
-        debugPrint('OTP sent to $email');
-      }
     } on DioException catch (e) {
       final errorMsg = e.response?.data?['message'] ?? 'Không thể gửi OTP';
       throw Exception(errorMsg);
     } catch (e) {
-      throw Exception('Lỗi kết nối hệ thống: $e');
+      throw Exception('Lỗi kết nối hệ thống');
     }
   }
 
@@ -229,8 +226,7 @@ class AuthService {
           .get();
 
       return querySnapshot.docs.isNotEmpty;
-    } catch (e) {
-      debugPrint('Lỗi checkEmail: $e');
+    } catch (_) {
       return false;
     }
   }

@@ -45,9 +45,9 @@ class _OtpVerifyViewState extends State<OtpVerifyView> {
     );
     _startCountdown();
 
-    // Tự động gọi gửi OTP khi vừa vào trang
-    AuthService.sendOtp(widget.email).catchError((e) {
-      setState(() => _errorMessage = e.toString());
+    // Tự động gửi OTP khi vào trang
+    AuthService.sendOtp(widget.email).catchError((_) {
+      // Bỏ qua lỗi gửi OTP ban đầu
     });
   }
 

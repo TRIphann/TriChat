@@ -55,6 +55,7 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
   // ── Services ───────────────────────────────────────────────────
 
   final ChatService _chatService = ChatService();
+  ChatService get chatService => _chatService; // Public accessor
   SignalRService? _signalR;
   BuildContext? _context; // dùng để access CallProvider
 
@@ -153,15 +154,9 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
 
     try {
       final token = await FirebaseAuth.instance.currentUser?.getIdToken(false);
-      debugPrint('===== FIREBASE TOKEN (dùng cho Swagger) =====');
-      debugPrint(token ?? 'null');
-      debugPrint('=============================================');
       await signalR.connect(accessToken: token);
-      await signalR.setOnline(); // mark online ngay sau khi connect lần đầu
-      debugPrint('[ChatProvider] SignalR connected + online');
-    } catch (e) {
-      debugPrint('[ChatProvider] SignalR connection failed: $e');
-    }
+      await signalR.setOnline();
+    } catch (_) {}
   }
 
   // ── Conversations ──────────────────────────────────────────────
@@ -183,10 +178,9 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
           _lastSeenAt[c.otherUserId!] = seededAt;
         }
       }
-    } catch (e) {
+    } catch (_) {
       _conversationsState = ChatLoadingState.error;
-      _errorMessage = e.toString();
-      debugPrint('[ChatProvider] loadConversations error: $e');
+      _errorMessage = 'Không thể tải danh sách hội thoại';
     }
     notifyListeners();
   }
@@ -194,8 +188,7 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
   Future<Conversation?> fetchConversation(String conversationId) async {
     try {
       return await _chatService.getConversation(conversationId);
-    } catch (e) {
-      debugPrint('[ChatProvider] fetchConversation error: $e');
+    } catch (_) {
       return null;
     }
   }
@@ -254,10 +247,9 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
       _messagesState = ChatLoadingState.success;
       notifyListeners();
       if (_chatVisible) _autoMarkRead(conversationId);
-    } catch (e) {
+    } catch (_) {
       _messagesState = ChatLoadingState.error;
-      _errorMessage = e.toString();
-      debugPrint('[ChatProvider] loadMessages error: $e');
+      _errorMessage = 'Không thể tải tin nhắn';
       notifyListeners();
     }
   }
@@ -284,10 +276,8 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
     double? longitude,
     String? address,
   }) async {
-    debugPrint('[ChatProvider] sendMessage called. Type: $type, ContentLength: ${content.length}');
     final conv = _activeConversation;
     if (conv == null) {
-      debugPrint('[ChatProvider] sendMessage error: No active conversation');
       return;
     }
 
@@ -354,7 +344,6 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
     double? longitude,
     String? address,
   }) async {
-    debugPrint('[ChatProvider] _trySendViaSignalR called for tempId: $tempId, type: $type');
     try {
       await _signalR?.sendMessage(
         conversationId: conversationId,
@@ -367,25 +356,21 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
         fileSize: fileSize,
         duration: duration,
         replyToMessageId: replyToMessageId,
-        latitude: latitude, // thêm
-        longitude: longitude, // thêm
+        latitude: latitude,
+        longitude: longitude,
         address: address,
       );
-      debugPrint('[ChatProvider] _trySendViaSignalR invoke completed for tempId: $tempId');
-    } catch (e) {
-      // Giữ message trên UI, đánh dấu gửi lỗi để user có thể nhấn gửi lại
+    } catch (_) {
       _messages = _messages
           .map((m) => m.id == tempId ? m.copyWith(status: 'failed') : m)
           .toList();
-      _errorMessage = e.toString();
-      debugPrint('[ChatProvider] _trySendViaSignalR error: $e');
+      _errorMessage = 'Không thể gửi tin nhắn';
       notifyListeners();
     }
   }
 
   /// Gửi lại một tin nhắn đã ở trạng thái 'failed'.
   Future<void> retrySendMessage(String tempId) async {
-    debugPrint('[ChatProvider] retrySendMessage called for tempId: $tempId');
     final msg = _messages.firstWhere(
       (m) => m.id == tempId,
       orElse: () => Message(
@@ -400,12 +385,7 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
         updatedAt: DateTime.now(),
       ),
     );
-    if (msg.id.isEmpty) {
-      debugPrint('[ChatProvider] retrySendMessage error: Message not found');
-      return;
-    }
-    if (msg.status != 'failed') {
-      debugPrint('[ChatProvider] retrySendMessage ignored: Message status is ${msg.status}');
+    if (msg.id.isEmpty || msg.status != 'failed') {
       return;
     }
 
@@ -414,10 +394,7 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
         .toList();
     notifyListeners();
 
-    // Ảnh hoặc Audio chưa upload xong lần trước (lỗi ngay từ bước upload) → thử lại từ đầu
     if (msg.mediaUrl == null && msg.localFilePath != null) {
-      debugPrint('[ChatProvider] retrySendMessage: File local chưa upload. Bắt đầu upload lại cho type: ${msg.type}');
-      // Read bytes from local file
       final file = FileHelper.createFile(msg.localFilePath!);
       final bytes = await file.readAsBytes();
       final fileName = msg.fileName ?? msg.localFilePath!.split('/').last.split('\\').last;
@@ -459,10 +436,8 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Gửi ảnh: hiện preview local NGAY (① render trước), upload + gửi ở nền (② call API sau).
   Future<void> sendImageMessage(String localFilePath, List<int> bytes, String fileName) async {
-    debugPrint('[ChatProvider] sendImageMessage called. FilePath: $localFilePath');
     final conv = _activeConversation;
     if (conv == null) {
-      debugPrint('[ChatProvider] sendImageMessage error: No active conversation');
       return;
     }
 
@@ -506,7 +481,6 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
     required String fileName,
     required String mimeType,
   }) async {
-    debugPrint('[ChatProvider] _uploadAndSendImage called for tempId: $tempId');
     try {
       final result = await _chatService.uploadMedia(
         conversationId: conversationId,
@@ -515,7 +489,6 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
         fileSize: bytes.length,
         mimeType: mimeType,
       );
-      debugPrint('[ChatProvider] _uploadAndSendImage upload success: $result');
       await _trySendViaSignalR(
         tempId: tempId,
         conversationId: conversationId,
@@ -525,22 +498,19 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
         fileName: result['file_name'] ?? result['fileName'],
         fileSize: result['file_size'] ?? result['fileSize'],
       );
-    } catch (e) {
+    } catch (_) {
       _messages = _messages
           .map((m) => m.id == tempId ? m.copyWith(status: 'failed') : m)
           .toList();
-      _errorMessage = e.toString();
-      debugPrint('[ChatProvider] _uploadAndSendImage error: $e');
+      _errorMessage = 'Không thể gửi hình ảnh';
       notifyListeners();
     }
   }
 
   /// Gửi tin nhắn thoại: hiện preview local và duration NGAY, upload + gửi ở nền.
   Future<void> sendAudioMessage(String localFilePath, List<int> bytes, int durationSeconds, {String? fileName}) async {
-    debugPrint('[ChatProvider] sendAudioMessage called. Path: $localFilePath, Duration: $durationSeconds s');
     final conv = _activeConversation;
     if (conv == null) {
-      debugPrint('[ChatProvider] sendAudioMessage error: No active conversation');
       return;
     }
 
@@ -590,7 +560,6 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
     required String mimeType,
     required int duration,
   }) async {
-    debugPrint('[ChatProvider] _uploadAndSendAudio called for tempId: $tempId');
     try {
       final result = await _chatService.uploadMedia(
         conversationId: conversationId,
@@ -599,7 +568,6 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
         fileSize: bytes.length,
         mimeType: mimeType,
       );
-      debugPrint('[ChatProvider] _uploadAndSendAudio upload success: $result');
       await _trySendViaSignalR(
         tempId: tempId,
         conversationId: conversationId,
@@ -610,12 +578,11 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
         fileSize: result['file_size'] ?? result['fileSize'],
         duration: duration,
       );
-    } catch (e) {
+    } catch (_) {
       _messages = _messages
           .map((m) => m.id == tempId ? m.copyWith(status: 'failed') : m)
           .toList();
-      _errorMessage = e.toString();
-      debugPrint('[ChatProvider] _uploadAndSendAudio error: $e');
+      _errorMessage = 'Không thể gửi tin nhắn thoại';
       notifyListeners();
     }
   }
@@ -670,8 +637,7 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
 
     try {
       await _signalR?.deleteMessage(conv.id, messageId);
-    } catch (e) {
-      // Rollback: khôi phục lại tin nhắn gốc
+    } catch (_) {
       final rollbackIdx = _messages.indexWhere((m) => m.id == messageId);
       if (rollbackIdx != -1) {
         final rolledBack = List<Message>.from(_messages);
@@ -681,8 +647,6 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
           _updateConversationLastMessage(original);
         }
       }
-      _errorMessage = e.toString();
-      debugPrint('[ChatProvider] deleteMessage error: $e');
       notifyListeners();
     }
   }
@@ -695,21 +659,16 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
     if (idx == -1) return;
     final original = _messages[idx];
 
-    // Ẩn ngay khỏi UI — không chờ API
     final updated = List<Message>.from(_messages)..removeAt(idx);
     _messages = updated;
     notifyListeners();
 
-    // Gọi API background để persist
     try {
       await _chatService.hideMessageForMe(conv.id, messageId);
-    } catch (e) {
-      // Rollback: chèn lại đúng vị trí cũ
+    } catch (_) {
       final restored = List<Message>.from(_messages);
       restored.insert(idx.clamp(0, restored.length), original);
       _messages = restored;
-      _errorMessage = e.toString();
-      debugPrint('[ChatProvider] hideMessageForMe error: $e');
       notifyListeners();
     }
   }
@@ -723,7 +682,6 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
     if (idx == -1) return;
     final original = _messages[idx];
 
-    // Optimistic toggle — mirror đúng logic server (ChatService.ReactToMessageAsync)
     final reactions = original.reactions == null
         ? <String, List<String>>{}
         : original.reactions!.map((k, v) => MapEntry(k, List<String>.from(v)));
@@ -749,16 +707,13 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
         messageId: messageId,
         emoji: emoji,
       );
-    } catch (e) {
-      // Rollback về reactions gốc nếu gửi lỗi
+    } catch (_) {
       final rollbackIdx = _messages.indexWhere((m) => m.id == messageId);
       if (rollbackIdx != -1) {
         final rolledBack = List<Message>.from(_messages);
         rolledBack[rollbackIdx] = original;
         _messages = rolledBack;
       }
-      _errorMessage = e.toString();
-      debugPrint('[ChatProvider] reactToMessage error: $e');
       notifyListeners();
     }
   }
@@ -841,10 +796,7 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
-  /// Server từ chối/lỗi một thao tác (vd SendMessage) — đánh dấu optimistic
-  /// message tương ứng là 'failed' thay vì để kẹt mãi ở 'sending'.
   void _onSignalRError(String message, String? clientTempId, String? context) {
-    debugPrint('[ChatProvider] SignalR error ($context): $message');
     if (clientTempId == null) return;
     final idx = _messages.indexWhere((m) => m.id == clientTempId);
     if (idx == -1) return;
@@ -1084,16 +1036,15 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
   // ── WebRTC signaling stubs — CallScreen gán handler cụ thể ─────────
 
   void _onWebRtcOffer(String conversationId, String callerId, String sdp) {
-    debugPrint('[ChatProvider] WebRTC Offer from $callerId in conv $conversationId');
     // Handler cụ thể được gán bởi CallScreen khi bắt đầu cuộc gọi
   }
 
   void _onWebRtcAnswer(String conversationId, String calleeId, String sdp) {
-    debugPrint('[ChatProvider] WebRTC Answer from $calleeId in conv $conversationId');
+    // Handler được gán bởi CallScreen
   }
 
   void _onWebRtcIceCandidate(String conversationId, String senderId, String candidate) {
-    debugPrint('[ChatProvider] WebRTC ICE from $senderId in conv $conversationId');
+    // Handler được gán bởi CallScreen
   }
 
   Future<void> initiateCall({
@@ -1179,16 +1130,13 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
         type: 'call',
         content: content,
       );
-      // Caller tự cập nhật UI — REST API không gửi MessageSent về sender
       final m = saved.withCurrentUser(_currentUid ?? '');
       if (_activeConversation?.id == conversationId) {
         _messages = [..._messages, m];
       }
       _updateConversationLastMessage(m);
       notifyListeners();
-    } catch (e) {
-      debugPrint('[ChatProvider] saveCallMessage error: $e');
-    }
+    } catch (_) {}
   }
 
   void _onUserStatusChanged(String userId, bool isOnline, DateTime? lastSeen) {

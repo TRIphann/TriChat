@@ -33,10 +33,8 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
   @override
   void initState() {
     super.initState();
-    debugPrint('[AudioMessagePlayer] initState called for URL: ${widget.audioUrl}');
     _audioPlayer = AudioPlayer();
     
-    // Đảm bảo âm thanh phát ra loa ngoài (speaker) thay vì loa thoại (earpiece)
     _audioPlayer.setAudioContext(
       AudioContext(
         android: AudioContextAndroid(
@@ -55,7 +53,6 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
       ),
     );
 
-    // Set initial duration if provided by message model
     if (widget.durationSeconds != null) {
       _duration = Duration(seconds: widget.durationSeconds!);
     }
@@ -65,7 +62,6 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
 
   void _initPlayerListeners() {
     _stateSubscription = _audioPlayer.onPlayerStateChanged.listen((state) {
-      debugPrint('[AudioMessagePlayer] State changed to: $state');
       if (mounted) {
         setState(() {
           _playerState = state;
@@ -82,7 +78,6 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
     });
 
     _durationSubscription = _audioPlayer.onDurationChanged.listen((dur) {
-      debugPrint('[AudioMessagePlayer] Duration loaded: $dur');
       if (mounted) {
         setState(() {
           _duration = dur;
@@ -91,7 +86,6 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
     });
 
     _completeSubscription = _audioPlayer.onPlayerComplete.listen((_) {
-      debugPrint('[AudioMessagePlayer] Playback completed');
       if (mounted) {
         setState(() {
           _position = Duration.zero;
@@ -102,20 +96,16 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
   }
 
   Future<void> _playPause() async {
-    debugPrint('[AudioMessagePlayer] _playPause clicked. Current state: $_playerState');
     try {
       if (_playerState == PlayerState.playing) {
-        debugPrint('[AudioMessagePlayer] Pausing audio player');
         await _audioPlayer.pause();
       } else {
-        debugPrint('[AudioMessagePlayer] Playing audio source: ${widget.audioUrl}');
         await _audioPlayer.play(UrlSource(widget.audioUrl));
       }
-    } catch (e) {
-      debugPrint('[AudioMessagePlayer] Playback error: $e');
+    } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Không thể phát âm thanh: $e')),
+          const SnackBar(content: Text('Không thể phát âm thanh')),
         );
       }
     }
@@ -123,7 +113,6 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
 
   Future<void> _seek(double value) async {
     final targetPosition = Duration(milliseconds: value.toInt());
-    debugPrint('[AudioMessagePlayer] Seeking to: $targetPosition');
     await _audioPlayer.seek(targetPosition);
   }
 
@@ -135,7 +124,6 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
 
   @override
   void dispose() {
-    debugPrint('[AudioMessagePlayer] dispose called for URL: ${widget.audioUrl}');
     _stateSubscription?.cancel();
     _positionSubscription?.cancel();
     _durationSubscription?.cancel();
@@ -148,71 +136,75 @@ class _AudioMessagePlayerState extends State<AudioMessagePlayer> {
   Widget build(BuildContext context) {
     final bool isPlaying = _playerState == PlayerState.playing;
     final Color primaryColor = widget.isMine ? Colors.white : AppColors.primaryOrange;
-    final Color secondaryColor = widget.isMine ? Colors.white70 : Colors.black87;
-    final Color sliderActiveColor = widget.isMine ? Colors.white : AppColors.primaryOrange;
-    final Color sliderInactiveColor = widget.isMine ? Colors.white30 : Colors.grey.shade300;
+    final Color bgColor = widget.isMine ? AppColors.primaryOrange : const Color(0xFFF0F0F0);
+    final Color textColor = widget.isMine ? Colors.white : Colors.black87;
 
-    double maxDurationMs = _duration.inMilliseconds.toDouble();
-    if (maxDurationMs <= 0) {
-      maxDurationMs = 1000.0; // Avoid slider exception when duration is 0
-    }
-    final double currentPositionMs = _position.inMilliseconds.toDouble().clamp(0.0, maxDurationMs);
+    final currentDuration = _duration.inMilliseconds > 0 ? _duration : Duration(seconds: widget.durationSeconds ?? 0);
+    final progress = currentDuration.inMilliseconds > 0
+        ? _position.inMilliseconds / currentDuration.inMilliseconds
+        : 0.0;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 200),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Play / Pause Button
-          IconButton(
-            icon: Icon(
-              isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
-              color: primaryColor,
-              size: 36,
+          GestureDetector(
+            onTap: _playPause,
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: primaryColor,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isPlaying ? Icons.pause : Icons.play_arrow,
+                color: widget.isMine ? AppColors.primaryOrange : Colors.white,
+                size: 20,
+              ),
             ),
-            onPressed: _playPause,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
           ),
           const SizedBox(width: 8),
-          
-          // Slider and Timer
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                width: 140,
-                height: 20,
-                child: SliderTheme(
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SliderTheme(
                   data: SliderTheme.of(context).copyWith(
-                    trackHeight: 3.0,
-                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6.0),
-                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 12.0),
-                    activeTrackColor: sliderActiveColor,
-                    inactiveTrackColor: sliderInactiveColor,
-                    thumbColor: sliderActiveColor,
-                    overlayColor: sliderActiveColor.withOpacity(0.2),
+                    trackHeight: 3,
+                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
+                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 10),
+                    activeTrackColor: primaryColor,
+                    inactiveTrackColor: primaryColor.withValues(alpha: 0.3),
+                    thumbColor: primaryColor,
                   ),
                   child: Slider(
-                    min: 0.0,
-                    max: maxDurationMs,
-                    value: currentPositionMs,
-                    onChanged: (val) => _seek(val),
+                    value: progress.clamp(0.0, 1.0),
+                    onChanged: _seek,
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 6.0),
-                child: Text(
-                  '${_formatDuration(_position)} / ${_formatDuration(_duration)}',
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: secondaryColor,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      _formatDuration(_position),
+                      style: TextStyle(fontSize: 10, color: textColor.withValues(alpha: 0.7)),
+                    ),
+                    Text(
+                      _formatDuration(currentDuration),
+                      style: TextStyle(fontSize: 10, color: textColor.withValues(alpha: 0.7)),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),

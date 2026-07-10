@@ -1,5 +1,4 @@
 // Stub for web - flutter_callkeep not available
-import 'package:flutter/foundation.dart';
 
 class CallEvent {
   final String uuid;
@@ -27,22 +26,15 @@ class CallKeep {
 
   CallEventHandler? handler;
 
-  Future<void> configure(CallKeepConfig config) async {
-    debugPrint('[CallKeep Stub] configure called');
-  }
+  Future<void> configure(CallKeepConfig config) async {}
 
-  Future<void> displayIncomingCall(CallEvent event) async {
-    debugPrint('[CallKeep Stub] displayIncomingCall: ${event.callerName}');
-  }
+  Future<void> displayIncomingCall(CallEvent event) async {}
 
   Future<List<CallEvent>> activeCalls() async {
-    debugPrint('[CallKeep Stub] activeCalls called');
     return [];
   }
 
-  Future<void> endAllCalls() async {
-    debugPrint('[CallKeep Stub] endAllCalls called');
-  }
+  Future<void> endAllCalls() async {}
 }
 
 class CallKeepConfig {

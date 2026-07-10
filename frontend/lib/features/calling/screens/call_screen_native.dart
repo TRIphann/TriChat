@@ -88,9 +88,7 @@ class _CallScreenState extends State<CallScreen> {
       _localStream = stream;
       _localRenderer.srcObject = stream;
       _pc!.addStream(stream);
-    } catch (e) {
-      debugPrint('[CallScreen] getUserMedia error: $e');
-    }
+    } catch (_) {}
   }
 
   @override

@@ -33,9 +33,7 @@ class _UpdateAvatarViewState extends State<UpdateAvatarView> {
         });
         // Sau khi chọn ảnh xong, bạn có thể tự động hiện SuccessDialog hoặc đợi bấm nút tiếp theo
       }
-    } catch (e) {
-      debugPrint("Lỗi truy cập kho ảnh: $e");
-    }
+    } catch (_) {}
   }
 Future<void> _uploadAvatar() async {
   try {

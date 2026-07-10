@@ -101,7 +101,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    debugPrint('[ChatScreen] initState called');
     _audioRecorder = AudioRecorder();
     WidgetsBinding.instance.addObserver(this);
     _loadMessages();
@@ -126,7 +125,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    debugPrint('[ChatScreen] dispose called');
     WidgetsBinding.instance.removeObserver(this);
     _chatProvider.setConversationVisible(false);
     Future.microtask(() => _chatProvider.closeConversation());
@@ -602,9 +600,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 message.id,
                 message.content,
               );
-            } catch (e) {
-              debugPrint('[pin] error: $e');
-              if (mounted) _showError('Pin lỗi: $e');
+            } catch (_) {
+              if (mounted) _showError('Không thể ghim tin nhắn');
             }
           },
           onReply: () => setState(() => _replyToMessage = message),
@@ -1237,14 +1234,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _startRecording() async {
-    debugPrint('[ChatScreen] _startRecording called');
     if (_isRecordingActionInProgress) return;
     _isRecordingActionInProgress = true;
     try {
       final status = await Permission.microphone.request();
-      debugPrint('[ChatScreen] Microphone permission status: $status');
       if (status != PermissionStatus.granted) {
-        debugPrint('[ChatScreen] Permission.microphone was denied');
         _showError(
           'Ứng dụng cần quyền sử dụng microphone để ghi âm tin nhắn thoại.',
         );
@@ -1256,7 +1250,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         final tempDir = await FileHelper.getTempDirectory();
         path = '$tempDir/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
       }
-      debugPrint('[ChatScreen] Target path for temp audio file: ${path ?? "<web-blob>"}');
 
       if (await _audioRecorder.hasPermission()) {
         final effectivePath = kIsWeb
@@ -1266,7 +1259,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           const RecordConfig(encoder: AudioEncoder.aacLc),
           path: effectivePath,
         );
-        debugPrint('[ChatScreen] AudioRecorder successfully started recording');
 
         setState(() {
           _isRecording = true;
@@ -1280,9 +1272,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               _recordingDuration++;
             });
             if (_recordingDuration >= 300) {
-              debugPrint(
-                '[ChatScreen] Recording duration limit (300s) reached. Stopping and sending.',
-              );
               _stopAndSendRecording();
             }
           }
@@ -1290,22 +1279,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       } else {
         throw Exception('Thiếu quyền truy cập microphone trên thiết bị.');
       }
-    } catch (e) {
-      debugPrint('[ChatScreen] _startRecording error: $e');
-      _showError('Không thể khởi động ghi âm: $e');
+    } catch (_) {
+      _showError('Không thể khởi động ghi âm');
     } finally {
       _isRecordingActionInProgress = false;
     }
   }
 
   Future<void> _cancelRecording() async {
-    debugPrint('[ChatScreen] _cancelRecording called');
     if (_isRecordingActionInProgress) return;
     _isRecordingActionInProgress = true;
     try {
       _recordingTimer?.cancel();
       final path = await _audioRecorder.stop();
-      debugPrint('[ChatScreen] AudioRecorder stopped. Temp path: $path');
       if (path != null && !kIsWeb) {
         await FileHelper.deleteFile(path);
       }
@@ -1314,21 +1300,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         _recordingDuration = 0;
       });
       _showInfo('Đã hủy ghi âm.');
-    } catch (e) {
-      debugPrint('[ChatScreen] _cancelRecording error: $e');
+    } catch (_) {
+      _showInfo('Đã hủy ghi âm.');
     } finally {
       _isRecordingActionInProgress = false;
     }
   }
 
   Future<void> _stopAndSendRecording() async {
-    debugPrint('[ChatScreen] _stopAndSendRecording called');
     if (_isRecordingActionInProgress) return;
     _isRecordingActionInProgress = true;
     try {
       _recordingTimer?.cancel();
       final path = await _audioRecorder.stop();
-      debugPrint('[ChatScreen] AudioRecorder stopped. Output file path: $path');
 
       final finalDuration = _recordingDuration;
       setState(() {
@@ -1344,9 +1328,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         } else {
           final file = FileHelper.createFile(path);
           if (file != null) {
-            debugPrint(
-              '[ChatScreen] File exists. Triggering sendAudioMessage on ChatProvider. Duration: $finalDuration',
-            );
             if (!mounted) return;
             final bytes = await file.readAsBytes();
             final fileName = 'recording_${DateTime.now().millisecondsSinceEpoch}.m4a';
@@ -1359,27 +1340,16 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             _scrollToBottom();
           }
         }
-      } else {
-        debugPrint(
-          '[ChatScreen] Stop recording ignored: path is null or duration is 0',
-        );
       }
-    } catch (e) {
-      debugPrint('[ChatScreen] _stopAndSendRecording error: $e');
-      _showError('Lỗi khi lưu hoặc gửi file ghi âm: $e');
+    } catch (_) {
+      _showError('Lỗi khi lưu hoặc gửi file ghi âm');
     } finally {
       _isRecordingActionInProgress = false;
     }
   }
 
   void _recordAudio() {
-    debugPrint('[ChatScreen] _recordAudio called');
-    if (_isRecordingActionInProgress) {
-      debugPrint(
-        '[ChatScreen] Record action in progress, ignoring duplicate tap.',
-      );
-      return;
-    }
+    if (_isRecordingActionInProgress) return;
     if (_isRecording) {
       _stopAndSendRecording();
     } else {

@@ -32,9 +32,7 @@ void main() async {
   if (!kIsWeb) {
     try {
       await dotenv.load(fileName: ".env");
-    } catch (e) {
-      debugPrint('[dotenv] could not load .env: $e');
-    }
+    } catch (_) {}
   }
 
   if (!kIsWeb) {

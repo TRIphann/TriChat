@@ -406,7 +406,6 @@ class MessageBubble extends StatelessWidget {
   }
 
   Widget _buildAudioContent() {
-    debugPrint('[MessageBubble] _buildAudioContent called for message ID: ${message.id}');
     final hasRemote = message.mediaUrl != null && message.mediaUrl!.isNotEmpty;
     final hasLocal = message.localFilePath != null;
 

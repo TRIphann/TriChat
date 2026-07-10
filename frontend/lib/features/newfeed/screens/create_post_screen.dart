@@ -237,10 +237,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
         try {
           await AuthService.updateAvatar(XFile(avatarPath));
-        } catch (e) {
-          // Nếu path-based fail, fallback thử upload bằng bytes
+        } catch (_) {
           if (avatarBytes != null) {
-            debugPrint('[CreatePost] Path-based avatar upload failed: $e. Retrying with bytes...');
             await AuthService.updateAvatarFromBytes(avatarBytes);
           } else {
             rethrow;

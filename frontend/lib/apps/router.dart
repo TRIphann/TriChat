@@ -24,7 +24,6 @@ class RouterNotifier extends ChangeNotifier {
 
   RouterNotifier() {
     FirebaseAuth.instance.authStateChanges().listen((u) {
-      print("Auth changed: $u");
       user = u;
       notifyListeners();
     });

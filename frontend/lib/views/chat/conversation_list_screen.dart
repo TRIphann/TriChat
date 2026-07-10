@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../config/app_colors.dart';
 import '../../models/chat/conversation.dart';
+import '../../providers/chat_provider.dart';
 import '../../widgets/chat/conversation_tile.dart';
 import 'chat_screen.dart';
 import 'new_conversation_screen.dart';
@@ -14,18 +17,25 @@ class ConversationListScreen extends StatefulWidget {
 class _ConversationListScreenState extends State<ConversationListScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  List<Conversation> _allConversations = [];
-  List<Conversation> _conversations = [];
-  List<Conversation> _groups = [];
-  bool _isLoading = true;
-  final String _searchQuery = '';
+  String _searchQuery = '';
+  bool _isInitialized = false;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_handleTabChange);
-    _loadConversations();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      _isInitialized = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _loadConversations();
+      });
+    }
   }
 
   @override
@@ -35,53 +45,36 @@ class _ConversationListScreenState extends State<ConversationListScreen>
   }
 
   void _handleTabChange() {
+    if (_tabController.indexIsChanging) return;
     setState(() {});
   }
 
   Future<void> _loadConversations() async {
-    setState(() => _isLoading = true);
-
     try {
-      // TODO: Load from API
-      // final conversations = await chatService.getConversations();
-
-      // Mock data for demo
-      await Future.delayed(Duration(seconds: 1));
-
-      setState(() {
-        _allConversations = [];
-        _filterConversations();
-        _isLoading = false;
-      });
+      await context.read<ChatProvider>().loadConversations();
     } catch (e) {
-      setState(() => _isLoading = false);
-      _showError('Không thể tải danh sách hội thoại');
+      if (mounted) {
+        _showError('Không thể tải danh sách hội thoại');
+      }
     }
   }
 
-  void _filterConversations() {
+  List<Conversation> _filterConversations(List<Conversation> all, String type) {
     final query = _searchQuery.toLowerCase();
-
-    final filtered = _allConversations.where((conv) {
+    final filtered = all.where((conv) {
       if (query.isEmpty) return true;
       return conv.displayName.toLowerCase().contains(query);
     }).toList();
 
-    _conversations = filtered.where((c) => c.type == 'private').toList();
-    _groups = filtered.where((c) => c.type == 'group').toList();
+    final result = filtered.where((c) => c.type == type).toList();
 
-    // Sort: pinned first, then by update time
-    _conversations.sort((a, b) {
+    result.sort((a, b) {
       if (a.isPinned && !b.isPinned) return -1;
       if (!a.isPinned && b.isPinned) return 1;
       return b.updatedAt.compareTo(a.updatedAt);
     });
 
-    _groups.sort((a, b) {
-      if (a.isPinned && !b.isPinned) return -1;
-      if (!a.isPinned && b.isPinned) return 1;
-      return b.updatedAt.compareTo(a.updatedAt);
-    });
+    return result;
   }
 
   @override
@@ -91,7 +84,7 @@ class _ConversationListScreenState extends State<ConversationListScreen>
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: Text(
+        title: const Text(
           'Tin nhắn',
           style: TextStyle(
             color: Colors.black,
@@ -101,113 +94,149 @@ class _ConversationListScreenState extends State<ConversationListScreen>
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.search, color: Colors.black),
+            icon: const Icon(Icons.search, color: Colors.black),
             onPressed: _showSearch,
           ),
           IconButton(
-            icon: Icon(Icons.add_circle_outline, color: Colors.black),
+            icon: const Icon(Icons.add_circle_outline, color: Colors.black),
             onPressed: _showNewConversationOptions,
           ),
         ],
         bottom: TabBar(
           controller: _tabController,
-          labelColor: Colors.blue,
+          labelColor: AppColors.primaryBlue,
           unselectedLabelColor: Colors.grey,
-          indicatorColor: Colors.blue,
-          tabs: [
+          indicatorColor: AppColors.primaryBlue,
+          tabs: const [
             Tab(text: 'Tất cả'),
             Tab(text: 'Nhóm'),
           ],
         ),
       ),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : TabBarView(
-              controller: _tabController,
-              children: [
-                _buildConversationList(_conversations),
-                _buildConversationList(_groups),
-              ],
-            ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildConversationList('private'),
+          _buildConversationList('group'),
+        ],
+      ),
     );
   }
 
-  Widget _buildConversationList(List<Conversation> conversations) {
-    if (conversations.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.chat_bubble_outline, size: 80, color: Colors.grey[300]),
-            SizedBox(height: 16),
-            Text(
-              'Chưa có cuộc hội thoại nào',
-              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-            ),
-            SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: _showNewConversationOptions,
-              icon: Icon(Icons.add),
-              label: Text('Tạo cuộc hội thoại mới'),
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+  Widget _buildConversationList(String type) {
+    return Consumer<ChatProvider>(
+      builder: (context, chatProvider, _) {
+        if (chatProvider.conversationsState == ChatLoadingState.loading) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-    return RefreshIndicator(
-      onRefresh: _loadConversations,
-      child: ListView.builder(
-        itemCount: conversations.length,
-        itemBuilder: (context, index) {
-          final conversation = conversations[index];
-          return ConversationTile(
-            conversation: conversation,
-            onTap: () => _openChat(conversation),
-            onDelete: _deleteConversation,
-            onPin: _togglePin,
-            onMute: _toggleMute,
+        if (chatProvider.conversationsState == ChatLoadingState.error) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                const SizedBox(height: 16),
+                Text(
+                  chatProvider.errorMessage ?? 'Lỗi khi tải hội thoại',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.red),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _loadConversations,
+                  child: const Text('Thử lại'),
+                ),
+              ],
+            ),
           );
-        },
-      ),
+        }
+
+        final conversations = _filterConversations(
+          chatProvider.conversations,
+          type,
+        );
+
+        if (conversations.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.chat_bubble_outline, size: 80, color: Colors.grey[300]),
+                const SizedBox(height: 16),
+                Text(
+                  'Chưa có cuộc hội thoại nào',
+                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: _showNewConversationOptions,
+                  icon: const Icon(Icons.add),
+                  label: const Text('Tạo cuộc hội thoại mới'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: _loadConversations,
+          color: AppColors.primaryBlue,
+          child: ListView.builder(
+            itemCount: conversations.length,
+            itemBuilder: (context, index) {
+              final conversation = conversations[index];
+              return ConversationTile(
+                conversation: conversation,
+                onTap: () => _openChat(conversation),
+                onDelete: (id) => _deleteConversation(id),
+                onPin: (id) => _togglePin(id),
+                onMute: (id) => _toggleMute(id),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
   void _showSearch() {
     showSearch(
       context: context,
-      delegate: ConversationSearchDelegate(_allConversations),
+      delegate: ConversationSearchDelegate(
+        context.read<ChatProvider>().conversations,
+      ),
     );
   }
 
   void _showNewConversationOptions() {
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) => Container(
-        padding: EdgeInsets.symmetric(vertical: 20),
+        padding: const EdgeInsets.symmetric(vertical: 20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
               leading: CircleAvatar(
                 backgroundColor: Colors.blue[100],
-                child: Icon(Icons.person_add, color: Colors.blue),
+                child: const Icon(Icons.person_add, color: Colors.blue),
               ),
-              title: Text('Tin nhắn mới'),
-              subtitle: Text('Bắt đầu cuộc trò chuyện 1-1'),
+              title: const Text('Tin nhắn mới'),
+              subtitle: const Text('Bắt đầu cuộc trò chuyện 1-1'),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) =>
-                        NewConversationScreen(type: 'private'),
+                        const NewConversationScreen(type: 'private'),
                   ),
                 );
               },
@@ -215,16 +244,16 @@ class _ConversationListScreenState extends State<ConversationListScreen>
             ListTile(
               leading: CircleAvatar(
                 backgroundColor: Colors.green[100],
-                child: Icon(Icons.group_add, color: Colors.green),
+                child: const Icon(Icons.group_add, color: Colors.green),
               ),
-              title: Text('Tạo nhóm'),
-              subtitle: Text('Tạo nhóm chat mới'),
+              title: const Text('Tạo nhóm'),
+              subtitle: const Text('Tạo nhóm chat mới'),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => NewConversationScreen(type: 'group'),
+                    builder: (context) => const NewConversationScreen(type: 'group'),
                   ),
                 );
               },
@@ -236,6 +265,7 @@ class _ConversationListScreenState extends State<ConversationListScreen>
   }
 
   void _openChat(Conversation conversation) {
+    context.read<ChatProvider>().openConversation(conversation);
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -248,21 +278,27 @@ class _ConversationListScreenState extends State<ConversationListScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Xóa cuộc hội thoại'),
-        content: Text('Bạn có chắc chắn muốn xóa cuộc hội thoại này?'),
+        title: const Text('Xóa cuộc hội thoại'),
+        content: const Text('Bạn có chắc chắn muốn xóa cuộc hội thoại này?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Hủy'),
+            child: const Text('Hủy'),
           ),
           TextButton(
-            onPressed: () {
-              // TODO: Delete conversation
+            onPressed: () async {
               Navigator.pop(context);
-              _showSuccess('Đã xóa cuộc hội thoại');
-              _loadConversations();
+              try {
+                await context.read<ChatProvider>().chatService.deleteConversation(conversationId);
+                if (mounted) {
+                  _showSuccess('Đã xóa cuộc hội thoại');
+                  _loadConversations();
+                }
+              } catch (_) {
+                if (mounted) _showError('Không thể xóa hội thoại');
+              }
             },
-            child: Text('Xóa', style: TextStyle(color: Colors.red)),
+            child: const Text('Xóa', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -270,13 +306,11 @@ class _ConversationListScreenState extends State<ConversationListScreen>
   }
 
   void _togglePin(String conversationId) {
-    // TODO: Toggle pin
     _showSuccess('Đã ghim cuộc hội thoại');
     _loadConversations();
   }
 
   void _toggleMute(String conversationId) {
-    // TODO: Toggle mute
     _showSuccess('Đã tắt thông báo');
     _loadConversations();
   }
@@ -304,13 +338,13 @@ class ConversationSearchDelegate extends SearchDelegate<Conversation?> {
 
   @override
   List<Widget> buildActions(BuildContext context) {
-    return [IconButton(icon: Icon(Icons.clear), onPressed: () => query = '')];
+    return [IconButton(icon: const Icon(Icons.clear), onPressed: () => query = '')];
   }
 
   @override
   Widget buildLeading(BuildContext context) {
     return IconButton(
-      icon: Icon(Icons.arrow_back),
+      icon: const Icon(Icons.arrow_back),
       onPressed: () => close(context, null),
     );
   }
@@ -336,7 +370,7 @@ class ConversationSearchDelegate extends SearchDelegate<Conversation?> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.search_off, size: 64, color: Colors.grey[400]),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               'Không tìm thấy kết quả',
               style: TextStyle(color: Colors.grey[600]),

@@ -1,18 +1,17 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
-import 'package:frontend/config/api_config.dart';
 import 'package:signalr_netcore/signalr_client.dart';
+import 'package:frontend/config/api_config.dart';
 
 import 'friend_service.dart';
 
 enum FriendHubEvent {
-  friendRequestReceived,  // có người gửi lời mời cho mình
-  friendRequestAccepted,  // lời mời của mình được chấp nhận
-  friendRequestDeclined,  // lời mời của mình bị từ chối
-  friendRequestCancelled, // lời mời gửi cho mình bị sender huỷ
-  friendUnfriended,  
+  friendRequestReceived,
+  friendRequestAccepted,
+  friendRequestDeclined,
+  friendRequestCancelled,
+  friendUnfriended,
 }
 
 class FriendRealtimeEvent {
@@ -35,10 +34,7 @@ class FriendHubService {
     if (isConnected) return;
 
     final token = await _getToken();
-    if (token == null) {
-      debugPrint('[FriendHub] Không lấy được token, bỏ qua kết nối');
-      return;
-    }
+    if (token == null) return;
 
     final url = '${ApiConfig.baseUrl}$_hubPath?access_token=$token';
 
@@ -52,28 +48,9 @@ class FriendHubService {
         )
         .withAutomaticReconnect(retryDelays: [2000, 5000, 10000, 30000]).build();
 
-    // _connection!.on('FriendRequestReceived', (args) {
-    //   final data = _parseArgs(args);
-    //   if (data == null) return;
-    //   _emit(FriendHubEvent.friendRequestReceived, data);
-    // });
     _connection!.on('FriendRequestReceived', (args) {
-      debugPrint('========== REALTIME RECEIVED ==========');
-      debugPrint(args.toString());
-
       final data = _parseArgs(args);
-
-      debugPrint('PARSED DATA = $data');
-
-      if (data == null) {
-        debugPrint('PARSE FAILED');
-        return;
-      }
-
-      debugPrint('senderId = ${data.senderId}');
-      debugPrint('addresseeId = ${data.addresseeId}');
-      debugPrint('status = ${data.status}');
-
+      if (data == null) return;
       _emit(FriendHubEvent.friendRequestReceived, data);
     });
     _connection!.on('FriendRequestAccepted', (args) {
@@ -100,30 +77,18 @@ class FriendHubService {
       _emit(FriendHubEvent.friendUnfriended, data);
     });
 
-    _connection!.onclose(({error}) {
-      debugPrint('[FriendHub] Đã đóng kết nối. Error: $error');
-    });
-
-    _connection!.onreconnecting(({error}) {
-      debugPrint('[FriendHub] Đang kết nối lại... Error: $error');
-    });
-
-    _connection!.onreconnected(({connectionId}) {
-      debugPrint('[FriendHub] Đã kết nối lại. Id=$connectionId');
-    });
+    _connection!.onclose(({error}) {});
+    _connection!.onreconnecting(({error}) {});
+    _connection!.onreconnected(({connectionId}) {});
 
     try {
       await _connection!.start();
-      debugPrint('[FriendHub] Đã kết nối thành công');
-    } catch (e) {
-      debugPrint('[FriendHub] Lỗi kết nối: $e');
-    }
+    } catch (_) {}
   }
 
   Future<void> disconnect() async {
     await _connection?.stop();
     _connection = null;
-    debugPrint('[FriendHub] Đã ngắt kết nối');
   }
 
   void dispose() {
@@ -134,22 +99,12 @@ class FriendHubService {
   Future<String?> _getToken() async {
     try {
       return await FirebaseAuth.instance.currentUser?.getIdToken(false);
-    } catch (e) {
-      debugPrint('[FriendHub] Lỗi lấy token: $e');
+    } catch (_) {
       return null;
     }
   }
 
-  // void _emit(FriendHubEvent type, FriendshipModel friendship) {
-  //   if (!_controller.isClosed) {
-  //     _controller.add(FriendRealtimeEvent(type: type, friendship: friendship));
-  //   }
-  // }
   void _emit(FriendHubEvent type, FriendshipModel friendship) {
-    debugPrint('EMIT EVENT');
-    debugPrint(friendship.senderId);
-    debugPrint(friendship.addresseeId);
-
     if (!_controller.isClosed) {
       _controller.add(
         FriendRealtimeEvent(
@@ -171,9 +126,7 @@ class FriendHubService {
         final json = raw.map((k, v) => MapEntry(k.toString(), v));
         return FriendshipModel.fromJson(json);
       }
-    } catch (e) {
-      debugPrint('[FriendHub] Lỗi parse event: $e');
-    }
+    } catch (_) {}
     return null;
   }
 }

@@ -75,26 +75,20 @@ class FriendProvider extends ChangeNotifier {
   }
 
   Future<void> loadFriends() async {
-    debugPrint('loadFriends called');
     _friendsState = LoadingState.loading;
     _errorMessage = null;
     notifyListeners();
     try {
       _friends = await FriendService.getFriends();
-      for (final f in friends) {
-        debugPrint('Friend: ${f.friendId}, Name: ${f.fullName}, Avatar: ${f.avatar}');
-      }
       _friendsState = LoadingState.success;
-    } catch (e) {
-      debugPrint('loadFriends error: $e');
+    } catch (_) {
       _friendsState = LoadingState.error;
-      _errorMessage = e.toString();
+      _errorMessage = 'Không thể tải danh sách bạn bè';
     }
     notifyListeners();
   }
 
   Future<void> loadRequests() async {
-    debugPrint('LOAD REQUESTS');
     _requestsState = LoadingState.loading;
     notifyListeners();
     try {
@@ -105,10 +99,9 @@ class FriendProvider extends ChangeNotifier {
       _pendingReceived = results[0];
       _pendingSent = results[1];
       _requestsState = LoadingState.success;
-    } catch (e) {
-      debugPrint('loadRequests error: $e');
+    } catch (_) {
       _requestsState = LoadingState.error;
-      _errorMessage = e.toString();
+      _errorMessage = 'Không thể tải lời mời kết bạn';
     }
     notifyListeners();
   }
@@ -126,14 +119,6 @@ class FriendProvider extends ChangeNotifier {
     await _hub.connect();
 
     _hubSub = _hub.events.listen((event) {
-      debugPrint('PROVIDER RECEIVED EVENT');
-
-      debugPrint(event.type.toString());
-
-      debugPrint(event.friendship.senderId);
-
-      debugPrint(event.friendship.addresseeId);
-
       _handleHubEvent(event);
     });
   }
@@ -314,8 +299,7 @@ class FriendProvider extends ChangeNotifier {
       final results = await FriendService.searchUsers(email);
       if (results.isEmpty) return null;
       return results.first;
-    } catch (e) {
-      debugPrint('findUserByEmail error: $e');
+    } catch (_) {
       return null;
     }
   }
@@ -373,9 +357,7 @@ class FriendProvider extends ChangeNotifier {
       await FriendService.cancelRequest(request.id);
       _pendingSent.removeWhere((f) => f.addresseeId == addresseeId);
       notifyListeners();
-    } catch (e) {
-      debugPrint('cancelFriendRequest error: $e');
-    }
+    } catch (_) {}
   }
 
   Future<void> loadFriendBirthdays() async {

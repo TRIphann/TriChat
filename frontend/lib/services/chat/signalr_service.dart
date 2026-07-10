@@ -119,12 +119,10 @@ class SignalRService {
     _hubConnection!.on('WebRTC IceCandidate', (args) => _handleWebRtcIceCandidate(args));
 
     await _hubConnection!.start();
-    debugPrint('SignalR Connected');
   }
 
   Future<void> disconnect() async {
     await _hubConnection?.stop();
-    debugPrint('SignalR Disconnected');
   }
 
   Future<void> setOnline() async {
@@ -467,7 +465,6 @@ class SignalRService {
       final message = error['message'] ?? error['Message'] ?? 'Unknown error';
       final clientTempId = error['clientTempId'] ?? error['ClientTempId'];
       final context = error['context'] ?? error['Context'];
-      print('SignalR Error: $message');
       onError?.call(message, clientTempId, context);
     }
   }
