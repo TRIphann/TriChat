@@ -10,6 +10,7 @@ import 'package:frontend/providers/call_provider.dart';
 import 'package:frontend/services/call_notification_service.dart';
 import 'package:frontend/services/chat/chat_service.dart';
 import 'package:frontend/services/chat/signalr_service.dart';
+import 'package:frontend/services/file_helper.dart';
 import 'package:frontend/services/file_ops.dart';
 import 'package:frontend/services/message_notification_service.dart';
 import 'package:provider/provider.dart';
@@ -416,17 +417,26 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
     // Ảnh hoặc Audio chưa upload xong lần trước (lỗi ngay từ bước upload) → thử lại từ đầu
     if (msg.mediaUrl == null && msg.localFilePath != null) {
       debugPrint('[ChatProvider] retrySendMessage: File local chưa upload. Bắt đầu upload lại cho type: ${msg.type}');
+      // Read bytes from local file
+      final file = FileHelper.createFile(msg.localFilePath!);
+      final bytes = await file.readAsBytes();
+      final fileName = msg.fileName ?? msg.localFilePath!.split('/').last.split('\\').last;
+      
       if (msg.type == 'image') {
         await _uploadAndSendImage(
           tempId: tempId,
           conversationId: msg.conversationId,
-          localFilePath: msg.localFilePath!,
+          bytes: bytes,
+          fileName: fileName,
+          mimeType: _getMimeType(fileName),
         );
       } else if (msg.type == 'audio') {
         await _uploadAndSendAudio(
           tempId: tempId,
           conversationId: msg.conversationId,
-          localFilePath: msg.localFilePath!,
+          bytes: bytes,
+          fileName: fileName,
+          mimeType: 'audio/m4a',
           duration: msg.duration ?? 0,
         );
       }
@@ -502,6 +512,7 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
         conversationId: conversationId,
         bytes: bytes,
         fileName: fileName,
+        fileSize: bytes.length,
         mimeType: mimeType,
       );
       debugPrint('[ChatProvider] _uploadAndSendImage upload success: $result');
@@ -515,7 +526,6 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
         fileSize: result['file_size'] ?? result['fileSize'],
       );
     } catch (e) {
-      // Upload lỗi — đánh dấu failed giống lúc gửi text lỗi, giữ localFilePath để retry
       _messages = _messages
           .map((m) => m.id == tempId ? m.copyWith(status: 'failed') : m)
           .toList();
@@ -586,6 +596,7 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
         conversationId: conversationId,
         bytes: bytes,
         fileName: fileName,
+        fileSize: bytes.length,
         mimeType: mimeType,
       );
       debugPrint('[ChatProvider] _uploadAndSendAudio upload success: $result');
@@ -600,7 +611,6 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
         duration: duration,
       );
     } catch (e) {
-      // Upload lỗi — đánh dấu failed giống lúc gửi text lỗi, giữ localFilePath và duration để retry
       _messages = _messages
           .map((m) => m.id == tempId ? m.copyWith(status: 'failed') : m)
           .toList();
