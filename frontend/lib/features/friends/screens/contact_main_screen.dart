@@ -4,7 +4,6 @@ import 'package:frontend/config/app_colors.dart';
 import 'package:frontend/features/friends/screens/add_friend_screen.dart';
 import 'package:frontend/features/friends/screens/friend_tab_content.dart';
 import 'package:frontend/features/friends/screens/group_tab_content.dart';
-import 'package:frontend/features/friends/screens/qr_friend_screen.dart';
 
 class ContactsMainScreen extends StatefulWidget {
   const ContactsMainScreen({super.key});
@@ -20,6 +19,12 @@ class _ContactsMainScreenState extends State<ContactsMainScreen> with SingleTick
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
@@ -59,13 +64,6 @@ class _ContactsMainScreenState extends State<ContactsMainScreen> with SingleTick
         ),
         centerTitle: false,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.qr_code_scanner, color: Colors.white, size: 24),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const QrFriendScreen()),
-            ),
-          ),
           IconButton(
             icon: const Icon(Icons.person_add_alt_1_outlined, color: Colors.white, size: 24),
             onPressed: () => Navigator.push(

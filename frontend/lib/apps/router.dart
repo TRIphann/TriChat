@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:frontend/features/friends/friends.dart';
 import 'package:frontend/features/friends/widgets/demo_bio.dart';
 import 'package:frontend/features/friends/widgets/my_profile.dart';
-import 'package:frontend/features/newfeed/screens/create_story_screen.dart';
 import 'package:frontend/features/newfeed/screens/newfeed_screen.dart';
 import 'package:frontend/features/newfeed/screens/story_viewer_screen.dart';
 import 'package:frontend/features/profile/screens/profile_screen.dart';
@@ -137,10 +136,6 @@ GoRouter createRouter() {
       GoRoute(
         path: '/newfeed',
         builder: (context, state) => const NewfeedScreen(),
-      ),
-      GoRoute(
-        path: '/create-story',
-        builder: (context, state) => const CreateStoryScreen(),
       ),
       GoRoute(
         path: '/story-viewer',
