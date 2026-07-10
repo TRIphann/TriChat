@@ -4,7 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:frontend/views/chat/location_map_screen.dart';
 import 'package:frontend/config/app_colors.dart';
 
-import 'platform.dart' if (dart.library.io) 'dart:io' as io;
+import '../services/platform.dart' if (dart.library.io) 'dart:io' as io;
 
 class LocationMessageBubble extends StatelessWidget {
   final double latitude;

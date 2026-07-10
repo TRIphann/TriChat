@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-import 'platform.dart' if (dart.library.io) 'dart:io' as io;
+import '../services/platform.dart' if (dart.library.io) 'dart:io' as io;
 
 /// Centralised API endpoint resolution.
 ///
