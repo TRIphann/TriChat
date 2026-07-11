@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
-/// Logo TriChat
+/// Logo TriChat — Phiên bản mới "Chat + Bạn Bè"
 ///
-/// SVG-style icon: chữ "T" cách điệu trong hình tròn gradient cam-nâu.
-/// Dùng cho app icon, splash screen, navigation drawer header, v.v.
+/// Kết hợp biểu tượng chat bubble và biểu tượng friend trong một
+/// hình tròn gradient cam san hô + nâu socola sữa.
+///
+/// Phong cách: hiện đại, tối giản, tinh tế.
 class TriChatLogo extends StatelessWidget {
   /// Kích thước logo (chiều rộng = chiều cao)
   final double size;
@@ -34,10 +36,9 @@ class TriChatLogo extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = gradientColors ??
         const [
-          AppColors.primaryOrangeLight, // cam sáng
-          AppColors.primaryOrange, // cam đậm
-          AppColors.accentBrown, // nâu cam
-          AppColors.accentBrown, // nâu đậm
+          AppColors.primaryOrangeLight, // cam san hô sáng
+          AppColors.primaryOrange, // cam san hô
+          AppColors.accentBrown, // nâu socola
         ];
 
     final icon = Container(
@@ -87,7 +88,10 @@ class TriChatLogo extends StatelessWidget {
   }
 }
 
-/// Vẽ chữ "T" cách điệu — dấu gạch ngang phía trên và thân chữ T
+/// Vẽ icon TriChat mới:
+/// - Bong bóng chat lớn ở phía sau (đại diện cho chat/tin nhắn)
+/// - Hai chấm tròn nhỏ bên trong (mắt người / chat dots)
+/// - Bong bóng nhỏ hơn ở góc dưới phải (đại diện cho bạn bè)
 class _TriChatMarkPainter extends CustomPainter {
   final Color color;
 
@@ -103,39 +107,54 @@ class _TriChatMarkPainter extends CustomPainter {
     final w = size.width;
     final h = size.height;
 
-    // Thanh ngang phía trên (chiếm ~70% chiều rộng)
-    final barHeight = h * 0.14;
-    final barWidth = w * 0.62;
-    final barRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(
-        (w - barWidth) / 2,
-        h * 0.20,
-        barWidth,
-        barHeight,
-      ),
-      Radius.circular(barHeight / 2),
-    );
-    canvas.drawRRect(barRect, paint);
+    // Bong bóng chat chính — hình tròn lớn ở giữa-trên
+    final mainBubbleRadius = w * 0.30;
+    final mainBubbleCenter = Offset(w * 0.45, h * 0.45);
+    canvas.drawCircle(mainBubbleCenter, mainBubbleRadius, paint);
 
-    // Thân chữ T (giữa)
-    final stemWidth = w * 0.20;
-    final stemRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(
-        (w - stemWidth) / 2,
-        h * 0.28,
-        stemWidth,
-        h * 0.55,
-      ),
-      Radius.circular(stemWidth / 2),
-    );
-    canvas.drawRRect(stemRect, paint);
+    // Đuôi bong bóng (tail) — tam giác nhỏ dưới bong bóng chính
+    final tailPath = Path()
+      ..moveTo(w * 0.36, h * 0.62)
+      ..lineTo(w * 0.42, h * 0.74)
+      ..lineTo(w * 0.46, h * 0.62)
+      ..close();
+    canvas.drawPath(tailPath, paint);
 
-    // Điểm chấm nhỏ ở dưới (biểu tượng cho "chat" / tin nhắn)
-    final dotRadius = w * 0.075;
+    // Bong bóng phụ (bạn bè) — nhỏ hơn ở góc dưới phải
+    final smallBubbleRadius = w * 0.20;
+    final smallBubbleCenter = Offset(w * 0.74, h * 0.74);
+    canvas.drawCircle(smallBubbleCenter, smallBubbleRadius, paint);
+
+    // Đuôi bong bóng phụ
+    final tailPath2 = Path()
+      ..moveTo(w * 0.68, h * 0.86)
+      ..lineTo(w * 0.71, h * 0.93)
+      ..lineTo(w * 0.74, h * 0.86)
+      ..close();
+    canvas.drawPath(tailPath2, paint);
+
+    // Chấm tròn (chat dots) — 2 chấm trong bong bóng chính
+    final dotPaint = Paint()
+      ..color = AppColors.primaryOrange
+      ..style = PaintingStyle.fill
+      ..isAntiAlias = true;
+
     canvas.drawCircle(
-      Offset(w / 2, h * 0.92),
-      dotRadius,
-      paint,
+      Offset(w * 0.40, h * 0.43),
+      w * 0.04,
+      dotPaint,
+    );
+    canvas.drawCircle(
+      Offset(w * 0.50, h * 0.43),
+      w * 0.04,
+      dotPaint,
+    );
+
+    // Chấm trong bong bóng phụ
+    canvas.drawCircle(
+      Offset(w * 0.74, h * 0.72),
+      w * 0.03,
+      dotPaint,
     );
   }
 
@@ -156,7 +175,7 @@ class TriChatLogoLarge extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           colors: [
             AppColors.primaryOrangeLight,
             AppColors.primaryOrange,

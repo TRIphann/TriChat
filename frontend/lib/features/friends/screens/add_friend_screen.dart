@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/component/widgets.dart';
+import 'package:frontend/config/app_colors.dart';
+import 'package:frontend/config/app_spacing.dart';
+import 'package:frontend/config/app_typography.dart';
+import 'package:frontend/config/dark_mode_config.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/features/friends/providers/friend_provider.dart';
 import 'package:frontend/features/friends/services/friend_service.dart';
@@ -22,7 +27,9 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
   void initState() {
     super.initState();
     _phoneController.addListener(() {
-      setState(() => _isInputNotEmpty = _phoneController.text.trim().isNotEmpty);
+      setState(
+        () => _isInputNotEmpty = _phoneController.text.trim().isNotEmpty,
+      );
     });
   }
 
@@ -47,10 +54,9 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
       if (!mounted) return;
 
       if (user == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Người dùng chưa đăng kí tài khoản hoặc không cho phép tìm kiếm'),
-          ),
+        showTriSnack(
+          context,
+          'Người dùng chưa đăng kí tài khoản hoặc không cho phép tìm kiếm',
         );
         return;
       }
@@ -58,9 +64,7 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
       context.push('/demo-profile', extra: user);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi: $e')),
-      );
+      showTriSnack(context, 'Lỗi: $e', type: TriSnackType.error);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -68,130 +72,221 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF1F2F4),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
-        leading: const BackButton(color: Colors.black),
-        titleSpacing: 8,
-        title: const Text(
-          'Thêm bạn',
-          style: TextStyle(color: Colors.black, fontSize: 17, fontWeight: FontWeight.w600),
-        ),
-        centerTitle: false,
-      ),
-      body: Column(
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 24),
-            child: _buildQRCard(),
-          ),
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: _buildPhoneInput(),
-          ),
-          const Padding(
-            padding: EdgeInsets.only(left: 16, right: 16),
-            child: Divider(height: 0.5, color: Color(0xFFE5E9F0)),
-          ),
-          Container(
-            color: Colors.white,
-            child: Column(
-              children: [
-                _buildOptionItem(Icons.qr_code_scanner_rounded, 'Quét mã QR'),
-                _buildOptionItem(Icons.contacts_outlined, 'Danh bạ máy'),
-              ],
+    return ValueListenableBuilder<bool>(
+      valueListenable: isDarkModeNotifier,
+      builder: (context, isDark, _) {
+        return Scaffold(
+          backgroundColor: AppColors.creamBackground,
+          appBar: AppBar(
+            backgroundColor: AppColors.creamWhite,
+            elevation: 0.5,
+            shadowColor: AppColors.accentBrown.withValues(alpha: 0.08),
+            leading: const BackButton(color: AppColors.primaryOrange),
+            titleSpacing: AppSpacing.sm,
+            title: Text(
+              'Thêm bạn',
+              style: AppTypography.titleMedium.copyWith(
+                color: AppColors.neutralBlack,
+                fontWeight: FontWeight.w700,
+              ),
             ),
+            centerTitle: false,
           ),
-        ],
-      ),
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: AppSpacing.lg),
+              Center(child: _buildQRCard(isDark)),
+              const SizedBox(height: AppSpacing.lg),
+              _buildPhoneInput(),
+              const SizedBox(height: AppSpacing.xs),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg,
+                ),
+                child: Divider(
+                  height: 0.5,
+                  color: AppColors.neutralGray300,
+                ),
+              ),
+              _buildOptionItem(
+                Icons.qr_code_scanner_rounded,
+                'Quét mã QR',
+                isDark,
+              ),
+              _buildOptionItem(
+                Icons.contacts_outlined,
+                'Danh bạ máy',
+                isDark,
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildQRCard() {
-    return Center(
-      child: Container(
-        width: 180,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: const [
-            BoxShadow(color: Color(0x14000000), blurRadius: 16, offset: Offset(0, 6)),
-          ],
+  Widget _buildQRCard(bool isDark) {
+    return Container(
+      width: 200,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.lg + 4,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.creamWhite,
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        border: Border.all(
+          color: AppColors.neutralGray300.withValues(alpha: 0.7),
+          width: 0.6,
         ),
-        child: const Column(
-          children: [
-            Icon(Icons.qr_code_2_rounded, size: 72, color: Color(0xFF0091FF)),
-            SizedBox(height: 10),
-            Text('Mã QR của tôi', style: TextStyle(fontWeight: FontWeight.w600)),
-          ],
-        ),
+        boxShadow: AppShadows.card,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: AppColors.brandGradient,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+            ),
+            child: const Icon(
+              Icons.qr_code_2_rounded,
+              size: 64,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            'Mã QR của tôi',
+            style: AppTypography.titleSmall.copyWith(
+              color: AppColors.getTextPrimary(isDark),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'Chạm để hiển thị',
+            style: AppTypography.bodySmall.copyWith(
+              color: AppColors.getTextSecondary(isDark),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildPhoneInput() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _phoneController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                hintText: 'Nhập email để tìm bạn',
-                border: InputBorder.none,
+    return ValueListenableBuilder<bool>(
+      valueListenable: isDarkModeNotifier,
+      builder: (context, isDark, _) {
+        return Container(
+          color: AppColors.creamWhite,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.md,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _phoneController,
+                  keyboardType: TextInputType.emailAddress,
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: AppColors.getTextPrimary(isDark),
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Nhập email để tìm bạn',
+                    hintStyle: AppTypography.bodyMedium.copyWith(
+                      color: AppColors.getTextSecondary(isDark),
+                    ),
+                    border: InputBorder.none,
+                  ),
+                  onSubmitted: (_) => _findUser(),
+                ),
               ),
-              onSubmitted: (_) => _findUser(),
-            ),
+              TextLinkButton(
+                label: _isLoading ? '...' : 'Tìm',
+                onPressed:
+                    (_isInputNotEmpty && !_isLoading) ? _findUser : null,
+                fontWeight: FontWeight.w700,
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: _isInputNotEmpty && !_isLoading ? _findUser : null,
-            child: _isLoading
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Text('Tìm'),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildOptionItem(IconData icon, String title) {
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: const Color(0xFFEAF4FF),
-        child: Icon(icon, color: const Color(0xFF0091FF)),
-      ),
-      title: Text(title),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: () {
-        if (title == 'Quét mã QR') {
-          Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MyProfileScreen()));
-        } else {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => UserProfileScreen(
-                user: UserSearchModel(
-                  id: '',
-                  fullName: 'Demo',
-                  email: '',
-                  avatar: '',
-                  status: false,
+  Widget _buildOptionItem(IconData icon, String title, bool isDark) {
+    return Material(
+      color: AppColors.creamWhite,
+      child: InkWell(
+        onTap: () {
+          if (title == 'Quét mã QR') {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const MyProfileScreen(),
+              ),
+            );
+          } else {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => UserProfileScreen(
+                  user: UserSearchModel(
+                    id: '',
+                    fullName: 'Demo',
+                    email: '',
+                    avatar: '',
+                    status: false,
+                  ),
                 ),
               ),
-            ),
-          );
-        }
-      },
+            );
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.md + 2,
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.sm + 2),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryOrangePale.withValues(
+                    alpha: isDark ? 0.2 : 1,
+                  ),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
+                child: Icon(
+                  icon,
+                  color: AppColors.primaryOrange,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Text(
+                  title,
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: AppColors.getTextPrimary(isDark),
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.getTextSecondary(isDark),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

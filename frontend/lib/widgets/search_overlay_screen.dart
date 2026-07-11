@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:frontend/component/widgets.dart';
 import 'package:frontend/config/app_colors.dart';
+import 'package:frontend/config/app_spacing.dart';
+import 'package:frontend/config/app_typography.dart';
 import 'package:frontend/config/dark_mode_config.dart';
 import 'package:frontend/features/friends/services/friend_service.dart';
 
@@ -133,21 +136,13 @@ class _SearchOverlayScreenState extends State<SearchOverlayScreen> {
     return ValueListenableBuilder<bool>(
       valueListenable: isDarkModeNotifier,
       builder: (context, isDark, _) {
-        final bg = AppColors.getBackground(isDark);
-        final surface = AppColors.getSurface(isDark);
-        final headerBg = isDark ? AppColors.neutralBlack : AppColors.primaryBlue;
-
         return Scaffold(
-          backgroundColor: bg,
+          backgroundColor: AppColors.creamBackground,
           body: SafeArea(
             child: Column(
               children: [
-                // Header: back + search field
-                _buildHeader(headerBg, isDark),
-                // Nội dung
-                Expanded(
-                  child: _buildBody(isDark, surface),
-                ),
+                _buildHeader(isDark),
+                Expanded(child: _buildBody(isDark)),
               ],
             ),
           ),
@@ -156,103 +151,129 @@ class _SearchOverlayScreenState extends State<SearchOverlayScreen> {
     );
   }
 
-  Widget _buildHeader(Color headerBg, bool isDark) {
+  Widget _buildHeader(bool isDark) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-      color: headerBg,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.xs,
+        vertical: AppSpacing.sm,
+      ),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: AppColors.appBarGradient,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
       child: Row(
         children: [
-          // Back button
           IconButton(
             onPressed: widget.onBack,
-            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              color: Colors.white,
+              size: 24,
+            ),
             padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+            constraints: const BoxConstraints(
+              minWidth: 44,
+              minHeight: 44,
+            ),
           ),
-          // Search field
           Expanded(
             child: Container(
-              height: 38,
+              height: 40,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.25),
-                borderRadius: BorderRadius.circular(6),
+                color: Colors.white.withValues(alpha: 0.95),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.6),
+                  width: 0.6,
+                ),
               ),
               child: Row(
                 children: [
-                  const SizedBox(width: 12),
-                  const Icon(Icons.search, color: Colors.white70, size: 20),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.md),
+                  const Icon(
+                    Icons.search_rounded,
+                    color: AppColors.primaryOrange,
+                    size: 20,
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: TextField(
                       controller: _searchController,
                       focusNode: _focusNode,
-                      style: const TextStyle(color: Colors.white, fontSize: 15),
+                      style: AppTypography.bodyMedium.copyWith(
+                        color: AppColors.neutralBlack,
+                      ),
                       textInputAction: TextInputAction.search,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         hintText: 'Tìm tin nhắn, người trong TriChat',
-                        hintStyle: TextStyle(color: Colors.white70, fontSize: 15),
+                        hintStyle: AppTypography.bodyMedium.copyWith(
+                          color: AppColors.neutralGray500,
+                        ),
                         border: InputBorder.none,
                         isDense: true,
-                        contentPadding: EdgeInsets.symmetric(vertical: 11),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                        ),
                       ),
                       onChanged: _onSearchChanged,
                     ),
                   ),
-                  if (_searchController.text.isNotEmpty)
-                    GestureDetector(
-                      onTap: () {
-                        _searchController.clear();
-                        setState(() {
-                          _results = [];
-                          _isLoading = false;
-                          _hasSearched = false;
-                          _hasError = false;
-                        });
-                      },
-                      child: const Padding(
-                        padding: EdgeInsets.all(8),
-                        child: Icon(Icons.close, color: Colors.white70, size: 18),
-                      ),
-                    )
-                  else
-                    const SizedBox(width: 12),
+                  ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: _searchController,
+                    builder: (_, value, _) {
+                      if (value.text.isEmpty) {
+                        return const SizedBox(width: AppSpacing.md);
+                      }
+                      return GestureDetector(
+                        onTap: () {
+                          _searchController.clear();
+                          setState(() {
+                            _results = [];
+                            _isLoading = false;
+                            _hasSearched = false;
+                            _hasError = false;
+                          });
+                        },
+                        child: const Padding(
+                          padding: EdgeInsets.all(AppSpacing.sm),
+                          child: Icon(
+                            Icons.cancel_rounded,
+                            color: AppColors.neutralGray500,
+                            size: 18,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
           ),
-          // Cancel button
           TextButton(
             onPressed: widget.onBack,
-            child: const Text(
-              'Hủy',
-              style: TextStyle(color: Colors.white, fontSize: 15),
-            ),
+            style: TextButton.styleFrom(foregroundColor: Colors.white),
+            child: const Text('Hủy'),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildBody(bool isDark, Color surface) {
+  Widget _buildBody(bool isDark) {
     final hasQuery = _searchController.text.trim().isNotEmpty;
-
-    if (hasQuery) {
-      return _buildSearchResults(isDark);
-    }
-
-    return _buildRecentContacts(isDark, surface);
+    if (hasQuery) return _buildSearchResults(isDark);
+    return _buildRecentContacts(isDark);
   }
 
-  Widget _buildRecentContacts(bool isDark, Color surface) {
+  Widget _buildRecentContacts(bool isDark) {
     if (widget.recentContacts.isEmpty) {
-      return Center(
-        child: Text(
-          'Chưa có liên hệ gần đây',
-          style: TextStyle(
-            color: AppColors.getTextSecondary(isDark),
-            fontSize: 14,
-          ),
-        ),
+      return EmptyState(
+        icon: Icons.history_rounded,
+        title: 'Chưa có liên hệ gần đây',
+        subtitle: 'Bắt đầu trò chuyện để thấy danh sách ở đây',
       );
     }
 
@@ -260,23 +281,27 @@ class _SearchOverlayScreenState extends State<SearchOverlayScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
-          child: Text(
-            'Tin nhắn trực tiếp',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.getTextSecondary(isDark),
-            ),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.sm,
+          ),
+          child: SectionHeader(
+            title: 'Tin nhắn trực tiếp',
+            isDark: isDark,
           ),
         ),
         SizedBox(
-          height: 90,
+          height: 100,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
             itemCount: widget.recentContacts.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.md),
             itemBuilder: (context, index) {
               final contact = widget.recentContacts[index];
               return _RecentContactChip(
@@ -287,14 +312,17 @@ class _SearchOverlayScreenState extends State<SearchOverlayScreen> {
             },
           ),
         ),
-        const SizedBox(height: 16),
+        const Divider(height: AppSpacing.lg),
         Expanded(
           child: Center(
-            child: Text(
-              'Tìm kiếm người trong danh bạ TriChat',
-              style: TextStyle(
-                color: AppColors.getTextSecondary(isDark),
-                fontSize: 14,
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              child: Text(
+                'Tìm kiếm người trong danh bạ TriChat',
+                textAlign: TextAlign.center,
+                style: AppTypography.bodyMedium.copyWith(
+                  color: AppColors.getTextSecondary(isDark),
+                ),
               ),
             ),
           ),
@@ -305,79 +333,34 @@ class _SearchOverlayScreenState extends State<SearchOverlayScreen> {
 
   Widget _buildSearchResults(bool isDark) {
     if (_isLoading) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.5,
-                color: AppColors.primaryBlue,
-              ),
-            ),
-            SizedBox(height: 12),
-            Text('Đang tìm kiếm...'),
-          ],
-        ),
+      return const LoadingView(
+        message: 'Đang tìm kiếm...',
       );
     }
 
     if (_hasError) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.wifi_off_rounded,
-              size: 48,
-              color: Colors.grey.shade400,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Không thể kết nối',
-              style: TextStyle(
-                color: AppColors.getTextSecondary(isDark),
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
+      return ErrorStateView(
+        icon: Icons.wifi_off_rounded,
+        title: 'Không thể kết nối',
+        message: 'Vui lòng kiểm tra mạng và thử lại',
+        onRetry: () => _performSearch(_searchController.text),
       );
     }
 
     if (_hasSearched && _results.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.search_off_rounded,
-              size: 48,
-              color: Colors.grey.shade400,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Không tìm thấy người dùng',
-              style: TextStyle(
-                color: AppColors.getTextSecondary(isDark),
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
+      return EmptyState(
+        icon: Icons.search_off_rounded,
+        title: 'Không tìm thấy người dùng',
+        subtitle: 'Thử tìm với từ khóa khác',
       );
     }
 
-    if (_results.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    if (_results.isEmpty) return const SizedBox.shrink();
 
     return ListView.separated(
       padding: EdgeInsets.zero,
       itemCount: _results.length,
-      separatorBuilder: (_, __) =>
+      separatorBuilder: (_, _) =>
           Divider(height: 1, color: AppColors.getDivider(isDark)),
       itemBuilder: (context, index) {
         final user = _results[index];
@@ -406,36 +389,43 @@ class _RecentContactChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final name = contact['name'] ?? '';
-    final avatarColor = contact['avatarColor'] ?? AppColors.success;
     final avatar = contact['avatar'];
-
     return GestureDetector(
       onTap: onTap,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CircleAvatar(
-            radius: 28,
-            backgroundColor: avatarColor,
-            backgroundImage: avatar != null ? NetworkImage(avatar) : null,
-            child: avatar == null
-                ? Text(
-                    _initials(name),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
+          Stack(
+            children: [
+              TriAvatar(
+                imageUrl: avatar is String ? avatar : '',
+                name: name,
+                size: 56,
+              ),
+              Positioned(
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  width: 14,
+                  height: 14,
+                  decoration: BoxDecoration(
+                    color: AppColors.success,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.creamWhite,
+                      width: 2,
                     ),
-                  )
-                : null,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           SizedBox(
             width: 64,
             child: Text(
               name,
-              style: TextStyle(
-                fontSize: 12,
+              style: AppTypography.labelMedium.copyWith(
                 color: AppColors.getTextPrimary(isDark),
               ),
               maxLines: 1,
@@ -446,15 +436,6 @@ class _RecentContactChip extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _initials(String name) {
-    if (name.isEmpty) return '?';
-    final parts = name.trim().split(' ');
-    if (parts.length >= 2) {
-      return '${parts[0][0]}${parts[parts.length - 1][0]}'.toUpperCase();
-    }
-    return name[0].toUpperCase();
   }
 }
 
@@ -472,94 +453,65 @@ class _SearchResultTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = AppColors.getTextPrimary(isDark);
-    final subColor = AppColors.getTextSecondary(isDark);
-    final bg = AppColors.getSurface(isDark);
-
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        color: bg,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 22,
-              backgroundColor: _avatarColor(user.fullName),
-              backgroundImage:
-                  user.avatar.isNotEmpty ? NetworkImage(user.avatar) : null,
-              child: user.avatar.isEmpty
-                  ? Text(
-                      _initials(user.fullName),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    )
-                  : null,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    user.fullName.isNotEmpty ? user.fullName : user.email,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                      color: textColor,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (user.email.isNotEmpty && user.fullName.isNotEmpty)
+    return Material(
+      color: AppColors.creamWhite,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.md,
+          ),
+          child: Row(
+            children: [
+              TriAvatar(
+                imageUrl: user.avatar,
+                name: user.fullName.isNotEmpty ? user.fullName : user.email,
+                size: 44,
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                     Text(
-                      user.email,
-                      style: TextStyle(fontSize: 12, color: subColor),
+                      user.fullName.isNotEmpty ? user.fullName : user.email,
+                      style: AppTypography.titleSmall.copyWith(
+                        color: AppColors.getTextPrimary(isDark),
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                ],
-              ),
-            ),
-            if (user.status)
-              Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: AppColors.success,
-                  shape: BoxShape.circle,
+                    if (user.email.isNotEmpty && user.fullName.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        user.email,
+                        style: AppTypography.bodySmall.copyWith(
+                          color: AppColors.getTextSecondary(isDark),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
                 ),
               ),
-          ],
+              if (user.status) ...[
+                const SizedBox(width: AppSpacing.sm),
+                Container(
+                  width: 10,
+                  height: 10,
+                  decoration: const BoxDecoration(
+                    color: AppColors.success,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );
-  }
-
-  String _initials(String name) {
-    if (name.isEmpty) return '?';
-    final parts = name.trim().split(' ');
-    if (parts.length >= 2) {
-      return '${parts[0][0]}${parts[parts.length - 1][0]}'.toUpperCase();
-    }
-    return name[0].toUpperCase();
-  }
-
-  Color _avatarColor(String name) {
-    final colors = [
-      AppColors.success,
-      AppColors.primaryOrange,
-      AppColors.primaryOrangeLight,
-      AppColors.accentBrown,
-      AppColors.accentRed,
-      AppColors.accentBrown,
-      AppColors.accentBrown,
-      AppColors.neutralGray700,
-    ];
-    if (name.isEmpty) return colors[0];
-    return colors[name.codeUnitAt(0) % colors.length];
   }
 }

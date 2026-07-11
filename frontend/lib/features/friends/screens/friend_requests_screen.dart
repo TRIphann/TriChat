@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/component/widgets.dart';
 import 'package:frontend/config/app_colors.dart';
+import 'package:frontend/config/app_spacing.dart';
+import 'package:frontend/config/app_typography.dart';
 import 'package:frontend/config/dark_mode_config.dart';
 import 'package:provider/provider.dart';
 
@@ -55,7 +58,7 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
                   behavior: SnackBarBehavior.floating,
                   duration: const Duration(seconds: 4),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                 ),
               );
@@ -76,105 +79,75 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
     bool isDark,
     FriendProvider provider,
   ) {
-    final headerBg = isDark ? AppColors.neutralBlack : AppColors.primaryBlue;
-
     return Scaffold(
-      backgroundColor: AppColors.getBackground(isDark),
+      backgroundColor: AppColors.creamBackground,
       appBar: AppBar(
-        backgroundColor: headerBg,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: AppColors.appBarGradient,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 22),
+          icon: const Icon(Icons.arrow_back_rounded,
+              color: Colors.white, size: 22),
           onPressed: () => Navigator.pop(ctx),
         ),
-        title: const Text(
+        title: Text(
           'Lời mời kết bạn',
-          style: TextStyle(
+          style: AppTypography.titleMedium.copyWith(
             color: Colors.white,
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
           ),
         ),
         centerTitle: false,
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(42),
-          child: Container(
-            color: headerBg,
-            child: TabBar(
-              controller: _tabs,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white60,
-              indicatorColor: Colors.white,
-              indicatorWeight: 2.5,
-              labelStyle: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-              unselectedLabelStyle: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-              ),
-              tabs: [
-                Tab(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('Đã nhận'),
-                      if (provider.pendingReceivedCount > 0) ...[
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.accentRed,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            '${provider.pendingReceivedCount}',
-                            style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
+          preferredSize: const Size.fromHeight(46),
+          child: TabBar(
+            controller: _tabs,
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white60,
+            indicatorColor: Colors.white,
+            indicatorWeight: 2.5,
+            labelStyle: AppTypography.labelLarge,
+            unselectedLabelStyle: AppTypography.labelMedium,
+            tabs: [
+              Tab(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Đã nhận'),
+                    if (provider.pendingReceivedCount > 0) ...[
+                      const SizedBox(width: AppSpacing.xs),
+                      _buildBadge(
+                        '${provider.pendingReceivedCount}',
+                        AppColors.accentRed,
+                      ),
                     ],
-                  ),
+                  ],
                 ),
-                Tab(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('Đã gửi'),
-                      if (provider.pendingSent.isNotEmpty) ...[
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white30,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            '${provider.pendingSent.length}',
-                            style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
+              ),
+              Tab(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Đã gửi'),
+                    if (provider.pendingSent.isNotEmpty) ...[
+                      const SizedBox(width: AppSpacing.xs),
+                      _buildBadge(
+                        '${provider.pendingSent.length}',
+                        Colors.white30,
+                      ),
                     ],
-                  ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -188,23 +161,45 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
     );
   }
 
+  Widget _buildBadge(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.xs + 2,
+        vertical: 2,
+      ),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+      ),
+      child: Text(
+        text,
+        style: AppTypography.labelSmall.copyWith(
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
   // ── TAB: ĐÃ NHẬN ─────────────────────────────────────────────
   Widget _buildReceivedTab(bool isDark, FriendProvider provider) {
     if (provider.requestsState == LoadingState.loading) {
-      return Center(
-        child: CircularProgressIndicator(color: AppColors.primaryBlue),
-      );
+      return const LoadingView();
     }
 
     if (provider.pendingReceived.isEmpty) {
-      return _buildEmptyReceived(isDark);
+      return EmptyState(
+        icon: Icons.mark_email_read_outlined,
+        title: 'Không có lời mời kết bạn',
+        subtitle: 'Khi ai đó gửi lời mời, bạn sẽ thấy ở đây',
+      );
     }
 
     return ListView.separated(
       padding: EdgeInsets.zero,
       itemCount: provider.pendingReceived.length,
       separatorBuilder: (_, _) =>
-          Divider(height: 1, color: AppColors.getDivider(isDark)),
+          Divider(height: 1, color: AppColors.neutralGray300),
       itemBuilder: (_, i) =>
           _buildReceivedTile(provider.pendingReceived[i], isDark, provider),
     );
@@ -215,15 +210,14 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
     bool isDark,
     FriendProvider provider,
   ) {
-    final bg = isDark ? AppColors.darkSurface : Colors.white;
     final isLoading = provider.isActionLoading(f.senderId);
     final displayName = (f.senderName?.isNotEmpty == true)
         ? f.senderName!
         : f.senderId;
 
     return Container(
-      color: bg,
-      padding: const EdgeInsets.all(16),
+      color: AppColors.creamWhite,
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -231,38 +225,32 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
             name: f.addresseeName.isNotEmpty ? f.addresseeName : f.addresseeId,
             radius: 26,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Name + time
                 Row(
                   children: [
                     Expanded(
                       child: Text(
                         displayName,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
+                        style: AppTypography.titleSmall.copyWith(
                           color: AppColors.getTextPrimary(isDark),
                         ),
                       ),
                     ),
                     Text(
                       _formatTime(f.createdAt),
-                      style: TextStyle(
-                        fontSize: 11,
+                      style: AppTypography.bodySmall.copyWith(
                         color: AppColors.getTextSecondary(isDark),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 3),
-                // Source badge
+                const SizedBox(height: 4),
                 _buildSourceBadge(f.sourceType, isDark),
-                const SizedBox(height: 10),
-                // Action buttons
+                const SizedBox(height: AppSpacing.md),
                 Row(
                   children: [
                     Expanded(
@@ -270,18 +258,20 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
                         label: 'Từ chối',
                         style: FriendActionStyle.ghost,
                         isLoading: isLoading,
-                        height: 34,
-                        onTap: () => provider.declineFriendRequest(f.senderId),
+                        height: 36,
+                        onTap: () =>
+                            provider.declineFriendRequest(f.senderId),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: FriendActionButton(
                         label: 'Chấp nhận',
                         style: FriendActionStyle.primary,
                         isLoading: isLoading,
-                        height: 34,
-                        onTap: () => provider.acceptFriendRequest(f.senderId),
+                        height: 36,
+                        onTap: () =>
+                            provider.acceptFriendRequest(f.senderId),
                       ),
                     ),
                   ],
@@ -312,38 +302,8 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
 
     return Text(
       label,
-      style: TextStyle(fontSize: 12, color: AppColors.getTextSecondary(isDark)),
-    );
-  }
-
-  Widget _buildEmptyReceived(bool isDark) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.mark_email_read_outlined,
-            size: 72,
-            color: AppColors.getTextSecondary(isDark).withValues(alpha: 0.3),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Không có lời mời kết bạn',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: AppColors.getTextPrimary(isDark),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Khi ai đó gửi lời mời, bạn sẽ thấy ở đây',
-            style: TextStyle(
-              fontSize: 13,
-              color: AppColors.getTextSecondary(isDark),
-            ),
-          ),
-        ],
+      style: AppTypography.bodySmall.copyWith(
+        color: AppColors.getTextSecondary(isDark),
       ),
     );
   }
@@ -351,20 +311,22 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
   // ── TAB: ĐÃ GỬI ──────────────────────────────────────────────
   Widget _buildSentTab(bool isDark, FriendProvider provider) {
     if (provider.requestsState == LoadingState.loading) {
-      return Center(
-        child: CircularProgressIndicator(color: AppColors.primaryBlue),
-      );
+      return const LoadingView();
     }
 
     if (provider.pendingSent.isEmpty) {
-      return _buildEmptySent(isDark);
+      return EmptyState(
+        icon: Icons.send_outlined,
+        title: 'Chưa gửi lời mời nào',
+        subtitle: 'Tìm bạn bè và gửi lời mời kết bạn',
+      );
     }
 
     return ListView.separated(
       padding: EdgeInsets.zero,
       itemCount: provider.pendingSent.length,
       separatorBuilder: (_, _) =>
-          Divider(height: 1, color: AppColors.getDivider(isDark)),
+          Divider(height: 1, color: AppColors.neutralGray300),
       itemBuilder: (_, i) =>
           _buildSentTile(provider.pendingSent[i], isDark, provider),
     );
@@ -375,33 +337,33 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
     bool isDark,
     FriendProvider provider,
   ) {
-    final bg = isDark ? AppColors.darkSurface : Colors.white;
     final isLoading = provider.isActionLoading(f.addresseeId);
 
     return Container(
-      color: bg,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      color: AppColors.creamWhite,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
+      ),
       child: Row(
         children: [
           FriendAvatar(name: f.addresseeId, radius: 24),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   f.addresseeId,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
+                  style: AppTypography.titleSmall.copyWith(
                     color: AppColors.getTextPrimary(isDark),
                   ),
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 4),
                 Text(
                   'Đang chờ chấp nhận • ${_formatTime(f.createdAt)}',
-                  style: TextStyle(
-                    fontSize: 12,
+                  style: AppTypography.bodySmall.copyWith(
                     color: AppColors.getTextSecondary(isDark),
                   ),
                 ),
@@ -413,38 +375,6 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
             style: FriendActionStyle.ghost,
             isLoading: isLoading,
             onTap: () => provider.cancelFriendRequest(f.addresseeId),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptySent(bool isDark) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.send_outlined,
-            size: 72,
-            color: AppColors.getTextSecondary(isDark).withValues(alpha: 0.3),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Chưa gửi lời mời nào',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: AppColors.getTextPrimary(isDark),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Tìm bạn bè và gửi lời mời kết bạn',
-            style: TextStyle(
-              fontSize: 13,
-              color: AppColors.getTextSecondary(isDark),
-            ),
           ),
         ],
       ),

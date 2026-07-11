@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:frontend/config/app_colors.dart';
+import 'package:frontend/config/app_spacing.dart';
+import 'package:frontend/config/app_typography.dart';
 
 class SuccessDialog extends StatefulWidget {
   final VoidCallback onRedirect;
@@ -10,13 +12,12 @@ class SuccessDialog extends StatefulWidget {
   @override
   State<SuccessDialog> createState() => _SuccessDialogState();
 
-  // Hàm static để gọi dialog dễ dàng từ view
   static void show(BuildContext context, VoidCallback onRedirect) {
     showDialog(
       context: context,
-      barrierDismissible: true, // Cho phép tap để vào tài khoản liền
+      barrierDismissible: true,
       builder: (context) => SuccessDialog(onRedirect: onRedirect),
-    ).then((_) => onRedirect()); // Nếu đóng dialog thì thực hiện redirect
+    ).then((_) => onRedirect());
   }
 }
 
@@ -26,11 +27,8 @@ class _SuccessDialogState extends State<SuccessDialog> {
   @override
   void initState() {
     super.initState();
-    // Sau 2 giây tự động đóng dialog và chuyển trang
-    _timer = Timer(const Duration(seconds: 2), () {
-      if (mounted) {
-        Navigator.of(context).pop();
-      }
+    _timer = Timer(const Duration(milliseconds: 1800), () {
+      if (mounted) Navigator.of(context).pop();
     });
   }
 
@@ -43,32 +41,56 @@ class _SuccessDialogState extends State<SuccessDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell( // Sử dụng InkWell để bắt sự kiện tap toàn vùng dialog
+      backgroundColor: AppColors.creamWhite,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        side: BorderSide(
+          color: AppColors.neutralGray300.withValues(alpha: 0.7),
+          width: 0.6,
+        ),
+      ),
+      elevation: 10,
+      shadowColor: AppColors.accentBrown.withValues(alpha: 0.18),
+      child: InkWell(
         onTap: () {
           _timer?.cancel();
           Navigator.of(context).pop();
         },
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(AppSpacing.xxl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.check_circle,
-                color: AppColors.success, // Màu xanh lá nhẹ chuẩn Zalo
-                size: 40,
+              Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.success.withValues(alpha: 0.18),
+                      AppColors.success.withValues(alpha: 0.04),
+                    ],
+                  ),
+                ),
+                child: const Icon(
+                  Icons.check_circle_rounded,
+                  color: AppColors.success,
+                  size: 52,
+                ),
               ),
-              const SizedBox(height: 16),
-              const Text(
-                "Tạo tài khoản mới thành công",
+              const SizedBox(height: AppSpacing.lg),
+              Text(
+                'Tạo tài khoản mới thành công',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w400,
-                  color: Colors.black87,
-                  decoration: TextDecoration.none,
+                style: AppTypography.titleLarge,
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                'Đang chuyển hướng...',
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.neutralGray700,
                 ),
               ),
             ],

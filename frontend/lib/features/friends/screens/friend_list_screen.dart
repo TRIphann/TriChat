@@ -1,10 +1,12 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:frontend/component/widgets.dart';
 import 'package:frontend/config/app_colors.dart';
+import 'package:frontend/config/app_spacing.dart';
+import 'package:frontend/config/app_typography.dart';
 import 'package:frontend/config/dark_mode_config.dart';
 import 'package:frontend/features/friends/providers/friend_provider.dart';
 import 'package:frontend/features/friends/services/friend_service.dart';
-import 'package:frontend/features/friends/widgets/friend_avatar.dart';
 import 'package:frontend/features/profile/screens/profile_screen.dart';
 import 'package:frontend/providers/chat_provider.dart';
 import 'package:frontend/services/chat/chat_service.dart';
@@ -24,64 +26,72 @@ class FriendListScreen extends StatelessWidget {
             final friends = provider.friends;
 
             if (friends.isEmpty) {
-              return _EmptyState(isDark: isDark);
+              return const EmptyState(
+                icon: Icons.people_outline_rounded,
+                title: 'Chưa có bạn bè nào',
+                subtitle: 'Hãy kết bạn để bắt đầu trò chuyện',
+              );
             }
 
-            return Column(
-              children: [
-                _FriendHeader(count: friends.length, isDark: isDark),
-                Expanded(
-                  child: ListView.separated(
-                    padding: EdgeInsets.zero,
-                    itemCount: friends.length,
-                    separatorBuilder: (_, __) => Divider(
-                      height: 1,
-                      thickness: 0.5,
-                      indent: 70,
-                      endIndent: 16,
-                      color: AppColors.getDivider(isDark),
+            return Container(
+              color: AppColors.creamBackground,
+              child: Column(
+                children: [
+                  _FriendHeader(count: friends.length, isDark: isDark),
+                  Expanded(
+                    child: ListView.separated(
+                      padding: EdgeInsets.zero,
+                      itemCount: friends.length,
+                      separatorBuilder: (_, __) => Divider(
+                        height: 1,
+                        thickness: 0.5,
+                        indent: 70,
+                        endIndent: AppSpacing.lg,
+                        color: AppColors.neutralGray300,
+                      ),
+                      itemBuilder: (context, index) {
+                        final friend = friends[index];
+                        return _FriendRowItem(
+                          friend: friend,
+                          isDark: isDark,
+                          onRowTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ProfileScreen(
+                                  targetUserId: friend.friendId,
+                                ),
+                              ),
+                            );
+                          },
+                          onMessageTap: () async {
+                            if (friend.friendId.isEmpty) return;
+                            final currentUid =
+                                FirebaseAuth.instance.currentUser?.uid ?? '';
+                            if (currentUid.isEmpty) return;
+                            final conversation =
+                                await ChatService().createConversation(
+                              type: 'private',
+                              participantIds: [friend.friendId],
+                            );
+                            if (!context.mounted) return;
+                            await context
+                                .read<ChatProvider>()
+                                .openConversation(conversation);
+                            if (!context.mounted) return;
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    ChatScreen(conversation: conversation),
+                              ),
+                            );
+                          },
+                        );
+                      },
                     ),
-                    itemBuilder: (context, index) {
-                      final friend = friends[index];
-                      return _FriendRowItem(
-                        friend: friend,
-                        isDark: isDark,
-                        onRowTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  ProfileScreen(targetUserId: friend.friendId),
-                            ),
-                          );
-                        },
-                        onMessageTap: () async {
-                          if (friend.friendId.isEmpty) return;
-                          final currentUid =
-                              FirebaseAuth.instance.currentUser?.uid ?? '';
-                          if (currentUid.isEmpty) return;
-                          final conversation = await ChatService()
-                              .createConversation(
-                            type: 'private',
-                            participantIds: [friend.friendId],
-                          );
-                          if (!context.mounted) return;
-                          await context
-                              .read<ChatProvider>()
-                              .openConversation(conversation);
-                          if (!context.mounted) return;
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  ChatScreen(conversation: conversation),
-                            ),
-                          );
-                        },
-                      );
-                    },
                   ),
-                ),
-              ],
+                ],
+              ),
             );
           },
         );
@@ -100,96 +110,54 @@ class _FriendHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.xl,
+        vertical: AppSpacing.md,
+      ),
       decoration: BoxDecoration(
-        color: AppColors.getSurface(isDark),
+        color: AppColors.creamWhite,
         border: Border(
-          bottom: BorderSide(color: AppColors.getDivider(isDark), width: 0.5),
+          bottom: BorderSide(
+            color: AppColors.neutralGray300,
+            width: 0.5,
+          ),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.accentBrown.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10,
+              vertical: 4,
+            ),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppColors.primaryOrange, AppColors.accentRed],
+              gradient: const LinearGradient(
+                colors: AppColors.brandGradient,
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: Text(
               '$count',
-              style: const TextStyle(
+              style: AppTypography.labelMedium.copyWith(
                 color: Colors.white,
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: AppSpacing.sm + 2),
           Text(
             'Bạn bè',
-            style: TextStyle(
+            style: AppTypography.titleMedium.copyWith(
               color: AppColors.getTextPrimary(isDark),
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.2,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  final bool isDark;
-
-  const _EmptyState({required this.isDark});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 96,
-            height: 96,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors: [
-                  AppColors.primaryOrange.withValues(alpha: 0.15),
-                  AppColors.accentRed.withValues(alpha: 0.10),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: Icon(
-              Icons.people_outline,
-              size: 48,
-              color: AppColors.primaryOrange,
-            ),
-          ),
-          const SizedBox(height: 18),
-          Text(
-            'Chưa có bạn bè nào',
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
-              color: AppColors.getTextPrimary(isDark),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Hãy kết bạn để bắt đầu trò chuyện',
-            style: TextStyle(
-              fontSize: 13,
-              color: AppColors.getTextSecondary(isDark),
             ),
           ),
         ],
@@ -220,24 +188,22 @@ class _FriendRowItem extends StatelessWidget {
             : 'Người dùng');
 
     return Material(
-      color: Colors.transparent,
+      color: AppColors.creamWhite,
       child: InkWell(
         onTap: onRowTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.md,
+          ),
           child: Row(
             children: [
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  FriendAvatar(
-                    name: displayName,
-                    avatarUrl: friend.avatar.isNotEmpty ? friend.avatar : null,
-                    radius: 24,
-                  ),
-                ],
+              TriAvatar(
+                imageUrl: friend.avatar,
+                name: displayName,
+                size: 48,
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -247,58 +213,31 @@ class _FriendRowItem extends StatelessWidget {
                       displayName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: -0.1,
+                      style: AppTypography.titleSmall.copyWith(
                         color: AppColors.getTextPrimary(isDark),
                       ),
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 2),
                     Text(
-                      'Bạn bè từ ${_FriendRowItem._formatFriendsSince(friend.friendsSince)}',
-                      style: TextStyle(
-                        fontSize: 12,
+                      'Bạn bè từ ${_formatFriendsSince(friend.friendsSince)}',
+                      style: AppTypography.bodySmall.copyWith(
                         color: AppColors.getTextSecondary(isDark),
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: onMessageTap,
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          AppColors.primaryOrange,
-                          AppColors.primaryOrangeLight,
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primaryOrange.withValues(alpha: 0.35),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.chat_bubble_outline,
-                      size: 18,
-                      color: Colors.white,
-                    ),
-                  ),
+              const SizedBox(width: AppSpacing.sm),
+              IconCircleButton(
+                icon: Icons.chat_bubble_outline_rounded,
+                onPressed: onMessageTap,
+                gradient: const LinearGradient(
+                  colors: AppColors.brandGradient,
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
+                size: 38,
+                color: Colors.white,
               ),
             ],
           ),

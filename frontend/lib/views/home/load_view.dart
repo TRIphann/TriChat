@@ -4,9 +4,15 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../config/app_colors.dart';
+import '../../config/app_spacing.dart';
+import '../../config/app_typography.dart';
+import '../../config/tri_chat_logo.dart';
 
-/// Màn hình splash (loading) - Hiển thị logo TriChat trên nền gradient
-/// Tự động chuyển sang HomeView sau 5 giây với hiệu ứng chuyển cảnh mượt mà
+/// Màn hình splash — phong cách Glassmorphism:
+/// - Nền kem (cream) với gradient nhẹ
+/// - Logo TriChat lớn
+/// - Hiệu ứng glow xung quanh
+/// - Tự động điều hướng sau khi load xong
 class LoadView extends StatefulWidget {
   const LoadView({super.key});
 
@@ -15,173 +21,183 @@ class LoadView extends StatefulWidget {
 }
 
 class _LoadViewState extends State<LoadView> with TickerProviderStateMixin {
-  // Animation cho logo TriChat (fade + scale)
-  late AnimationController _logoController;
-  late Animation<double> _logoFadeAnimation;
-  late Animation<double> _logoScaleAnimation;
-
-  // Animation cho hiệu ứng glow (ánh sáng lung linh)
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
-
-  // Animation cho hiệu ứng chuyển cảnh ra (transition out)
-  late AnimationController _transitionController;
-  late Animation<double> _transitionFadeAnimation;
-  late Animation<double> _transitionScaleAnimation;
+  late final AnimationController _logoCtrl;
+  late final Animation<double> _logoFade;
+  late final Animation<double> _logoScale;
+  late final Animation<double> _titleFade;
+  late final Animation<double> _taglineFade;
+  late final AnimationController _pulseCtrl;
 
   bool _navigated = false;
-
-  Future<void> _checkAuth() async {
-    // chờ animation hoặc init xong...
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (!mounted) return;
-
-    final user = FirebaseAuth.instance.currentUser;
-    user != null ? context.go('/chat-list') : context.go('/');
-  }
 
   @override
   void initState() {
     super.initState();
 
-    // Ẩn thanh trạng thái để hiển thị full screen
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
+        statusBarIconBrightness: Brightness.dark,
+        systemNavigationBarColor: AppColors.creamBackground,
+        systemNavigationBarIconBrightness: Brightness.dark,
       ),
     );
 
-    _initAnimations();
-    _startAnimations();
+    _logoCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    );
+    _logoFade = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(
+        parent: _logoCtrl,
+        curve: const Interval(0, 0.5, curve: Curves.easeOut),
+      ),
+    );
+    _logoScale = Tween<double>(begin: 0.6, end: 1).animate(
+      CurvedAnimation(
+        parent: _logoCtrl,
+        curve: const Interval(0, 0.8, curve: Curves.elasticOut),
+      ),
+    );
+    _titleFade = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(
+        parent: _logoCtrl,
+        curve: const Interval(0.3, 0.8, curve: Curves.easeOut),
+      ),
+    );
+    _taglineFade = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(
+        parent: _logoCtrl,
+        curve: const Interval(0.5, 1, curve: Curves.easeOut),
+      ),
+    );
+
+    _pulseCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1600),
+    )..repeat(reverse: true);
+
+    _logoCtrl.forward();
+    _scheduleNavigation();
   }
 
-  /// Khởi tạo tất cả animation controllers và animations
-  void _initAnimations() {
-    // === Logo Animation: fade in + scale lên (0 → 1.2s) ===
-    _logoController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    );
-    _logoFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _logoController,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
-      ),
-    );
-    _logoScaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _logoController,
-        curve: const Interval(0.0, 0.8, curve: Curves.elasticOut),
-      ),
-    );
-
-    // === Glow Animation: hiệu ứng sáng lung linh lặp lại ===
-    _glowController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    );
-    _glowAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
-    );
-
-    // === Transition Out: fade out + zoom ra khi chuyển cảnh ===
-    _transitionController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
-    _transitionFadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
-      CurvedAnimation(parent: _transitionController, curve: Curves.easeInOut),
-    );
-    _transitionScaleAnimation = Tween<double>(begin: 1.0, end: 1.3).animate(
-      CurvedAnimation(parent: _transitionController, curve: Curves.easeIn),
-    );
-  }
-
-  /// Khởi chạy chuỗi animation theo timeline (tổng ~5 giây)
-  void _startAnimations() async {
-    // Đợi 1 chút trước khi bắt đầu
-    await Future.delayed(const Duration(milliseconds: 300));
-    if (!mounted) return;
-
-    // 1. Logo fade in + scale lên
-    _logoController.forward();
-
-    // 2. Bắt đầu hiệu ứng glow sau khi logo hiện
-    await Future.delayed(const Duration(milliseconds: 800));
-    if (!mounted) return;
-    _glowController.repeat(reverse: true);
-
-    // 3. Sau tổng cộng ~5 giây, dừng glow và bắt đầu chuyển cảnh
-    //    Tổng: 300ms chờ + 800ms logo + 3100ms glow = ~4200ms
-    //    800ms transition → tổng ~5 giây
-    await Future.delayed(const Duration(milliseconds: 3100));
-    if (!mounted) return;
-    _glowController.stop();
-
-    // 4. Chạy hiệu ứng transition out
-    await _transitionController.forward();
+  Future<void> _scheduleNavigation() async {
+    await Future.delayed(const Duration(milliseconds: 2200));
     if (!mounted || _navigated) return;
-
-    // 5. Chuyển sang màn hình phù hợp dựa theo trạng thái đăng nhập
     _navigated = true;
-    await _checkAuth();
+    final user = FirebaseAuth.instance.currentUser;
+    if (!mounted) return;
+    user != null ? context.go('/chat-list') : context.go('/');
   }
 
   @override
   void dispose() {
-    _logoController.dispose();
-    _glowController.dispose();
-    _transitionController.dispose();
+    _logoCtrl.dispose();
+    _pulseCtrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: Listenable.merge([
-        _logoController,
-        _glowController,
-        _transitionController,
-      ]),
-      builder: (context, child) {
-        // Tính màu nền chuyển dần từ xanh → trắng khi transition
-        final bgColor = Color.lerp(
-          AppColors.primaryBlue,
-          Colors.white,
-          _transitionController.value,
-        )!;
-        final bgColorDark = Color.lerp(
-          AppColors.darkBlue,
-          Colors.white,
-          _transitionController.value,
-        )!;
-
+      animation: Listenable.merge([_logoCtrl, _pulseCtrl]),
+      builder: (context, _) {
         return Scaffold(
           body: Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [bgColor, bgColorDark],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: AppColors.creamBackgroundGradient,
               ),
             ),
-            child: Center(
-              child: Opacity(
-                opacity: _transitionFadeAnimation.value,
-                child: Transform.scale(
-                  scale: _transitionScaleAnimation.value,
-                  child: Opacity(
-                    opacity: _logoFadeAnimation.value,
-                    child: Transform.scale(
-                      scale: _logoScaleAnimation.value,
-                      child: _buildLogo(),
+            child: SafeArea(
+              child: Stack(
+                children: [
+                  // Decorative glow — cam san hô
+                  Positioned(
+                    top: -120,
+                    right: -100,
+                    child: _PulseGlow(
+                      animation: _pulseCtrl,
+                      size: 360,
+                      color: AppColors.primaryOrangeLight,
                     ),
                   ),
-                ),
+                  Positioned(
+                    bottom: -140,
+                    left: -110,
+                    child: _PulseGlow(
+                      animation: _pulseCtrl,
+                      size: 400,
+                      color: AppColors.accentBrownLight,
+                    ),
+                  ),
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Opacity(
+                          opacity: _logoFade.value,
+                          child: Transform.scale(
+                            scale: _logoScale.value,
+                            child: const TriChatLogoLarge(size: 130),
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.xxl),
+                        Opacity(
+                          opacity: _titleFade.value,
+                          child: ShaderMask(
+                            shaderCallback: (rect) => const LinearGradient(
+                              colors: [
+                                AppColors.accentBrown,
+                                AppColors.primaryOrange,
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ).createShader(rect),
+                            child: const Text(
+                              'TriChat',
+                              style: TextStyle(
+                                fontSize: 48,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                letterSpacing: -1.5,
+                                height: 1.0,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        Opacity(
+                          opacity: _taglineFade.value,
+                          child: Text(
+                            'Trò chuyện. Kết nối. Trên mọi thiết bị.',
+                            style: AppTypography.bodyMedium.copyWith(
+                              color: AppColors.neutralGray700,
+                              fontWeight: FontWeight.w500,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.huge),
+                        Opacity(
+                          opacity: _taglineFade.value,
+                          child: SizedBox(
+                            width: 28,
+                            height: 28,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.2,
+                              valueColor: AlwaysStoppedAnimation(
+                                AppColors.primaryOrange.withValues(alpha: 0.85),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -189,33 +205,38 @@ class _LoadViewState extends State<LoadView> with TickerProviderStateMixin {
       },
     );
   }
+}
 
-  /// Xây dựng logo TriChat chữ trắng lớn, với hiệu ứng glow
-  Widget _buildLogo() {
-    final glowOpacity = 0.3 + (_glowAnimation.value * 0.4);
-    final glowBlur = 20.0 + (_glowAnimation.value * 30.0);
+class _PulseGlow extends StatelessWidget {
+  final Animation<double> animation;
+  final double size;
+  final Color color;
 
-    return Text(
-      'TriChat',
-      style: TextStyle(
-        fontSize: 72,
-        fontWeight: FontWeight.bold,
-        color: Colors.white,
-        letterSpacing: 2,
-        shadows: [
-          // Glow pulsating chính
-          Shadow(
-            color: Colors.white.withValues(alpha: glowOpacity.clamp(0.0, 1.0)),
-            blurRadius: glowBlur,
+  const _PulseGlow({
+    required this.animation,
+    required this.size,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, _) {
+        return Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: [
+                color.withValues(alpha: 0.18 * (0.6 + animation.value * 0.4)),
+                color.withValues(alpha: 0.0),
+              ],
+            ),
           ),
-          // Shadow nhẹ phía dưới
-          const Shadow(
-            color: Colors.white24,
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

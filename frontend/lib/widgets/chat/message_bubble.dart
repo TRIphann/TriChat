@@ -7,6 +7,8 @@ import '../../providers/chat_provider.dart';
 import 'fullscreen_image_viewer.dart';
 import 'audio_message_player.dart';
 import 'package:frontend/config/app_colors.dart';
+import 'package:frontend/config/app_spacing.dart';
+import 'package:frontend/config/app_typography.dart';
 
 class MessageBubble extends StatelessWidget {
   final Message message;
@@ -55,8 +57,8 @@ class MessageBubble extends StatelessWidget {
   });
 
   static const _zaloBlue = AppColors.primaryOrange;
-  static const _receivedBg = Color(0xFFFFFFFF);
-  static const _receivedBorder = Color(0xFFE5E5E5);
+  static const _receivedBg = AppColors.chatBubbleTheirs;
+  static const _receivedBorder = AppColors.chatBubbleBorder;
 
   @override
   Widget build(BuildContext context) {
@@ -67,13 +69,20 @@ class MessageBubble extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOut,
-      color: highlighted
-          ? const Color(0xFFD6E8FF) // xanh nhạt rõ trên nền xám
-          : Colors.transparent,
+      decoration: BoxDecoration(
+        color: highlighted
+            ? AppColors.primaryOrange.withValues(alpha: 0.10)
+            : Colors.transparent,
+      ),
       child: GestureDetector(
         onLongPress: () => _showMessageActions(context),
         child: Padding(
-          padding: EdgeInsets.fromLTRB(10, topPad, 10, bottomPad),
+          padding: EdgeInsets.fromLTRB(
+            AppSpacing.md - 2,
+            topPad,
+            AppSpacing.md - 2,
+            bottomPad,
+          ),
           child: Row(
             mainAxisAlignment: message.isMine
                 ? MainAxisAlignment.end
@@ -82,8 +91,8 @@ class MessageBubble extends StatelessWidget {
             children: [
               if (!message.isMine) ...[
                 // Avatar chỉ hiện ở tin CUỐI nhóm
-                showAvatar ? _buildAvatar() : const SizedBox(width: 28),
-                const SizedBox(width: 6),
+                showAvatar ? _buildAvatar() : const SizedBox(width: 30),
+                const SizedBox(width: AppSpacing.xs + 2),
               ],
               Flexible(
                 child: Column(
@@ -93,19 +102,21 @@ class MessageBubble extends StatelessWidget {
                   children: [
                     if (!message.isMine && showSenderName)
                       Padding(
-                        padding: const EdgeInsets.only(left: 4, bottom: 3),
+                        padding: const EdgeInsets.only(
+                          left: 6,
+                          bottom: 3,
+                        ),
                         child: Text(
                           message.senderName,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: AppColors.textSecondary,
-                            fontWeight: FontWeight.w600,
+                          style: AppTypography.labelSmall.copyWith(
+                            color: AppColors.neutralGray700,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
                     _buildBubble(),
                     if (showMeta) ...[
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 3),
                       _buildMetaRow(),
                     ],
                     if (message.reactions != null &&
@@ -147,7 +158,7 @@ class MessageBubble extends StatelessWidget {
   Widget _buildBubble() {
     final isMine = message.isMine;
 
-    const r = Radius.circular(20);
+    const r = Radius.circular(AppRadius.xl);
     const rTail = Radius.circular(4);
     const rMid = Radius.circular(6);
     // Zalo: góc nhọn hơn ở cạnh "đuôi" (gần avatar), góc tròn ở cạnh xa
@@ -169,24 +180,23 @@ class MessageBubble extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
-          color: const Color(0xFFF0F0F0),
+          color: AppColors.neutralGray100,
           borderRadius: radius,
-          border: Border.all(color: const Color(0xFFDDDDDD)),
+          border: Border.all(color: AppColors.neutralGray300, width: 0.6),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Icons.remove_circle_outline,
+              Icons.remove_circle_outline_rounded,
               size: 14,
-              color: Colors.grey[500],
+              color: AppColors.neutralGray500,
             ),
             const SizedBox(width: 5),
             Text(
               'Tin nhắn đã được thu hồi',
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey[500],
+              style: AppTypography.bodySmall.copyWith(
+                color: AppColors.neutralGray700,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -214,28 +224,44 @@ class MessageBubble extends StatelessWidget {
       );
     }
 
-    final isMediaOrSticker = message.type == 'image' || message.type == 'video' || message.type == 'sticker';
+    final isMediaOrSticker = message.type == 'image' ||
+        message.type == 'video' ||
+        message.type == 'sticker';
+
+    final mineGradient = const LinearGradient(
+      colors: AppColors.chatBubbleMineGradient,
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    );
 
     return Container(
       decoration: BoxDecoration(
         color: isMediaOrSticker
             ? Colors.transparent
-            : (isMine ? _zaloBlue : _receivedBg),
+            : (isMine ? null : _receivedBg),
+        gradient: isMediaOrSticker || !isMine ? null : mineGradient,
         borderRadius: radius,
         border: isMediaOrSticker
             ? null
-            : (isMine ? null : Border.all(color: _receivedBorder, width: 0.5)),
-        boxShadow: isMediaOrSticker
-            ? null
             : (isMine
                 ? null
-                : [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 3,
-                      offset: const Offset(0, 1),
-                    ),
-                  ]),
+                : Border.all(color: _receivedBorder, width: 0.5)),
+        boxShadow: isMediaOrSticker
+            ? null
+            : [
+                if (isMine)
+                  BoxShadow(
+                    color: AppColors.primaryOrange.withValues(alpha: 0.18),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  )
+                else
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 3,
+                    offset: const Offset(0, 1),
+                  ),
+              ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -268,13 +294,11 @@ class MessageBubble extends StatelessWidget {
 
   Widget _buildTextContent() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Text(
         message.content,
-        style: TextStyle(
-          fontSize: 14.5,
+        style: AppTypography.messageBody.copyWith(
           color: message.isMine ? Colors.white : AppColors.neutralBlack,
-          height: 1.35,
         ),
       ),
     );
@@ -582,18 +606,18 @@ class MessageBubble extends StatelessWidget {
     // Sender (xanh): preview nền trắng mờ, viền trắng
     // Receiver (xám): preview nền trắng nhạt, viền xanh
     final bgColor = message.isMine
-        ? Colors.white.withValues(alpha: 0.18)
-        : const Color(0xFFF0F4FF);
+        ? Colors.white.withValues(alpha: 0.22)
+        : AppColors.primaryOrangePale;
     final borderColor = message.isMine ? Colors.white60 : _zaloBlue;
     final nameColor = message.isMine ? Colors.white : _zaloBlue;
-    final bodyColor = message.isMine ? Colors.white70 : Colors.grey[700]!;
+    final bodyColor = message.isMine ? Colors.white70 : AppColors.neutralGray700;
 
     return Container(
       margin: const EdgeInsets.fromLTRB(10, 8, 10, 0),
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
         border: Border(left: BorderSide(color: borderColor, width: 3)),
       ),
       child: Column(
@@ -601,16 +625,15 @@ class MessageBubble extends StatelessWidget {
         children: [
           Text(
             replyToIsMine ? 'Tôi' : (message.replyToSenderName ?? ''),
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
+            style: AppTypography.labelSmall.copyWith(
+              fontWeight: FontWeight.w800,
               color: nameColor,
             ),
           ),
           const SizedBox(height: 2),
           Text(
             message.replyToContent ?? '',
-            style: TextStyle(fontSize: 12, color: bodyColor),
+            style: AppTypography.bodySmall.copyWith(color: bodyColor),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -630,16 +653,20 @@ class MessageBubble extends StatelessWidget {
         children: [
           Text(
             DateFormat('HH:mm').format(message.createdAt),
-            style: TextStyle(fontSize: 10, color: AppColors.textHint),
+            style: AppTypography.messageMeta.copyWith(
+              color: AppColors.neutralGray500,
+            ),
           ),
-          if (message.isMine) ...[const SizedBox(width: 3), _buildStatusIcon()],
+          if (message.isMine) ...[
+            const SizedBox(width: 3),
+            _buildStatusIcon(),
+          ],
           if (message.isEdited) ...[
             const SizedBox(width: 4),
             Text(
               '• đã sửa',
-              style: TextStyle(
-                fontSize: 10,
-                color: AppColors.textHint,
+              style: AppTypography.messageMeta.copyWith(
+                color: AppColors.neutralGray500,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -652,35 +679,62 @@ class MessageBubble extends StatelessWidget {
   Widget _buildStatusIcon() {
     switch (message.status) {
       case 'read':
-        return const Icon(Icons.done_all, size: 13, color: _zaloBlue);
+        return const Icon(
+          Icons.done_all_rounded,
+          size: 13,
+          color: _zaloBlue,
+        );
       case 'delivered':
-        return Icon(Icons.done_all, size: 13, color: Colors.grey[400]);
+        return Icon(
+          Icons.done_all_rounded,
+          size: 13,
+          color: AppColors.neutralGray500,
+        );
       case 'sending':
-        return Icon(Icons.access_time, size: 12, color: Colors.grey[400]);
+        return Icon(
+          Icons.access_time_rounded,
+          size: 12,
+          color: AppColors.neutralGray500,
+        );
       case 'failed':
         return GestureDetector(
           onTap: onRetry,
-          child: const Icon(Icons.error_outline, size: 13, color: Colors.red),
+          child: const Icon(
+            Icons.error_outline_rounded,
+            size: 13,
+            color: AppColors.error,
+          ),
         );
       default:
-        return Icon(Icons.done, size: 13, color: Colors.grey[400]);
+        return Icon(
+          Icons.done_rounded,
+          size: 13,
+          color: AppColors.neutralGray500,
+        );
     }
   }
 
   Widget _buildReactions() {
     return Container(
       margin: EdgeInsets.only(
-        top: 3,
+        top: 4,
         left: message.isMine ? 0 : 4,
         right: message.isMine ? 4 : 0,
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE8E8E8)),
+        borderRadius: BorderRadius.circular(AppRadius.full),
+        border: Border.all(
+          color: AppColors.neutralGray300.withValues(alpha: 0.6),
+          width: 0.6,
+        ),
         boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 3, offset: Offset(0, 1)),
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 4,
+            offset: Offset(0, 1),
+          ),
         ],
       ),
       child: Row(
@@ -714,9 +768,24 @@ class MessageBubble extends StatelessWidget {
       isScrollControlled: true,
       builder: (_) => Container(
         margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+        decoration: BoxDecoration(
+          color: AppColors.creamWhite,
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppRadius.xl),
+          ),
+          border: Border(
+            top: BorderSide(
+              color: AppColors.neutralGray300.withValues(alpha: 0.7),
+              width: 0.6,
+            ),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.accentBrown.withValues(alpha: 0.18),
+              blurRadius: 24,
+              offset: const Offset(0, -8),
+            ),
+          ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -725,15 +794,18 @@ class MessageBubble extends StatelessWidget {
             Container(
               width: 40,
               height: 4,
-              margin: const EdgeInsets.symmetric(vertical: 10),
+              margin: const EdgeInsets.symmetric(vertical: AppSpacing.sm + 2),
               decoration: BoxDecoration(
-                color: Colors.grey[300],
+                color: AppColors.neutralGray300,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
             // Quick reactions
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.xl,
+                vertical: AppSpacing.sm,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: ['❤️', '👍', '😂', '😮', '😢', '😡'].map((e) {
@@ -744,14 +816,17 @@ class MessageBubble extends StatelessWidget {
                     },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 150),
-                      width: 46,
-                      height: 46,
-                      decoration: const BoxDecoration(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: AppColors.neutralGray100,
                       ),
                       child: Center(
-                        child: Text(e, style: const TextStyle(fontSize: 24)),
+                        child: Text(
+                          e,
+                          style: const TextStyle(fontSize: 26),
+                        ),
                       ),
                     ),
                   );
@@ -816,17 +891,19 @@ class MessageBubble extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xl,
+          vertical: AppSpacing.md,
+        ),
         child: Row(
           children: [
             Icon(icon, color: c, size: 22),
-            const SizedBox(width: 16),
+            const SizedBox(width: AppSpacing.lg),
             Text(
               label,
-              style: TextStyle(
-                fontSize: 15,
+              style: AppTypography.bodyLarge.copyWith(
                 color: c,
-                fontWeight: FontWeight.w400,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],

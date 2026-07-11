@@ -1,10 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:frontend/apps/app_locale.dart';
 import 'package:frontend/apps/router.dart';
+import 'package:frontend/config/dark_mode_config.dart';
 import 'package:frontend/features/friends/friends.dart';
 import 'package:frontend/features/newfeed/providers/feed_provider.dart';
 import 'package:frontend/features/newfeed/providers/story_provider.dart';
@@ -64,15 +64,22 @@ class TriChatApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final router = createRouter();
-    return ValueListenableBuilder(
-      valueListenable: localeNotifier,
-      builder: (context, locale, _) {
-        return MaterialApp.router(
-          title: 'TriChat',
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme,
-          routerConfig: router,
-          locale: Locale(locale),
+    return ValueListenableBuilder<bool>(
+      valueListenable: isDarkModeNotifier,
+      builder: (context, isDark, _) {
+        return ValueListenableBuilder<String>(
+          valueListenable: localeNotifier,
+          builder: (context, locale, _) {
+            return MaterialApp.router(
+              title: 'TriChat',
+              debugShowCheckedModeBanner: false,
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
+              routerConfig: router,
+              locale: Locale(locale),
+            );
+          },
         );
       },
     );
