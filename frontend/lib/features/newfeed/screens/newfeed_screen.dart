@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/config/app_colors.dart';
+import 'package:frontend/config/app_spacing.dart';
 import 'package:frontend/widgets/search_overlay_screen.dart';
 import '../providers/feed_provider.dart';
 import '../providers/story_provider.dart';
@@ -166,7 +167,7 @@ class _NewfeedScreenState extends State<NewfeedScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundGray,
+      backgroundColor: AppColors.creamBackground,
       body: SafeArea(
         bottom: false,
         child: RefreshIndicator(
@@ -625,52 +626,102 @@ class _NewfeedScreenState extends State<NewfeedScreen>
             provider.posts.isEmpty) {
           return SliverFillRemaining(
             child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.cloud_off_rounded,
-                    size: 56,
-                    color: Colors.grey.shade400,
-                  ),
-                  const SizedBox(height: 14),
-                  Text(
-                    'Không thể tải bài viết',
-                    style: TextStyle(
-                      color: AppColors.neutralBlack,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Hãy kiểm tra kết nối mạng và thử lại',
-                    style: TextStyle(
-                      color: Colors.grey.shade600,
-                      fontSize: 13,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    onPressed: () => provider.loadFeed(),
-                    icon: const Icon(Icons.refresh_rounded, size: 18),
-                    label: const Text(
-                      'Thử lại',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryBlue,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 10,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 88,
+                      height: 88,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.accentRed.withValues(alpha: 0.12),
+                            AppColors.primaryOrange.withValues(alpha: 0.08),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        shape: BoxShape.circle,
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+                      child: Icon(
+                        Icons.cloud_off_rounded,
+                        size: 42,
+                        color: AppColors.accentRed,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 18),
+                    Text(
+                      'Chưa thể tải bài viết',
+                      style: TextStyle(
+                        color: AppColors.neutralBlack,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Hãy kiểm tra kết nối mạng và thử lại',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AppColors.neutralGray700,
+                        fontSize: 13.5,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: AppColors.primaryButtonGradient,
+                        ),
+                        borderRadius: BorderRadius.circular(AppRadius.pill),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primaryOrange.withValues(
+                              alpha: 0.30,
+                            ),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(AppRadius.pill),
+                          onTap: () => provider.loadFeed(),
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 10,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.refresh_rounded,
+                                  size: 18,
+                                  color: Colors.white,
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Thử lại',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           );
@@ -685,40 +736,92 @@ class _NewfeedScreenState extends State<NewfeedScreen>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      width: 80,
-                      height: 80,
+                      width: 96,
+                      height: 96,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            AppColors.primaryBlue.withValues(alpha: 0.1),
-                            AppColors.primaryBlue.withValues(alpha: 0.04),
+                            AppColors.primaryOrange.withValues(alpha: 0.15),
+                            AppColors.accentRed.withValues(alpha: 0.10),
                           ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
-                        Icons.feed_rounded,
-                        size: 40,
-                        color: AppColors.primaryBlue.withValues(alpha: 0.7),
+                        Icons.auto_stories_rounded,
+                        size: 48,
+                        color: AppColors.primaryOrange.withValues(alpha: 0.85),
                       ),
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 20),
                     Text(
-                      'Bảng tin trống',
+                      'Chưa có bài viết nào',
                       style: TextStyle(
-                        fontSize: 17,
+                        fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: AppColors.neutralBlack,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 8),
                     Text(
-                      'Hãy là người đầu tiên chia sẻ khoảnh khắc của bạn!',
+                      'Hãy là người đầu tiên chia sẻ khoảnh khắc đáng nhớ của bạn với cộng đồng TriChat!',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Colors.grey.shade600,
+                        color: AppColors.neutralGray700,
                         fontSize: 13.5,
-                        height: 1.4,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: AppColors.primaryButtonGradient,
+                        ),
+                        borderRadius: BorderRadius.circular(AppRadius.pill),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primaryOrange.withValues(
+                              alpha: 0.30,
+                            ),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(AppRadius.pill),
+                          onTap: _showCreatePost,
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 10,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.edit_rounded,
+                                  size: 18,
+                                  color: Colors.white,
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Đăng bài đầu tiên',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ],

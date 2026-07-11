@@ -28,27 +28,6 @@ class _ContactsViewState extends State<ContactsView>
   late TabController _tabController;
   int _selectedMenuIndex = 0;
 
-  // NOTE: _mockContacts sẽ được thay bằng FriendListScreen (API thật).
-  // Chỉ giữ _mockGroups cho tab Nhóm chưa có API.
-
-  // Mock groups data
-  final List<Map<String, dynamic>> _mockGroups = [
-    {
-      'id': 'g_001',
-      'name': 'Nhóm Đồ Ăn',
-      'avatar': null,
-      'avatarColor': AppColors.accentBrown,
-      'memberCount': 5,
-    },
-    {
-      'id': 'g_002',
-      'name': 'Nhóm Lớp K18',
-      'avatar': null,
-      'avatarColor': AppColors.primaryOrangeLight,
-      'memberCount': 45,
-    },
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -126,19 +105,43 @@ class _ContactsViewState extends State<ContactsView>
                 background: Colors.white.withValues(alpha: 0.92),
               ),
             ),
-            const SizedBox(width: AppSpacing.sm),
-            IconCircleButton(
+            const SizedBox(width: AppSpacing.xs),
+            _buildHeaderIcon(
+              icon: Icons.group_add_rounded,
+              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Tạo nhóm - đang phát triển')),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            _buildHeaderIcon(
               icon: Icons.person_add_alt_1_rounded,
-              onPressed: () => Navigator.push(
+              onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => const AddFriendScreen(),
                 ),
               ),
-              color: Colors.white,
-              size: 42,
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeaderIcon({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.white.withValues(alpha: 0.18),
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: SizedBox(
+          width: 40,
+          height: 40,
+          child: Icon(icon, color: Colors.white, size: 20),
         ),
       ),
     );
@@ -179,63 +182,48 @@ class _ContactsViewState extends State<ContactsView>
   Widget _buildGroupListMobile(AppLocalizations t, bool isDark) {
     return Container(
       color: AppColors.creamBackground,
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          ..._mockGroups.map((group) => _buildGroupTile(group, t, isDark)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGroupTile(
-    Map<String, dynamic> group,
-    AppLocalizations t,
-    bool isDark,
-  ) {
-    return Material(
-      color: AppColors.creamWhite,
-      child: InkWell(
-        onTap: () {},
+      child: Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
-            vertical: AppSpacing.md,
-          ),
-          child: Row(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              TriAvatar(
-                imageUrl: '',
-                name: group['name'] as String,
-                size: 44,
-                overlayCount: group['memberCount'] as int,
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      group['name'] as String,
-                      style: AppTypography.titleSmall.copyWith(
-                        color: AppColors.getTextPrimary(isDark),
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${group['memberCount']} ${t.get('members')}',
-                      style: AppTypography.bodySmall.copyWith(
-                        color: AppColors.getTextSecondary(isDark),
-                      ),
-                    ),
-                  ],
+              Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.primaryOrange.withValues(alpha: 0.15),
+                      AppColors.accentBrown.withValues(alpha: 0.10),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.groups_outlined,
+                  size: 42,
+                  color: AppColors.primaryOrange.withValues(alpha: 0.85),
                 ),
               ),
-              Icon(
-                Icons.more_horiz_rounded,
-                color: AppColors.getTextSecondary(isDark),
-                size: 20,
+              const SizedBox(height: AppSpacing.lg),
+              Text(
+                'Chưa có nhóm nào',
+                style: AppTypography.titleMedium.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.neutralBlack,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                'Tạo nhóm để trò chuyện cùng nhiều bạn bè cùng lúc.',
+                textAlign: TextAlign.center,
+                style: AppTypography.bodyMedium.copyWith(
+                  color: AppColors.neutralGray700,
+                  height: 1.5,
+                ),
               ),
             ],
           ),
@@ -452,78 +440,51 @@ class _ContactsViewState extends State<ContactsView>
   }
 
   Widget _buildWideGroupList(AppLocalizations t, bool isDark) {
-    return ListView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      children: _mockGroups
-          .map((group) => _buildWideGroupTile(group, t, isDark))
-          .toList(),
-    );
-  }
-
-  Widget _buildWideGroupTile(
-    Map<String, dynamic> group,
-    AppLocalizations t,
-    bool isDark,
-  ) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.xs),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.sm,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.getSurface(isDark),
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(
-          color: AppColors.getDivider(isDark),
-          width: 0.6,
-        ),
-      ),
-      child: Row(
-        children: [
-          TriAvatar(
-            imageUrl: '',
-            name: group['name'] as String,
-            size: 44,
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  group['name'] as String,
-                  style: AppTypography.titleSmall.copyWith(
-                    color: AppColors.getTextPrimary(isDark),
-                  ),
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 96,
+              height: 96,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.primaryOrange.withValues(alpha: 0.15),
+                    AppColors.accentBrown.withValues(alpha: 0.10),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  '${group['memberCount']} ${t.get('members')}',
-                  style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.getTextSecondary(isDark),
-                  ),
-                ),
-              ],
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.groups_outlined,
+                size: 46,
+                color: AppColors.primaryOrange.withValues(alpha: 0.85),
+              ),
             ),
-          ),
-          IconCircleButton(
-            icon: Icons.call_outlined,
-            onPressed: () {},
-            color: AppColors.getTextSecondary(isDark),
-            background: AppColors.getBackground(isDark),
-            size: 36,
-          ),
-          const SizedBox(width: AppSpacing.xs),
-          IconCircleButton(
-            icon: Icons.videocam_outlined,
-            onPressed: () {},
-            color: AppColors.getTextSecondary(isDark),
-            background: AppColors.getBackground(isDark),
-            size: 36,
-          ),
-        ],
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              'Chưa có nhóm nào',
+              style: AppTypography.titleMedium.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppColors.neutralBlack,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              'Tạo nhóm để trò chuyện cùng nhiều bạn bè cùng lúc — nhóm giúp mọi người trao đổi dễ dàng hơn.',
+              textAlign: TextAlign.center,
+              style: AppTypography.bodyMedium.copyWith(
+                color: AppColors.neutralGray700,
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

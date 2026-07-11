@@ -26,6 +26,7 @@ import 'package:frontend/services/message_notification_service.dart';
 import 'package:frontend/utils/app_localizations.dart';
 import 'package:frontend/views/chat/chat_screen.dart';
 import 'package:frontend/views/chat/new_conversation_screen.dart';
+import 'package:frontend/views/chat/ultra_dark_chat_layout.dart';
 import 'package:frontend/views/contacts/contacts_view.dart';
 import 'package:provider/provider.dart';
 
@@ -282,24 +283,11 @@ class ChatListViewState extends State<ChatListView> {
               body: SafeArea(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    final maxWidth = isVeryWideScreen
-                        ? 1400.0
-                        : (isWideScreen ? 1100.0 : double.infinity);
-
                     if (isWideScreen) {
-                      return Container(
-                        color: AppColors.creamBackground,
-                        child: Center(
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(maxWidth: maxWidth),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(
-                                isWideScreen ? AppRadius.xl : 0,
-                              ),
-                              child: _buildWideLayout(t, isDark, isVeryWideScreen),
-                            ),
-                          ),
-                        ),
+                      return _buildWideLayout(
+                        t,
+                        isDark,
+                        isVeryWideScreen,
                       );
                     }
 
@@ -314,38 +302,43 @@ class ChatListViewState extends State<ChatListView> {
     );
   }
 
-  // ─── WIDE LAYOUT (3 columns) ─────────────────────────────────
+  // ─── WIDE LAYOUT ─────────────────────────────────────────────
+  // Khi người dùng đang ở tab Chat (index 0), dùng Ultra-Dark 4-column
+  // dashboard (Slim Sidebar + Message List + Chat + Details). Các tab
+  // khác giữ nguyên layout cũ 3-column cream.
   Widget _buildWideLayout(
     AppLocalizations t,
     bool isDark,
     bool isVeryWideScreen,
   ) {
-    return Row(
-      children: [
-        // Cột 1: Navigation Sidebar (Glassmorphism nâu)
-        _buildSidebar(isDark),
-        // Cột 2 + 3: list + main
-        Expanded(
-          child: Row(
-            children: [
-              if (_selectedNavIndex == 0) ...[
-                _buildChatListPanelWide(t, isDark, isVeryWideScreen),
-                Expanded(
-                  flex: isVeryWideScreen ? 7 : 6,
-                  child: _selectedConversation == null
-                      ? _buildWelcomePanel(t, isDark)
-                      : ChatScreen(conversation: _selectedConversation!),
-                ),
-              ] else if (_selectedNavIndex == 1)
-                const Expanded(child: ContactsView(isWideScreen: true))
-              else if (_selectedNavIndex == 2)
-                const Expanded(child: NewfeedScreen())
-              else if (_selectedNavIndex == 3)
-                const Expanded(child: ProfileScreen()),
-            ],
+    // Tab chat → Ultra Dark 4-column
+    if (_selectedNavIndex == 0) {
+      return UltraDarkChatLayout(t: t);
+    }
+
+    return Container(
+      color: AppColors.creamBackground,
+      child: Row(
+        children: [
+          // Cột 1: Navigation Sidebar (Glassmorphism nâu)
+          _buildSidebar(isDark),
+          // Cột 2 + 3: list + main
+          Expanded(
+            child: Row(
+              children: [
+                if (_selectedNavIndex == 1)
+                  const Expanded(child: ContactsView(isWideScreen: true))
+                else if (_selectedNavIndex == 2)
+                  const Expanded(child: NewfeedScreen())
+                else if (_selectedNavIndex == 3)
+                  const Expanded(child: ProfileScreen())
+                else if (_selectedNavIndex == 4)
+                  const Expanded(child: _SettingsPanel()),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -363,6 +356,7 @@ class ChatListViewState extends State<ChatListView> {
                 const ContactsMainScreen(),
                 const NewfeedScreen(),
                 const ProfileScreen(),
+                const SettingsTab(),
               ],
             ),
           ),
@@ -808,18 +802,80 @@ class ChatListViewState extends State<ChatListView> {
             : chat.conversations;
 
         if (list.isEmpty) {
-          return EmptyState(
-            icon: Icons.forum_rounded,
-            title: _filterMode == 'unread'
-                ? 'Không có tin nhắn chưa đọc'
-                : 'Chưa có cuộc trò chuyện nào',
-            message: _filterMode == 'unread'
-                ? 'Mọi tin nhắn của bạn đã được đọc.'
-                : 'Tìm kiếm bạn bè để bắt đầu nhắn tin.',
-            action: FilledButton.icon(
-              onPressed: () => _openSearchOverlay(context),
-              icon: const Icon(Icons.person_search_rounded, size: 18),
-              label: const Text('Tìm bạn bè'),
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 88,
+                    height: 88,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.primaryOrange.withValues(alpha: 0.12),
+                          AppColors.accentRed.withValues(alpha: 0.08),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
+                    child: Icon(
+                      _filterMode == 'unread'
+                          ? Icons.mark_chat_read_rounded
+                          : Icons.forum_rounded,
+                      size: 42,
+                      color: AppColors.primaryOrange,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  Text(
+                    _filterMode == 'unread'
+                        ? 'Không có tin nhắn chưa đọc'
+                        : 'Chưa có cuộc trò chuyện nào',
+                    textAlign: TextAlign.center,
+                    style: AppTypography.titleMedium.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.neutralBlack,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    _filterMode == 'unread'
+                        ? 'Mọi tin nhắn của bạn đã được đọc.'
+                        : 'Hãy kết bạn để bắt đầu nhắn tin — cuộc trò chuyện sẽ xuất hiện ở đây.',
+                    textAlign: TextAlign.center,
+                    style: AppTypography.bodyMedium.copyWith(
+                      color: AppColors.neutralGray700,
+                      height: 1.5,
+                    ),
+                  ),
+                  if (_filterMode != 'unread') ...[
+                    const SizedBox(height: AppSpacing.lg),
+                    FilledButton.icon(
+                      onPressed: () => _openSearchOverlay(context),
+                      icon: const Icon(
+                        Icons.person_search_rounded,
+                        size: 18,
+                      ),
+                      label: const Text('Tìm bạn bè ngay'),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.primaryOrange,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.lg,
+                          vertical: AppSpacing.sm + 2,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.pill),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
           );
         }
@@ -841,10 +897,80 @@ class ChatListViewState extends State<ChatListView> {
   }
 
   Widget _buildErrorState(String? error, VoidCallback onRetry) {
-    return ErrorStateView(
-      error: error,
-      onRetry: onRetry,
-      title: 'Không thể tải cuộc trò chuyện',
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 88,
+              height: 88,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.primaryOrange.withValues(alpha: 0.12),
+                    AppColors.accentRed.withValues(alpha: 0.08),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: const Icon(
+                Icons.forum_rounded,
+                size: 42,
+                color: AppColors.primaryOrange,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              'Chưa có cuộc trò chuyện nào',
+              textAlign: TextAlign.center,
+              style: AppTypography.titleMedium.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppColors.neutralBlack,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              'Kết bạn để bắt đầu nhắn tin — mọi cuộc trò chuyện sẽ xuất hiện ở đây.',
+              textAlign: TextAlign.center,
+              style: AppTypography.bodyMedium.copyWith(
+                color: AppColors.neutralGray700,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            FilledButton.icon(
+              onPressed: () => _openSearchOverlay(context),
+              icon: const Icon(Icons.person_search_rounded, size: 18),
+              label: const Text('Tìm bạn bè ngay'),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primaryOrange,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.sm + 2,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TextButton(
+              onPressed: onRetry,
+              child: Text(
+                'Thử lại',
+                style: AppTypography.labelMedium.copyWith(
+                  color: AppColors.neutralGray700,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -1233,5 +1359,74 @@ class ChatListViewState extends State<ChatListView> {
       return '${parts[0][0]}${parts[parts.length - 1][0]}'.toUpperCase();
     }
     return name.isNotEmpty ? name[0].toUpperCase() : '?';
+  }
+}
+
+/// Panel Cài đặt — hiển thị ở cột 2/3 của layout rộng khi người dùng
+/// nhấn vào biểu tượng bánh răng ở sidebar trái.
+class _SettingsPanel extends StatelessWidget {
+  const _SettingsPanel();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppColors.creamBackground,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.xl,
+              AppSpacing.lg,
+              AppSpacing.xl,
+              AppSpacing.md,
+            ),
+            decoration: const BoxDecoration(
+              color: AppColors.creamWhite,
+              border: Border(
+                bottom: BorderSide(
+                  color: AppColors.neutralGray300,
+                  width: 0.5,
+                ),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Color(0x0D7B4F35),
+                  blurRadius: 8,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.xs),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: AppColors.appBarGradient,
+                    ),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                  ),
+                  child: const Icon(
+                    Icons.settings_rounded,
+                    size: 20,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Text(
+                  'CÀI ĐẶT',
+                  style: AppTypography.titleMedium.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.neutralBlack,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Expanded(child: SettingsTab()),
+        ],
+      ),
+    );
   }
 }

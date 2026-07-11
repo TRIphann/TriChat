@@ -56,9 +56,12 @@ class MessageBubble extends StatelessWidget {
     this.onRetry,
   });
 
-  static const _zaloBlue = AppColors.primaryOrange;
-  static const _receivedBg = AppColors.chatBubbleTheirs;
-  static const _receivedBorder = AppColors.chatBubbleBorder;
+  // Ultra-Dark "Premium Glass" palette
+  static const _accentMine = AppColors.neonRoyal; // Royal Blue
+  static const _accentMineBright = AppColors.neonRoyalGlow;
+  static const _receivedBg = AppColors.darkPremiumBubbleTheirs;
+  static const _receivedBorder = AppColors.darkPremiumBubbleTheirsBorder;
+  static const _textOnDark = AppColors.darkPremiumTextPrimary;
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +74,7 @@ class MessageBubble extends StatelessWidget {
       curve: Curves.easeOut,
       decoration: BoxDecoration(
         color: highlighted
-            ? AppColors.primaryOrange.withValues(alpha: 0.10)
+            ? _accentMine.withValues(alpha: 0.10)
             : Colors.transparent,
       ),
       child: GestureDetector(
@@ -109,7 +112,7 @@ class MessageBubble extends StatelessWidget {
                         child: Text(
                           message.senderName,
                           style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.neutralGray700,
+                            color: AppColors.darkPremiumTextSecondary,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -134,24 +137,42 @@ class MessageBubble extends StatelessWidget {
   }
 
   Widget _buildAvatar() {
-    return CircleAvatar(
-      radius: 14,
-      backgroundColor: const Color(0xFFCCCCCC),
-      backgroundImage: message.senderAvatar.isNotEmpty
-          ? NetworkImage(message.senderAvatar)
-          : null,
-      child: message.senderAvatar.isEmpty
-          ? Text(
-              message.senderName.isNotEmpty
-                  ? message.senderName[0].toUpperCase()
-                  : '?',
-              style: const TextStyle(
-                fontSize: 11,
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            )
-          : null,
+    final colorIdx = message.senderName.isEmpty
+        ? 0
+        : message.senderName.codeUnitAt(0) %
+            AppColors.darkPremiumAvatarPalette.length;
+    final accent = AppColors.darkPremiumAvatarPalette[colorIdx];
+    return Container(
+      width: 28,
+      height: 28,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: accent.withValues(alpha: 0.4),
+            blurRadius: 6,
+          ),
+        ],
+      ),
+      child: CircleAvatar(
+        radius: 14,
+        backgroundColor: accent,
+        backgroundImage: message.senderAvatar.isNotEmpty
+            ? NetworkImage(message.senderAvatar)
+            : null,
+        child: message.senderAvatar.isEmpty
+            ? Text(
+                message.senderName.isNotEmpty
+                    ? message.senderName[0].toUpperCase()
+                    : '?',
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              )
+            : null,
+      ),
     );
   }
 
@@ -180,9 +201,10 @@ class MessageBubble extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
-          color: AppColors.neutralGray100,
+          color: AppColors.darkPremiumBubbleTheirs,
           borderRadius: radius,
-          border: Border.all(color: AppColors.neutralGray300, width: 0.6),
+          border: Border.all(
+              color: AppColors.darkPremiumBubbleTheirsBorder, width: 0.5),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -190,13 +212,13 @@ class MessageBubble extends StatelessWidget {
             Icon(
               Icons.remove_circle_outline_rounded,
               size: 14,
-              color: AppColors.neutralGray500,
+              color: AppColors.darkPremiumTextHint,
             ),
             const SizedBox(width: 5),
             Text(
               'Tin nhắn đã được thu hồi',
               style: AppTypography.bodySmall.copyWith(
-                color: AppColors.neutralGray700,
+                color: AppColors.darkPremiumTextHint,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -229,7 +251,7 @@ class MessageBubble extends StatelessWidget {
         message.type == 'sticker';
 
     final mineGradient = const LinearGradient(
-      colors: AppColors.chatBubbleMineGradient,
+      colors: AppColors.darkBubbleMineGradient,
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
     );
@@ -251,15 +273,16 @@ class MessageBubble extends StatelessWidget {
             : [
                 if (isMine)
                   BoxShadow(
-                    color: AppColors.primaryOrange.withValues(alpha: 0.18),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
+                    color: _accentMine.withValues(alpha: 0.30),
+                    blurRadius: 14,
+                    spreadRadius: -2,
+                    offset: const Offset(0, 4),
                   )
                 else
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 3,
-                    offset: const Offset(0, 1),
+                    color: Colors.black.withValues(alpha: 0.35),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
                   ),
               ],
       ),
@@ -298,7 +321,7 @@ class MessageBubble extends StatelessWidget {
       child: Text(
         message.content,
         style: AppTypography.messageBody.copyWith(
-          color: message.isMine ? Colors.white : AppColors.neutralBlack,
+          color: message.isMine ? Colors.white : AppColors.darkPremiumTextPrimary,
         ),
       ),
     );
@@ -440,8 +463,10 @@ class MessageBubble extends StatelessWidget {
         isMine: message.isMine,
       );
     } else if (hasLocal && message.status == 'sending') {
-      final iconColor = message.isMine ? Colors.white : _zaloBlue;
-      final textColor = message.isMine ? Colors.white : Colors.black87;
+      final iconColor =
+          message.isMine ? Colors.white : _accentMineBright;
+      final textColor =
+          message.isMine ? Colors.white : AppColors.darkPremiumTextPrimary;
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         child: Row(
@@ -468,8 +493,10 @@ class MessageBubble extends StatelessWidget {
         ),
       );
     } else {
-      final iconColor = message.isMine ? Colors.white : _zaloBlue;
-      final textColor = message.isMine ? Colors.white : Colors.black87;
+      final iconColor =
+          message.isMine ? Colors.white : _accentMineBright;
+      final textColor =
+          message.isMine ? Colors.white : AppColors.darkPremiumTextPrimary;
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         child: Row(
@@ -494,10 +521,13 @@ class MessageBubble extends StatelessWidget {
   Widget _buildFileContent() {
     final iconBg = message.isMine
         ? Colors.white.withValues(alpha: 0.2)
-        : _zaloBlue.withValues(alpha: 0.1);
-    final iconColor = message.isMine ? Colors.white : _zaloBlue;
-    final textColor = message.isMine ? Colors.white : Colors.black87;
-    final subColor = message.isMine ? Colors.white70 : Colors.grey[600]!;
+        : _accentMine.withValues(alpha: 0.15);
+    final iconColor = message.isMine ? Colors.white : _accentMineBright;
+    final textColor =
+        message.isMine ? Colors.white : AppColors.darkPremiumTextPrimary;
+    final subColor = message.isMine
+        ? Colors.white70
+        : AppColors.darkPremiumTextSecondary;
     return Padding(
       padding: const EdgeInsets.all(12),
       child: Row(
@@ -548,16 +578,18 @@ class MessageBubble extends StatelessWidget {
         message.content.contains('nhỡ') || message.content.contains('từ chối');
     final isVideo = message.content.contains('video');
 
-    // Sender (nền xanh): trắng cho tất cả — đỏ không đọc được trên nền xanh
-    // Receiver (nền xám): đỏ cho nhỡ/từ chối, xanh cho bình thường
+    // Sender (gradient Royal Blue): trắng cho tất cả
+    // Receiver (bubble xám đậm): đỏ neon cho nhỡ/từ chối, Royal Blue cho bt
     final Color iconColor;
     final Color textColor;
     if (message.isMine) {
       iconColor = Colors.white;
       textColor = Colors.white;
     } else {
-      iconColor = isMissed ? Colors.red.shade400 : _zaloBlue;
-      textColor = isMissed ? Colors.red.shade400 : AppColors.neutralBlack;
+      iconColor =
+          isMissed ? AppColors.neonRed : _accentMineBright;
+      textColor =
+          isMissed ? AppColors.neonRed : AppColors.darkPremiumTextPrimary;
     }
 
     return Padding(
@@ -603,14 +635,17 @@ class MessageBubble extends StatelessWidget {
   }
 
   Widget _buildReplyPreviewContent() {
-    // Sender (xanh): preview nền trắng mờ, viền trắng
-    // Receiver (xám): preview nền trắng nhạt, viền xanh
+    // Sender (gradient xanh): preview nền trắng mờ, viền trắng
+    // Receiver (bubble xám): preview nền tối, viền Royal Blue
     final bgColor = message.isMine
-        ? Colors.white.withValues(alpha: 0.22)
-        : AppColors.primaryOrangePale;
-    final borderColor = message.isMine ? Colors.white60 : _zaloBlue;
-    final nameColor = message.isMine ? Colors.white : _zaloBlue;
-    final bodyColor = message.isMine ? Colors.white70 : AppColors.neutralGray700;
+        ? Colors.white.withValues(alpha: 0.20)
+        : AppColors.darkPremiumElevated;
+    final borderColor =
+        message.isMine ? Colors.white60 : _accentMine;
+    final nameColor = message.isMine ? Colors.white : _accentMineBright;
+    final bodyColor = message.isMine
+        ? Colors.white70
+        : AppColors.darkPremiumTextSecondary;
 
     return Container(
       margin: const EdgeInsets.fromLTRB(10, 8, 10, 0),
@@ -654,7 +689,7 @@ class MessageBubble extends StatelessWidget {
           Text(
             DateFormat('HH:mm').format(message.createdAt),
             style: AppTypography.messageMeta.copyWith(
-              color: AppColors.neutralGray500,
+              color: AppColors.darkPremiumTextHint,
             ),
           ),
           if (message.isMine) ...[
@@ -666,7 +701,7 @@ class MessageBubble extends StatelessWidget {
             Text(
               '• đã sửa',
               style: AppTypography.messageMeta.copyWith(
-                color: AppColors.neutralGray500,
+                color: AppColors.darkPremiumTextHint,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -679,22 +714,22 @@ class MessageBubble extends StatelessWidget {
   Widget _buildStatusIcon() {
     switch (message.status) {
       case 'read':
-        return const Icon(
+        return Icon(
           Icons.done_all_rounded,
           size: 13,
-          color: _zaloBlue,
+          color: _accentMineBright,
         );
       case 'delivered':
         return Icon(
           Icons.done_all_rounded,
           size: 13,
-          color: AppColors.neutralGray500,
+          color: AppColors.darkPremiumTextHint,
         );
       case 'sending':
         return Icon(
           Icons.access_time_rounded,
           size: 12,
-          color: AppColors.neutralGray500,
+          color: AppColors.darkPremiumTextHint,
         );
       case 'failed':
         return GestureDetector(
@@ -702,14 +737,14 @@ class MessageBubble extends StatelessWidget {
           child: const Icon(
             Icons.error_outline_rounded,
             size: 13,
-            color: AppColors.error,
+            color: AppColors.neonRed,
           ),
         );
       default:
         return Icon(
           Icons.done_rounded,
           size: 13,
-          color: AppColors.neutralGray500,
+          color: AppColors.darkPremiumTextHint,
         );
     }
   }

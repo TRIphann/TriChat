@@ -290,4 +290,149 @@ class AppColors {
     if (name.isEmpty) return avatarPalette.first;
     return avatarPalette[name.codeUnitAt(0) % avatarPalette.length];
   }
+
+  // ════════════════════════════════════════════════════════════════
+  //  DARK PREMIUM DESIGN — Ultra-Dark "Premium Glass" Dashboard
+  //  Phong cách: Glassmorphism + Neumorphism tối giản trên nền đen
+  //  Triết lý:
+  //    - Nền chính: #000000 / #0D0E12 (đen tuyệt đối / xám siêu tối)
+  //    - Surface card: #16171D (xám đậm pha xanh đen)
+  //    - Border: rgba(255,255,255,0.06) (viền mờ)
+  //    - Accent: Royal Blue / Neon Pink / Neon Orange / Online Green
+  //    - Border radius rất lớn (16-24px)
+  //    - Glow neon tinh tế phía sau các icon Active
+  //  **Quy tắc**: Các widget mới dùng cho màn hình chat ưu tiên
+  //  nhóm Dark Premium. Màn hình khác vẫn giữ cream/orange cũ.
+  // ════════════════════════════════════════════════════════════════
+
+  // ── Nền (Backgrounds) ──
+  /// Đen tuyệt đối — nền app-wide cho dark design
+  static const Color darkPremiumVoid = Color(0xFF000000);
+  /// Xám siêu tối (chính của dark) — nền scaffold dark
+  static const Color darkPremiumBackground = Color(0xFF0D0E12);
+  /// Surface — phân vùng thẻ nội dung
+  static const Color darkPremiumSurface = Color(0xFF16171D);
+  /// Surface nâng — popup, bottom sheet, dialog
+  static const Color darkPremiumElevated = Color(0xFF1E2028);
+  /// Viền mờ (tách vùng nội dung)
+  static const Color darkPremiumBorder = Color(0x14FFFFFF); // white 8%
+  /// Divider mỏng hơn
+  static const Color darkPremiumDivider = Color(0x0AFFFFFF);
+  /// Hover overlay
+  static const Color darkPremiumHover = Color(0x1FFFFFFF);
+  /// Selected overlay (item active)
+  static const Color darkPremiumSelected = Color(0x14FFFFFF);
+
+  // ── Text (Dark Premium) ──
+  /// Trắng — heading
+  static const Color darkPremiumTextPrimary = Color(0xFFFFFFFF);
+  /// Trắng mờ ~ 75% — body chính
+  static const Color darkPremiumTextBody = Color(0xBFFFFFFF);
+  /// Xám nhạt — secondary text
+  static const Color darkPremiumTextSecondary = Color(0x80FFFFFF);
+  /// Xám mịn — hint, error text
+  static const Color darkPremiumTextHint = Color(0x5FFFFFFF);
+
+  // ── Neon Accents ──
+  /// Royal Blue — accent chính (active tab, badge, link)
+  static const Color neonRoyal = Color(0xFF4F8CFF);
+  /// Royal Blue glow nhạt — outer shadow
+  static const Color neonRoyalGlow = Color(0xFF6FA4FF);
+  /// Hồng neon — accent thứ cấp (file icon, media badge)
+  static const Color neonPink = Color(0xFFFF4D8D);
+  /// Cam rực — highlight, nút gửi
+  static const Color neonOrange = Color(0xFFFF7A2E);
+  /// Xanh lá neon — trạng thái online
+  static const Color neonOnline = Color(0xFF25E08A);
+  /// Vàng neon — link / warning icon
+  static const Color neonYellow = Color(0xFFFFC93C);
+  /// Tím neon — file type icon (video/photo)
+  static const Color neonPurple = Color(0xFFB07BFF);
+  /// Đỏ neon — error / call end
+  static const Color neonRed = Color(0xFFFF4D6D);
+
+  // ── Gradient: my message (Royal → Light Blue) ──
+  static const List<Color> darkBubbleMineGradient = [
+    Color(0xFF4F8CFF),
+    Color(0xFF6FB1FF),
+  ];
+
+  // ── Gradient: header dark ──
+  static const List<Color> darkPremiumHeaderGradient = [
+    Color(0xFF0D0E12),
+    Color(0xFF16171D),
+  ];
+
+  // ── Gradient: button primary (neon) ──
+  static const List<Color> neonButtonGradient = [
+    Color(0xFF4F8CFF),
+    Color(0xFF6FA4FF),
+  ];
+
+  // ── Gradient: button pink (Try/Friend) ──
+  static const List<Color> neonPinkGradient = [
+    Color(0xFFFF4D8D),
+    Color(0xFFFF7AA8),
+  ];
+
+  // ── Gradient: button orange ──
+  static const List<Color> neonOrangeGradient = [
+    Color(0xFFFF7A2E),
+    Color(0xFFFFA866),
+  ];
+
+  // ── Glow shadow color (icon active) ──
+  /// Royal blue shadow — used on active sidebar item
+  static const Color neonRoyalShadow = Color(0x664F8CFF);
+
+  // ── Dark bubble (theirs) — gray glass ──
+  /// Bubble của đối phương — xám mờ
+  static const Color darkPremiumBubbleTheirs = Color(0xFF1E2028);
+  /// Border bubble theirs
+  static const Color darkPremiumBubbleTheirsBorder = Color(0x26FFFFFF);
+
+  // ── Dark chat background (slight gradient base) ──
+  static const List<Color> darkChatSurfaceGradient = [
+    Color(0xFF0D0E12),
+    Color(0xFF16171D),
+  ];
+
+  // ── Slim sidebar selected gradient (Royal Blue glow) ──
+  static const List<Color> darkSlimSidebarItemActive = [
+    Color(0xFF4F8CFF),
+    Color(0xFF6FB1FF),
+  ];
+
+  // ── Pinned/all message label color (#) ──
+  static const Color darkPremiumPinnedLabel = Color(0xFF6FA4FF);
+
+  // ── Dark avatar palette (neon-on-dark) ──
+  static const List<Color> darkPremiumAvatarPalette = [
+    Color(0xFF4F8CFF), // royal blue
+    Color(0xFFFF4D8D), // pink
+    Color(0xFFFF7A2E), // orange
+    Color(0xFF25E08A), // online green
+    Color(0xFFFFC93C), // yellow
+    Color(0xFFB07BFF), // purple
+  ];
+
+  /// Theme dark chuyên dùng cho giao diện chat Premium
+  static ThemeData buildDarkPremiumTheme() {
+    final base = ThemeData.dark(useMaterial3: true);
+    return base.copyWith(
+      scaffoldBackgroundColor: darkPremiumBackground,
+      colorScheme: const ColorScheme.dark(
+        primary: neonRoyal,
+        onPrimary: Colors.white,
+        surface: darkPremiumSurface,
+        onSurface: darkPremiumTextPrimary,
+        secondary: neonOrange,
+      ),
+      textTheme: base.textTheme.apply(
+        bodyColor: darkPremiumTextPrimary,
+        displayColor: darkPremiumTextPrimary,
+      ),
+      dividerColor: darkPremiumDivider,
+    );
+  }
 }

@@ -672,14 +672,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                         },
                       ),
                 actions: [
-                  IconButton(
-                    icon: Icon(
-                      Icons.edit_rounded,
-                      color: AppColors.primaryOrange,
-                    ),
-                    tooltip: 'Chỉnh sửa trang cá nhân',
-                    onPressed: () => _tabController.animateTo(1),
-                  ),
                   const SizedBox(width: 4),
                 ],
               ),
@@ -703,7 +695,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                       _PostsTab(targetUserId: _targetUserId ?? ''),
                       _InfoTab(isOwnProfile: true),
                       _ImagesTab(),
-                      const _SettingsTab(),
                     ]
                   : [
                       _PostsTab(targetUserId: _targetUserId ?? ''),
@@ -1652,7 +1643,6 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
                     Tab(text: 'BÀI VIẾT'),
                     Tab(text: 'GIỚI THIỆU'),
                     Tab(text: 'ẢNH'),
-                    Tab(text: 'CÀI ĐẶT'),
                   ]
                 : const [
                     Tab(text: 'BÀI VIẾT'),
@@ -2596,14 +2586,14 @@ class _ImagePostSheet extends StatelessWidget {
 // ============================================================
 // TAB 3: SETTINGS
 // ============================================================
-class _SettingsTab extends StatefulWidget {
-  const _SettingsTab();
+class SettingsTab extends StatefulWidget {
+  const SettingsTab({super.key});
 
   @override
-  State<_SettingsTab> createState() => _SettingsTabState();
+  State<SettingsTab> createState() => _SettingsTabState();
 }
 
-class _SettingsTabState extends State<_SettingsTab> {
+class _SettingsTabState extends State<SettingsTab> {
   int _selectedSettingsIndex = 0;
   bool _isDark = false;
 

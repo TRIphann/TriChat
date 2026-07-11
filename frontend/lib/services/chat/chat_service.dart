@@ -12,8 +12,19 @@ class ChatService {
 
   Future<List<Conversation>> getConversations() async {
     final response = await _dio.get('/api/chat/conversations');
-    final data = response.data['result'] as List;
-    return data.map((json) => Conversation.fromJson(json)).toList();
+    final body = response.data;
+    if (body is! Map || body['success'] != true) {
+      throw DioException(
+        requestOptions: response.requestOptions,
+        response: response,
+        message: body is Map ? body['message']?.toString() : 'API error',
+      );
+    }
+    final result = body['result'];
+    if (result is! List) return [];
+    return result
+        .map((json) => Conversation.fromJson(json as Map<String, dynamic>))
+        .toList();
   }
 
   Future<Conversation> getConversation(String conversationId) async {
