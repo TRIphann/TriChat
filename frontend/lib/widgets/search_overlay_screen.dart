@@ -137,7 +137,7 @@ class _SearchOverlayScreenState extends State<SearchOverlayScreen> {
       valueListenable: isDarkModeNotifier,
       builder: (context, isDark, _) {
         return Scaffold(
-          backgroundColor: AppColors.creamBackground,
+          backgroundColor: AppColors.darkPremiumBackground,
           body: SafeArea(
             child: Column(
               children: [
@@ -158,11 +158,20 @@ class _SearchOverlayScreenState extends State<SearchOverlayScreen> {
         vertical: AppSpacing.sm,
       ),
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: AppColors.appBarGradient,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+        color: AppColors.darkPremiumSurface,
+        border: Border(
+          bottom: BorderSide(
+            color: AppColors.darkPremiumBorder,
+            width: 1,
+          ),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.neonRoyalGlow,
+            blurRadius: 14,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -170,7 +179,7 @@ class _SearchOverlayScreenState extends State<SearchOverlayScreen> {
             onPressed: widget.onBack,
             icon: const Icon(
               Icons.arrow_back_rounded,
-              color: Colors.white,
+              color: AppColors.darkPremiumTextPrimary,
               size: 24,
             ),
             padding: EdgeInsets.zero,
@@ -183,10 +192,10 @@ class _SearchOverlayScreenState extends State<SearchOverlayScreen> {
             child: Container(
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.95),
+                color: AppColors.darkPremiumElevated,
                 borderRadius: BorderRadius.circular(AppRadius.lg),
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.6),
+                  color: AppColors.darkPremiumBorder,
                   width: 0.6,
                 ),
               ),
@@ -195,7 +204,7 @@ class _SearchOverlayScreenState extends State<SearchOverlayScreen> {
                   const SizedBox(width: AppSpacing.md),
                   const Icon(
                     Icons.search_rounded,
-                    color: AppColors.primaryOrange,
+                    color: AppColors.neonRoyal,
                     size: 20,
                   ),
                   const SizedBox(width: AppSpacing.sm),
@@ -204,13 +213,13 @@ class _SearchOverlayScreenState extends State<SearchOverlayScreen> {
                       controller: _searchController,
                       focusNode: _focusNode,
                       style: AppTypography.bodyMedium.copyWith(
-                        color: AppColors.neutralBlack,
+                        color: AppColors.darkPremiumTextPrimary,
                       ),
                       textInputAction: TextInputAction.search,
                       decoration: InputDecoration(
                         hintText: 'Tìm tin nhắn, người trong TriChat',
                         hintStyle: AppTypography.bodyMedium.copyWith(
-                          color: AppColors.neutralGray500,
+                          color: AppColors.darkPremiumTextHint,
                         ),
                         border: InputBorder.none,
                         isDense: true,
@@ -241,7 +250,7 @@ class _SearchOverlayScreenState extends State<SearchOverlayScreen> {
                           padding: EdgeInsets.all(AppSpacing.sm),
                           child: Icon(
                             Icons.cancel_rounded,
-                            color: AppColors.neutralGray500,
+                            color: AppColors.darkPremiumTextHint,
                             size: 18,
                           ),
                         ),

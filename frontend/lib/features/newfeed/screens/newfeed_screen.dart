@@ -167,11 +167,11 @@ class _NewfeedScreenState extends State<NewfeedScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.creamBackground,
+      backgroundColor: AppColors.darkPremiumBackground,
       body: SafeArea(
         bottom: false,
         child: RefreshIndicator(
-          color: AppColors.primaryBlue,
+          color: AppColors.neonRoyal,
           onRefresh: () async {
             await _reloadCurrentUser();
             await context.read<FeedProvider>().refreshFeed();
@@ -198,35 +198,52 @@ class _NewfeedScreenState extends State<NewfeedScreen>
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showCreatePost,
-        backgroundColor: AppColors.primaryBlue,
-        foregroundColor: Colors.white,
-        elevation: 6,
-        icon: const Icon(Icons.edit_rounded, size: 20),
-        label: const Text(
-          'Đăng',
-          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: AppColors.darkBubbleMineGradient,
+          ),
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.neonRoyal.withValues(alpha: 0.5),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        child: FloatingActionButton.extended(
+          onPressed: _showCreatePost,
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          icon: const Icon(Icons.edit_rounded, size: 20),
+          label: const Text(
+            'Đăng',
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        ),
       ),
     );
   }
 
   Widget _buildAppBar() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: AppColors.headerGradient,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+      decoration: const BoxDecoration(
+        color: AppColors.darkPremiumSurface,
+        border: Border(
+          bottom: BorderSide(
+            color: AppColors.darkPremiumBorder,
+            width: 1,
+          ),
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryOrange.withValues(alpha: 0.18),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
+            color: AppColors.neonRoyalGlow,
+            blurRadius: 18,
+            offset: Offset(0, 6),
           ),
         ],
       ),
@@ -239,16 +256,27 @@ class _NewfeedScreenState extends State<NewfeedScreen>
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
+                  gradient: const LinearGradient(
+                    colors: AppColors.darkBubbleMineGradient,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.neonRoyal.withValues(alpha: 0.45),
+                      blurRadius: 12,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: const Center(
                   child: Text(
                     'T',
                     style: TextStyle(
-                      color: AppColors.primaryOrange,
+                      color: Colors.white,
                       fontWeight: FontWeight.w900,
-                      fontSize: 22,
+                      fontSize: 20,
                       height: 1,
                     ),
                   ),
@@ -258,7 +286,7 @@ class _NewfeedScreenState extends State<NewfeedScreen>
               const Text(
                 'TriChat',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.darkPremiumTextPrimary,
                   fontWeight: FontWeight.w800,
                   fontSize: 19,
                   letterSpacing: -0.3,
@@ -275,21 +303,25 @@ class _NewfeedScreenState extends State<NewfeedScreen>
                 height: 40,
                 padding: const EdgeInsets.symmetric(horizontal: 14),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.95),
+                  color: AppColors.darkPremiumElevated,
                   borderRadius: BorderRadius.circular(22),
+                  border: Border.all(
+                    color: AppColors.darkPremiumBorder,
+                    width: 1,
+                  ),
                 ),
                 child: Row(
                   children: [
                     Icon(
                       Icons.search_rounded,
                       size: 20,
-                      color: Colors.grey.shade600,
+                      color: AppColors.darkPremiumTextSecondary,
                     ),
                     const SizedBox(width: 8),
                     Text(
                       'Tìm kiếm bạn bè, bài viết...',
                       style: TextStyle(
-                        color: Colors.grey.shade600,
+                        color: AppColors.darkPremiumTextHint,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
@@ -333,10 +365,14 @@ class _NewfeedScreenState extends State<NewfeedScreen>
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.18),
+                color: AppColors.darkPremiumElevated,
                 shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.darkPremiumBorder,
+                  width: 1,
+                ),
               ),
-              child: Icon(icon, color: Colors.white, size: 22),
+              child: Icon(icon, color: AppColors.darkPremiumTextPrimary, size: 22),
             ),
             if (badge != null && badge > 0)
               Positioned(
@@ -352,9 +388,9 @@ class _NewfeedScreenState extends State<NewfeedScreen>
                     minHeight: 18,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.accentRed,
+                    color: AppColors.neonRed,
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.primaryOrange, width: 1.5),
+                    border: Border.all(color: AppColors.darkPremiumSurface, width: 1.5),
                   ),
                   alignment: Alignment.center,
                   child: Text(
@@ -376,15 +412,20 @@ class _NewfeedScreenState extends State<NewfeedScreen>
 
   Widget _buildComposeCard() {
     return Container(
-      margin: const EdgeInsets.fromLTRB(0, 12, 0, 0),
+      margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: AppColors.darkPremiumSurface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppColors.darkPremiumBorder,
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Color(0x14000000),
-            blurRadius: 6,
-            offset: Offset(0, 1),
+            color: Colors.black.withValues(alpha: 0.35),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -449,15 +490,19 @@ class _NewfeedScreenState extends State<NewfeedScreen>
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     alignment: Alignment.centerLeft,
                     decoration: BoxDecoration(
-                      color: AppColors.backgroundGray,
+                      color: AppColors.darkPremiumElevated,
                       borderRadius: BorderRadius.circular(22),
+                      border: Border.all(
+                        color: AppColors.darkPremiumBorder,
+                        width: 1,
+                      ),
                     ),
                     child: Text(
                       _currentUserName.isNotEmpty
                           ? '${_currentUserName.split(' ').last}, bạn đang nghĩ gì?'
                           : 'Bạn đang nghĩ gì?',
                       style: TextStyle(
-                        color: Colors.grey.shade600,
+                        color: AppColors.darkPremiumTextSecondary,
                         fontSize: 14.5,
                         fontWeight: FontWeight.w500,
                       ),
@@ -476,14 +521,20 @@ class _NewfeedScreenState extends State<NewfeedScreen>
 
   Widget _buildQuickActions() {
     return Container(
+      margin: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: AppColors.darkPremiumSurface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppColors.darkPremiumBorder,
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Color(0x0F000000),
-            blurRadius: 4,
-            offset: Offset(0, 1),
+            color: Colors.black.withValues(alpha: 0.35),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -492,14 +543,14 @@ class _NewfeedScreenState extends State<NewfeedScreen>
           _buildAction(
             icon: Icons.photo_library_rounded,
             label: 'Ảnh/Video',
-            gradient: const [AppColors.successLight, Color(0xFF30B94E)],
+            gradient: const [Color(0xFF30B94E), Color(0xFF1F8A3A)],
             onTap: _showCreatePost,
           ),
           _verticalDivider(),
           _buildAction(
             icon: Icons.emoji_emotions_outlined,
             label: 'Cảm xúc',
-            gradient: const [AppColors.primaryOrangeLight, AppColors.primaryOrange],
+            gradient: const [AppColors.neonOrange, Color(0xFFFF7A1A)],
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Bày tỏ cảm xúc - đang phát triển')),
@@ -510,7 +561,7 @@ class _NewfeedScreenState extends State<NewfeedScreen>
           _buildAction(
             icon: Icons.live_tv_rounded,
             label: 'Video trực tiếp',
-            gradient: const [AppColors.accentRed, AppColors.accentRed],
+            gradient: const [AppColors.neonRed, Color(0xFFE0294F)],
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Live - đang phát triển')),
@@ -519,6 +570,15 @@ class _NewfeedScreenState extends State<NewfeedScreen>
           ),
         ],
       ),
+    );
+  }
+
+  Widget _verticalDivider() {
+    return Container(
+      width: 1,
+      height: 24,
+      color: AppColors.darkPremiumBorder,
+      margin: const EdgeInsets.symmetric(horizontal: 4),
     );
   }
 
@@ -559,7 +619,7 @@ class _NewfeedScreenState extends State<NewfeedScreen>
                     style: TextStyle(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.neutralBlack,
+                      color: AppColors.darkPremiumTextPrimary,
                     ),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
@@ -570,14 +630,6 @@ class _NewfeedScreenState extends State<NewfeedScreen>
           ),
         ),
       ),
-    );
-  }
-
-  Widget _verticalDivider() {
-    return Container(
-      width: 1,
-      height: 24,
-      color: AppColors.borderGray,
     );
   }
 
@@ -594,7 +646,7 @@ class _NewfeedScreenState extends State<NewfeedScreen>
       builder: (context, provider, _) {
         if (provider.state == FeedLoadingState.loading &&
             provider.posts.isEmpty) {
-          return SliverFillRemaining(
+          return const SliverFillRemaining(
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -604,14 +656,14 @@ class _NewfeedScreenState extends State<NewfeedScreen>
                     height: 32,
                     child: CircularProgressIndicator(
                       strokeWidth: 3,
-                      color: AppColors.primaryBlue,
+                      color: AppColors.neonRoyal,
                     ),
                   ),
-                  const SizedBox(height: 14),
+                  SizedBox(height: 14),
                   Text(
                     'Đang tải bài viết...',
                     style: TextStyle(
-                      color: Colors.grey.shade600,
+                      color: AppColors.darkPremiumTextSecondary,
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                     ),
@@ -632,56 +684,58 @@ class _NewfeedScreenState extends State<NewfeedScreen>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      width: 88,
-                      height: 88,
+                      width: 96,
+                      height: 96,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            AppColors.accentRed.withValues(alpha: 0.12),
-                            AppColors.primaryOrange.withValues(alpha: 0.08),
+                            AppColors.neonRed.withValues(alpha: 0.16),
+                            AppColors.neonOrange.withValues(alpha: 0.10),
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
                         shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.neonRed.withValues(alpha: 0.4),
+                          width: 1.2,
+                        ),
                       ),
                       child: Icon(
                         Icons.cloud_off_rounded,
-                        size: 42,
-                        color: AppColors.accentRed,
+                        size: 46,
+                        color: AppColors.neonRed,
                       ),
                     ),
                     const SizedBox(height: 18),
                     Text(
                       'Chưa thể tải bài viết',
                       style: TextStyle(
-                        color: AppColors.neutralBlack,
+                        color: AppColors.darkPremiumTextPrimary,
                         fontSize: 17,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 6),
-                    Text(
+                    const Text(
                       'Hãy kiểm tra kết nối mạng và thử lại',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: AppColors.neutralGray700,
+                        color: AppColors.darkPremiumTextSecondary,
                         fontSize: 13.5,
                         height: 1.5,
                       ),
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 20),
                     Container(
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: AppColors.primaryButtonGradient,
+                          colors: AppColors.darkBubbleMineGradient,
                         ),
                         borderRadius: BorderRadius.circular(AppRadius.pill),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primaryOrange.withValues(
-                              alpha: 0.30,
-                            ),
+                            color: AppColors.neonRoyal.withValues(alpha: 0.45),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
                           ),
@@ -736,57 +790,66 @@ class _NewfeedScreenState extends State<NewfeedScreen>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      width: 96,
-                      height: 96,
+                      width: 104,
+                      height: 104,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            AppColors.primaryOrange.withValues(alpha: 0.15),
-                            AppColors.accentRed.withValues(alpha: 0.10),
+                            AppColors.neonOrange.withValues(alpha: 0.18),
+                            AppColors.neonPink.withValues(alpha: 0.10),
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
                         shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.neonOrange.withValues(alpha: 0.45),
+                          width: 1.2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.neonOrange.withValues(alpha: 0.30),
+                            blurRadius: 24,
+                            offset: const Offset(0, 0),
+                          ),
+                        ],
                       ),
                       child: Icon(
                         Icons.auto_stories_rounded,
-                        size: 48,
-                        color: AppColors.primaryOrange.withValues(alpha: 0.85),
+                        size: 52,
+                        color: AppColors.neonOrange,
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    Text(
+                    const SizedBox(height: 22),
+                    const Text(
                       'Chưa có bài viết nào',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.neutralBlack,
+                        color: AppColors.darkPremiumTextPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(
+                    const Text(
                       'Hãy là người đầu tiên chia sẻ khoảnh khắc đáng nhớ của bạn với cộng đồng TriChat!',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: AppColors.neutralGray700,
+                        color: AppColors.darkPremiumTextSecondary,
                         fontSize: 13.5,
                         height: 1.5,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 22),
                     Container(
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: AppColors.primaryButtonGradient,
+                          colors: AppColors.darkBubbleMineGradient,
                         ),
                         borderRadius: BorderRadius.circular(AppRadius.pill),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primaryOrange.withValues(
-                              alpha: 0.30,
-                            ),
-                            blurRadius: 12,
+                            color: AppColors.neonRoyal.withValues(alpha: 0.45),
+                            blurRadius: 14,
                             offset: const Offset(0, 4),
                           ),
                         ],
@@ -799,7 +862,7 @@ class _NewfeedScreenState extends State<NewfeedScreen>
                           child: const Padding(
                             padding: EdgeInsets.symmetric(
                               horizontal: 20,
-                              vertical: 10,
+                              vertical: 11,
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,

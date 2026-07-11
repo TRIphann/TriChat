@@ -20,7 +20,22 @@ class StoryList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
+      margin: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+      decoration: BoxDecoration(
+        color: AppColors.darkPremiumSurface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppColors.darkPremiumBorder,
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.30),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       padding: const EdgeInsets.only(bottom: 14, top: 6),
       child: Consumer<StoryProvider>(
         builder: (context, provider, _) {
@@ -38,7 +53,7 @@ class StoryList extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
-                        color: AppColors.neutralBlack,
+                        color: AppColors.darkPremiumTextPrimary,
                         letterSpacing: -0.2,
                       ),
                     ),
@@ -51,11 +66,15 @@ class StoryList extends StatelessWidget {
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            AppColors.primaryOrange.withValues(alpha: 0.15),
-                            AppColors.primaryOrangeLight.withValues(alpha: 0.15),
+                            AppColors.neonOrange.withValues(alpha: 0.18),
+                            AppColors.neonPink.withValues(alpha: 0.18),
                           ],
                         ),
                         borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: AppColors.neonPink.withValues(alpha: 0.4),
+                          width: 1,
+                        ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -64,9 +83,9 @@ class StoryList extends StatelessWidget {
                             shaderCallback: (rect) =>
                                 LinearGradient(
                               colors: [
-                                AppColors.primaryOrangeLight,
-                                AppColors.accentRed,
-                                AppColors.accentBrown,
+                                AppColors.neonOrange,
+                                AppColors.neonPink,
+                                AppColors.neonPurple,
                               ],
                             ).createShader(rect),
                             child: const Icon(
@@ -81,7 +100,7 @@ class StoryList extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.accentRed,
+                              color: AppColors.neonPink,
                             ),
                           ),
                         ],
@@ -127,15 +146,15 @@ class StoryList extends StatelessWidget {
         height: 152,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
-          color: AppColors.backgroundGray,
-          border: Border.all(color: AppColors.borderGray, width: 1),
+          color: AppColors.darkPremiumElevated,
+          border: Border.all(color: AppColors.darkPremiumBorder, width: 1),
         ),
         child: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               Icons.arrow_forward_ios_rounded,
-              color: AppColors.neutralGray700,
+              color: AppColors.darkPremiumTextSecondary,
               size: 18,
             ),
             SizedBox(height: 6),
@@ -143,7 +162,7 @@ class StoryList extends StatelessWidget {
               'Xem thêm',
               style: TextStyle(
                 fontSize: 12,
-                color: AppColors.neutralGray700,
+                color: AppColors.darkPremiumTextSecondary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -209,11 +228,11 @@ class StoryList extends StatelessWidget {
                 child: Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: LinearGradient(
+                    gradient: const LinearGradient(
                       colors: [
-                        AppColors.primaryOrangeLight,
-                        AppColors.accentRed,
-                        AppColors.accentBrown,
+                        AppColors.neonOrange,
+                        AppColors.neonPink,
+                        AppColors.neonPurple,
                       ],
                     ),
                   ),
@@ -221,9 +240,9 @@ class StoryList extends StatelessWidget {
                   child: Container(
                     width: 48,
                     height: 48,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white,
+                      color: AppColors.darkPremiumSurface,
                     ),
                     child: ClipOval(
                       child: hasAvatar
@@ -273,15 +292,15 @@ class StoryList extends StatelessWidget {
                   height: 28,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [AppColors.primaryOrangeLight, AppColors.primaryOrange],
+                    gradient: const LinearGradient(
+                      colors: [AppColors.neonOrange, AppColors.neonPink],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
-                    border: Border.all(color: Colors.white, width: 2.5),
+                    border: Border.all(color: AppColors.darkPremiumSurface, width: 2.5),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primaryOrange.withValues(alpha: 0.5),
+                        color: AppColors.neonOrange.withValues(alpha: 0.5),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
@@ -304,7 +323,7 @@ class StoryList extends StatelessWidget {
   Widget _buildInitialsBig() {
     final name = currentUserName.isNotEmpty ? currentUserName : '?';
     return Container(
-      color: AppColors.primaryOrange,
+      color: AppColors.neonOrange,
       alignment: Alignment.center,
       child: Text(
         name[0].toUpperCase(),

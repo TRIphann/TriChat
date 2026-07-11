@@ -313,11 +313,15 @@ class ChatListViewState extends State<ChatListView> {
   ) {
     // Tab chat → Ultra Dark 4-column
     if (_selectedNavIndex == 0) {
-      return UltraDarkChatLayout(t: t);
+      return UltraDarkChatLayout(
+        t: t,
+        currentNavIndex: _selectedNavIndex,
+        onNavTap: (i) => setState(() => _selectedNavIndex = i),
+      );
     }
 
     return Container(
-      color: AppColors.creamBackground,
+      color: AppColors.darkPremiumBackground,
       child: Row(
         children: [
           // Cột 1: Navigation Sidebar (Glassmorphism nâu)

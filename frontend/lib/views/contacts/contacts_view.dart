@@ -87,11 +87,20 @@ class _ContactsViewState extends State<ContactsView>
         vertical: AppSpacing.sm,
       ),
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: AppColors.appBarGradient,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+        color: AppColors.darkPremiumSurface,
+        border: Border(
+          bottom: BorderSide(
+            color: AppColors.darkPremiumBorder,
+            width: 1,
+          ),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.neonRoyalGlow,
+            blurRadius: 18,
+            offset: Offset(0, 6),
+          ),
+        ],
       ),
       child: SafeArea(
         bottom: false,
@@ -102,7 +111,7 @@ class _ContactsViewState extends State<ContactsView>
                 hintText: t.get('searchPlaceholder'),
                 readOnly: true,
                 onTap: () => _openSearchOverlay(context),
-                background: Colors.white.withValues(alpha: 0.92),
+                background: AppColors.darkPremiumElevated,
               ),
             ),
             const SizedBox(width: AppSpacing.xs),
@@ -133,15 +142,21 @@ class _ContactsViewState extends State<ContactsView>
     required VoidCallback onTap,
   }) {
     return Material(
-      color: Colors.white.withValues(alpha: 0.18),
-      shape: const CircleBorder(),
+      color: AppColors.darkPremiumElevated,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        side: const BorderSide(
+          color: AppColors.darkPremiumBorder,
+          width: 1,
+        ),
+      ),
       child: InkWell(
-        customBorder: const CircleBorder(),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
         onTap: onTap,
         child: SizedBox(
           width: 40,
           height: 40,
-          child: Icon(icon, color: Colors.white, size: 20),
+          child: Icon(icon, color: AppColors.darkPremiumTextPrimary, size: 20),
         ),
       ),
     );
@@ -149,20 +164,20 @@ class _ContactsViewState extends State<ContactsView>
 
   Widget _buildMobileTabs(AppLocalizations t, bool isDark) {
     return Container(
-      decoration: BoxDecoration(
-        color: AppColors.getSurface(isDark),
+      decoration: const BoxDecoration(
+        color: AppColors.darkPremiumSurface,
         border: Border(
           bottom: BorderSide(
-            color: AppColors.getDivider(isDark),
+            color: AppColors.darkPremiumBorder,
             width: 0.6,
           ),
         ),
       ),
       child: TabBar(
         controller: _tabController,
-        labelColor: AppColors.primaryOrange,
-        unselectedLabelColor: AppColors.getTextSecondary(isDark),
-        indicatorColor: AppColors.primaryOrange,
+        labelColor: AppColors.neonRoyal,
+        unselectedLabelColor: AppColors.darkPremiumTextSecondary,
+        indicatorColor: AppColors.neonRoyal,
         indicatorWeight: 2.5,
         labelStyle: AppTypography.labelLarge,
         unselectedLabelStyle: AppTypography.labelMedium,
@@ -181,7 +196,7 @@ class _ContactsViewState extends State<ContactsView>
 
   Widget _buildGroupListMobile(AppLocalizations t, bool isDark) {
     return Container(
-      color: AppColors.creamBackground,
+      color: AppColors.darkPremiumBackground,
       child: Center(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.xl),
@@ -189,23 +204,34 @@ class _ContactsViewState extends State<ContactsView>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 88,
-                height: 88,
+                width: 104,
+                height: 104,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      AppColors.primaryOrange.withValues(alpha: 0.15),
-                      AppColors.accentBrown.withValues(alpha: 0.10),
+                      AppColors.neonOrange.withValues(alpha: 0.18),
+                      AppColors.neonPink.withValues(alpha: 0.10),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.neonOrange.withValues(alpha: 0.4),
+                    width: 1.2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.neonOrange.withValues(alpha: 0.30),
+                      blurRadius: 24,
+                      offset: const Offset(0, 0),
+                    ),
+                  ],
                 ),
                 child: Icon(
                   Icons.groups_outlined,
-                  size: 42,
-                  color: AppColors.primaryOrange.withValues(alpha: 0.85),
+                  size: 50,
+                  color: AppColors.neonOrange,
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
@@ -213,7 +239,7 @@ class _ContactsViewState extends State<ContactsView>
                 'Chưa có nhóm nào',
                 style: AppTypography.titleMedium.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: AppColors.neutralBlack,
+                  color: AppColors.darkPremiumTextPrimary,
                 ),
               ),
               const SizedBox(height: AppSpacing.xs),
@@ -221,7 +247,7 @@ class _ContactsViewState extends State<ContactsView>
                 'Tạo nhóm để trò chuyện cùng nhiều bạn bè cùng lúc.',
                 textAlign: TextAlign.center,
                 style: AppTypography.bodyMedium.copyWith(
-                  color: AppColors.neutralGray700,
+                  color: AppColors.darkPremiumTextSecondary,
                   height: 1.5,
                 ),
               ),
@@ -256,10 +282,10 @@ class _ContactsViewState extends State<ContactsView>
 
     return Container(
       width: 240,
-      decoration: BoxDecoration(
-        color: AppColors.creamWhite,
+      decoration: const BoxDecoration(
+        color: AppColors.darkPremiumSurface,
         border: Border(
-          right: BorderSide(color: AppColors.getDivider(isDark), width: 1),
+          right: BorderSide(color: AppColors.darkPremiumBorder, width: 1),
         ),
       ),
       child: Column(
@@ -275,7 +301,7 @@ class _ContactsViewState extends State<ContactsView>
               hintText: t.get('searchPlaceholder'),
               readOnly: true,
               onTap: () => _openSearchOverlay(context),
-              filledBackground: AppColors.getBackground(isDark),
+              filledBackground: AppColors.darkPremiumElevated,
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -290,9 +316,15 @@ class _ContactsViewState extends State<ContactsView>
               ),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? AppColors.primaryOrangePale.withValues(alpha: isDark ? 0.18 : 1)
+                    ? AppColors.neonRoyal.withValues(alpha: 0.18)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(AppRadius.sm),
+                border: isSelected
+                    ? Border.all(
+                        color: AppColors.neonRoyal.withValues(alpha: 0.4),
+                        width: 1,
+                      )
+                    : null,
               ),
               child: Material(
                 color: Colors.transparent,
@@ -310,8 +342,8 @@ class _ContactsViewState extends State<ContactsView>
                           item['icon'] as IconData,
                           size: 20,
                           color: isSelected
-                              ? AppColors.primaryOrange
-                              : AppColors.getTextSecondary(isDark),
+                              ? AppColors.neonRoyal
+                              : AppColors.darkPremiumTextSecondary,
                         ),
                         const SizedBox(width: AppSpacing.md),
                         Expanded(
@@ -322,8 +354,8 @@ class _ContactsViewState extends State<ContactsView>
                                   ? FontWeight.w700
                                   : FontWeight.w500,
                               color: isSelected
-                                  ? AppColors.primaryOrange
-                                  : AppColors.getTextPrimary(isDark),
+                                  ? AppColors.darkPremiumTextPrimary
+                                  : AppColors.darkPremiumTextSecondary,
                             ),
                           ),
                         ),
@@ -341,7 +373,7 @@ class _ContactsViewState extends State<ContactsView>
 
   Widget _buildWideContent(AppLocalizations t, bool isDark) {
     return Container(
-      color: AppColors.creamBackground,
+      color: AppColors.darkPremiumBackground,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -350,11 +382,11 @@ class _ContactsViewState extends State<ContactsView>
               horizontal: AppSpacing.xl,
               vertical: AppSpacing.md,
             ),
-            decoration: BoxDecoration(
-              color: AppColors.creamWhite,
+            decoration: const BoxDecoration(
+              color: AppColors.darkPremiumSurface,
               border: Border(
                 bottom: BorderSide(
-                  color: AppColors.getDivider(isDark),
+                  color: AppColors.darkPremiumBorder,
                   width: 1,
                 ),
               ),
@@ -364,15 +396,17 @@ class _ContactsViewState extends State<ContactsView>
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.xs),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryOrangePale.withValues(
-                      alpha: isDark ? 0.2 : 1,
-                    ),
+                    color: AppColors.neonRoyal.withValues(alpha: 0.18),
                     borderRadius: BorderRadius.circular(AppRadius.sm),
+                    border: Border.all(
+                      color: AppColors.neonRoyal.withValues(alpha: 0.4),
+                      width: 1,
+                    ),
                   ),
                   child: Icon(
                     _getContentIcon(),
                     size: 18,
-                    color: AppColors.primaryOrange,
+                    color: AppColors.neonRoyal,
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
@@ -380,7 +414,7 @@ class _ContactsViewState extends State<ContactsView>
                   _getContentTitle(t),
                   style: AppTypography.titleMedium.copyWith(
                     fontWeight: FontWeight.w700,
-                    color: AppColors.getTextPrimary(isDark),
+                    color: AppColors.darkPremiumTextPrimary,
                   ),
                 ),
               ],
@@ -447,23 +481,34 @@ class _ContactsViewState extends State<ContactsView>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 96,
-              height: 96,
+              width: 104,
+              height: 104,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    AppColors.primaryOrange.withValues(alpha: 0.15),
-                    AppColors.accentBrown.withValues(alpha: 0.10),
+                    AppColors.neonOrange.withValues(alpha: 0.18),
+                    AppColors.neonPink.withValues(alpha: 0.10),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.neonOrange.withValues(alpha: 0.4),
+                  width: 1.2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.neonOrange.withValues(alpha: 0.30),
+                    blurRadius: 24,
+                    offset: const Offset(0, 0),
+                  ),
+                ],
               ),
               child: Icon(
                 Icons.groups_outlined,
-                size: 46,
-                color: AppColors.primaryOrange.withValues(alpha: 0.85),
+                size: 52,
+                color: AppColors.neonOrange,
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -471,7 +516,7 @@ class _ContactsViewState extends State<ContactsView>
               'Chưa có nhóm nào',
               style: AppTypography.titleMedium.copyWith(
                 fontWeight: FontWeight.w700,
-                color: AppColors.neutralBlack,
+                color: AppColors.darkPremiumTextPrimary,
               ),
             ),
             const SizedBox(height: AppSpacing.xs),
@@ -479,7 +524,7 @@ class _ContactsViewState extends State<ContactsView>
               'Tạo nhóm để trò chuyện cùng nhiều bạn bè cùng lúc — nhóm giúp mọi người trao đổi dễ dàng hơn.',
               textAlign: TextAlign.center,
               style: AppTypography.bodyMedium.copyWith(
-                color: AppColors.neutralGray700,
+                color: AppColors.darkPremiumTextSecondary,
                 height: 1.5,
               ),
             ),

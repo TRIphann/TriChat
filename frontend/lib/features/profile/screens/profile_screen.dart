@@ -635,7 +635,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundGray,
+      backgroundColor: AppColors.darkPremiumBackground,
       // Dùng SliverAppBar chuẩn để:
       //  - Tránh "vạch vàng đen" do NestedScrollView + custom SliverToBoxAdapter
       //  - Back button tự động chỉ hiện khi Navigator có thể pop (own profile -> ẩn)
@@ -649,19 +649,23 @@ class _ProfileScreenState extends State<ProfileScreen>
           headerSliverBuilder: (context, innerBoxIsScrolled) {
             return [
               SliverAppBar(
-                backgroundColor: Colors.white,
+                backgroundColor: AppColors.darkPremiumSurface,
+                surfaceTintColor: Colors.transparent,
                 elevation: 0,
                 scrolledUnderElevation: 0,
                 pinned: true,
                 snap: false,
                 floating: false,
+                iconTheme: const IconThemeData(
+                  color: AppColors.darkPremiumTextPrimary,
+                ),
                 automaticallyImplyLeading: !_isOwnProfile,
                 leading: _isOwnProfile
                     ? null
                     : IconButton(
-                        icon: Icon(
+                        icon: const Icon(
                           Icons.arrow_back_rounded,
-                          color: AppColors.neutralBlack,
+                          color: AppColors.darkPremiumTextPrimary,
                         ),
                         onPressed: () {
                           if (Navigator.of(context).canPop()) {
@@ -671,8 +675,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                           }
                         },
                       ),
-                actions: [
-                  const SizedBox(width: 4),
+                actions: const [
+                  SizedBox(width: 4),
                 ],
               ),
               _buildProfileHeader(),
@@ -687,7 +691,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           },
           body: RefreshIndicator(
             onRefresh: _onRefresh,
-            color: AppColors.primaryBlue,
+            color: AppColors.neonRoyal,
             child: TabBarView(
               controller: _tabController,
               children: _isOwnProfile
@@ -743,7 +747,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               _buildCover(coverColor),
               // ==== Thông tin user ====
               Container(
-                color: AppColors.backgroundWhite,
+                color: AppColors.darkPremiumBackground,
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 child: Column(
                   children: [
@@ -756,10 +760,10 @@ class _ProfileScreenState extends State<ProfileScreen>
                         Flexible(
                           child: Text(
                             displayName.isNotEmpty ? displayName : 'Người dùng',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.w800,
-                              color: AppColors.neutralBlack,
+                              color: AppColors.darkPremiumTextPrimary,
                               letterSpacing: -0.4,
                               height: 1.1,
                             ),
@@ -768,9 +772,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                           ),
                         ),
                         const SizedBox(width: 6),
-                        Icon(
+                        const Icon(
                           Icons.verified_rounded,
-                          color: AppColors.primaryBlue,
+                          color: AppColors.neonRoyal,
                           size: 20,
                         ),
                       ],
@@ -781,9 +785,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                         child: Text(
                           bio,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 14,
-                            color: AppColors.textSecondary,
+                            color: AppColors.darkPremiumTextSecondary,
                             height: 1.4,
                           ),
                           textAlign: TextAlign.center,
@@ -793,9 +797,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                       const SizedBox(height: 4),
                       Text(
                         _targetUserEmail!,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 13,
-                          color: AppColors.textSecondary,
+                          color: AppColors.darkPremiumTextSecondary,
                         ),
                       ),
                     ],
@@ -857,7 +861,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       height: size,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.darkPremiumSurface,
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
@@ -1614,18 +1618,27 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
-      color: Colors.white,
+      decoration: const BoxDecoration(
+        color: AppColors.darkPremiumSurface,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.neonRoyalGlow,
+            blurRadius: 14,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
       child: Column(
         children: [
           Container(
             height: 1,
-            color: AppColors.divider,
+            color: AppColors.darkPremiumBorder,
           ),
           TabBar(
             controller: tabController,
-            labelColor: AppColors.primaryBlue,
-            unselectedLabelColor: AppColors.neutralGray700,
-            indicatorColor: AppColors.primaryBlue,
+            labelColor: AppColors.neonRoyal,
+            unselectedLabelColor: AppColors.darkPremiumTextSecondary,
+            indicatorColor: AppColors.neonRoyal,
             indicatorWeight: 3,
             indicatorSize: TabBarIndicatorSize.label,
             labelStyle: const TextStyle(
@@ -1686,13 +1699,13 @@ class _PostsTabState extends State<_PostsTab> {
     return Consumer<ProfileProvider>(
       builder: (context, provider, _) {
         if (provider.isLoading && provider.posts.isEmpty) {
-          return Center(
+          return const Center(
             child: SizedBox(
               width: 32,
               height: 32,
               child: CircularProgressIndicator(
                 strokeWidth: 3,
-                color: AppColors.primaryBlue,
+                color: AppColors.neonRoyal,
               ),
             ),
           );
@@ -1702,11 +1715,11 @@ class _PostsTabState extends State<_PostsTab> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline, size: 48, color: Colors.grey.shade400),
+                Icon(Icons.error_outline, size: 48, color: AppColors.darkPremiumTextHint),
                 const SizedBox(height: 12),
                 Text(
                   'Không thể tải bài viết',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 15),
+                  style: TextStyle(color: AppColors.darkPremiumTextSecondary, fontSize: 15),
                 ),
                 TextButton(
                   onPressed: () => provider.loadProfile(
@@ -2175,13 +2188,17 @@ class _InfoCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.darkPremiumSurface,
             borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: AppColors.darkPremiumBorder,
+              width: 1,
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 1),
+                color: Colors.black.withValues(alpha: 0.30),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
@@ -2192,8 +2209,12 @@ class _InfoCard extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.12),
+                  color: iconColor.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: iconColor.withValues(alpha: 0.4),
+                    width: 1,
+                  ),
                 ),
                 child: Icon(icon, color: iconColor, size: 22),
               ),
@@ -2204,9 +2225,9 @@ class _InfoCard extends StatelessWidget {
                   children: [
                     Text(
                       label,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 12,
-                        color: AppColors.textSecondary,
+                        color: AppColors.darkPremiumTextSecondary,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -2217,8 +2238,8 @@ class _InfoCard extends StatelessWidget {
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                         color: value.isEmpty
-                            ? AppColors.textSecondary
-                            : AppColors.neutralBlack,
+                            ? AppColors.darkPremiumTextSecondary
+                            : AppColors.darkPremiumTextPrimary,
                         height: 1.3,
                       ),
                     ),
@@ -2226,9 +2247,9 @@ class _InfoCard extends StatelessWidget {
                 ),
               ),
               if (canEdit)
-                Icon(
+                const Icon(
                   Icons.edit_rounded,
-                  color: AppColors.primaryBlue,
+                  color: AppColors.neonRoyal,
                   size: 18,
                 ),
             ],

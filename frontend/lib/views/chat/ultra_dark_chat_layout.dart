@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:frontend/apps/app_locale.dart';
 import 'package:frontend/config/app_colors.dart';
-import 'package:frontend/config/app_spacing.dart';
 import 'package:frontend/component/dark_chat_widgets.dart';
 import 'package:frontend/models/chat/conversation.dart';
 import 'package:frontend/models/chat/participant.dart';
@@ -23,7 +21,20 @@ import 'package:frontend/views/chat/chat_screen.dart';
 class UltraDarkChatLayout extends StatefulWidget {
   final AppLocalizations t;
 
-  const UltraDarkChatLayout({super.key, required this.t});
+  /// Callback khi user chọn 1 icon trên slim sidebar.
+  /// index: 0 = Chat, 1 = Contacts, 2 = Newfeed, 3 = Profile, 4 = Settings
+  final ValueChanged<int>? onNavTap;
+
+  /// Index hiện tại đang active trên sidebar (giúp highlight đúng icon
+  /// khi user ở tab khác).
+  final int currentNavIndex;
+
+  const UltraDarkChatLayout({
+    super.key,
+    required this.t,
+    this.onNavTap,
+    this.currentNavIndex = 0,
+  });
 
   @override
   State<UltraDarkChatLayout> createState() => _UltraDarkChatLayoutState();
@@ -63,7 +74,6 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
             final isVeryWide = w >= 1400;
             final isWide = w >= 1100;
 
-            final slimWidth = 72.0;
             final listWidth = isVeryWide ? 340.0 : (isWide ? 320.0 : 280.0);
             final detailsWidth = isVeryWide ? 340.0 : 320.0;
 
@@ -88,8 +98,6 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
   // CỘT 1 — SLIM SIDEBAR (60-72px)
   // ════════════════════════════════════════════════════════════════
   Widget _buildSlimSidebar() {
-    final currentRoute = _selectedConversation == null ? 'chat-list' : 'chat';
-
     return Container(
       width: 72,
       decoration: const BoxDecoration(
@@ -119,32 +127,37 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
           _buildSlimIcon(
             icon: Icons.forum_outlined,
             activeIcon: Icons.forum_rounded,
-            active: currentRoute == 'chat-list' || currentRoute == 'chat',
+            active: widget.currentNavIndex == 0,
+            onTap: () => widget.onNavTap?.call(0),
           ),
           const SizedBox(height: 14),
           _buildSlimIcon(
             icon: Icons.contacts_outlined,
             activeIcon: Icons.contacts_rounded,
-            active: false,
+            active: widget.currentNavIndex == 1,
+            onTap: () => widget.onNavTap?.call(1),
           ),
           const SizedBox(height: 14),
           _buildSlimIcon(
             icon: Icons.auto_stories_outlined,
             activeIcon: Icons.auto_stories_rounded,
-            active: false,
+            active: widget.currentNavIndex == 2,
+            onTap: () => widget.onNavTap?.call(2),
           ),
           const SizedBox(height: 14),
           _buildSlimIcon(
             icon: Icons.person_outline_rounded,
             activeIcon: Icons.person_rounded,
-            active: false,
+            active: widget.currentNavIndex == 3,
+            onTap: () => widget.onNavTap?.call(3),
           ),
           const Spacer(),
           _buildSlimIcon(
             icon: Icons.settings_outlined,
             activeIcon: Icons.settings_rounded,
-            active: false,
+            active: widget.currentNavIndex == 4,
             size: 42,
+            onTap: () => widget.onNavTap?.call(4),
           ),
           const SizedBox(height: 18),
         ],
@@ -240,12 +253,20 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
     required IconData activeIcon,
     required bool active,
     double size = 46,
+    VoidCallback? onTap,
   }) {
+    final iconWidget = active
+        ? Icon(activeIcon, color: AppColors.neonRoyal, size: 22)
+        : Icon(icon, size: 22, color: AppColors.darkPremiumTextSecondary);
+    final tap = onTap ?? () {};
     if (active) {
-      return NeonActiveCircle(
-        size: size,
-        glowColor: AppColors.neonRoyal,
-        child: Icon(activeIcon, color: AppColors.neonRoyal, size: 22),
+      return GestureDetector(
+        onTap: tap,
+        child: NeonActiveCircle(
+          size: size,
+          glowColor: AppColors.neonRoyal,
+          child: iconWidget,
+        ),
       );
     }
     return SizedBox(
@@ -255,15 +276,8 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(14),
-          onHover: (v) {},
-          onTap: () {},
-          child: Center(
-            child: Icon(
-              icon,
-              size: 22,
-              color: AppColors.darkPremiumTextSecondary,
-            ),
-          ),
+          onTap: tap,
+          child: Center(child: iconWidget),
         ),
       ),
     );

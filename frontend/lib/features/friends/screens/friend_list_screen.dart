@@ -6,6 +6,7 @@ import 'package:frontend/config/app_spacing.dart';
 import 'package:frontend/config/app_typography.dart';
 import 'package:frontend/config/dark_mode_config.dart';
 import 'package:frontend/features/friends/providers/friend_provider.dart';
+import 'package:frontend/features/friends/screens/add_friend_screen.dart';
 import 'package:frontend/features/friends/services/friend_service.dart';
 import 'package:frontend/features/profile/screens/profile_screen.dart';
 import 'package:frontend/providers/chat_provider.dart';
@@ -25,70 +26,64 @@ class FriendListScreen extends StatelessWidget {
           builder: (context, provider, _) {
             final friends = provider.friends;
 
-            if (friends.isEmpty) {
-              return const EmptyState(
-                icon: Icons.people_outline_rounded,
-                title: 'Chưa có bạn bè nào',
-                subtitle: 'Hãy kết bạn để bắt đầu trò chuyện',
-              );
-            }
-
             return Container(
-              color: AppColors.creamBackground,
+              color: AppColors.darkPremiumBackground,
               child: Column(
                 children: [
                   _FriendHeader(count: friends.length, isDark: isDark),
                   Expanded(
-                    child: ListView.separated(
-                      padding: EdgeInsets.zero,
-                      itemCount: friends.length,
-                      separatorBuilder: (_, __) => Divider(
-                        height: 1,
-                        thickness: 0.5,
-                        indent: 70,
-                        endIndent: AppSpacing.lg,
-                        color: AppColors.neutralGray300,
-                      ),
-                      itemBuilder: (context, index) {
-                        final friend = friends[index];
-                        return _FriendRowItem(
-                          friend: friend,
-                          isDark: isDark,
-                          onRowTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => ProfileScreen(
-                                  targetUserId: friend.friendId,
-                                ),
-                              ),
-                            );
-                          },
-                          onMessageTap: () async {
-                            if (friend.friendId.isEmpty) return;
-                            final currentUid =
-                                FirebaseAuth.instance.currentUser?.uid ?? '';
-                            if (currentUid.isEmpty) return;
-                            final conversation =
-                                await ChatService().createConversation(
-                              type: 'private',
-                              participantIds: [friend.friendId],
-                            );
-                            if (!context.mounted) return;
-                            await context
-                                .read<ChatProvider>()
-                                .openConversation(conversation);
-                            if (!context.mounted) return;
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    ChatScreen(conversation: conversation),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    ),
+                    child: friends.isEmpty
+                        ? _FriendEmptyState()
+                        : ListView.separated(
+                            padding: EdgeInsets.zero,
+                            itemCount: friends.length,
+                            separatorBuilder: (_, __) => Divider(
+                              height: 1,
+                              thickness: 0.5,
+                              indent: 70,
+                              endIndent: AppSpacing.lg,
+                              color: AppColors.darkPremiumBorder,
+                            ),
+                            itemBuilder: (context, index) {
+                              final friend = friends[index];
+                              return _FriendRowItem(
+                                friend: friend,
+                                isDark: isDark,
+                                onRowTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => ProfileScreen(
+                                        targetUserId: friend.friendId,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                onMessageTap: () async {
+                                  if (friend.friendId.isEmpty) return;
+                                  final currentUid =
+                                      FirebaseAuth.instance.currentUser?.uid ?? '';
+                                  if (currentUid.isEmpty) return;
+                                  final conversation =
+                                      await ChatService().createConversation(
+                                    type: 'private',
+                                    participantIds: [friend.friendId],
+                                  );
+                                  if (!context.mounted) return;
+                                  await context
+                                      .read<ChatProvider>()
+                                      .openConversation(conversation);
+                                  if (!context.mounted) return;
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          ChatScreen(conversation: conversation),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
                   ),
                 ],
               ),
@@ -114,21 +109,14 @@ class _FriendHeader extends StatelessWidget {
         horizontal: AppSpacing.xl,
         vertical: AppSpacing.md,
       ),
-      decoration: BoxDecoration(
-        color: AppColors.creamWhite,
+      decoration: const BoxDecoration(
+        color: AppColors.darkPremiumSurface,
         border: Border(
           bottom: BorderSide(
-            color: AppColors.neutralGray300,
-            width: 0.5,
+            color: AppColors.darkPremiumBorder,
+            width: 1,
           ),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.accentBrown.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Row(
         children: [
@@ -139,11 +127,18 @@ class _FriendHeader extends StatelessWidget {
             ),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: AppColors.brandGradient,
+                colors: AppColors.darkBubbleMineGradient,
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(AppRadius.md),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.neonRoyal.withValues(alpha: 0.35),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Text(
               '$count',
@@ -157,7 +152,7 @@ class _FriendHeader extends StatelessWidget {
           Text(
             'Bạn bè',
             style: AppTypography.titleMedium.copyWith(
-              color: AppColors.getTextPrimary(isDark),
+              color: AppColors.darkPremiumTextPrimary,
             ),
           ),
         ],
@@ -188,7 +183,7 @@ class _FriendRowItem extends StatelessWidget {
             : 'Người dùng');
 
     return Material(
-      color: AppColors.creamWhite,
+      color: AppColors.darkPremiumSurface,
       child: InkWell(
         onTap: onRowTap,
         child: Padding(
@@ -214,14 +209,14 @@ class _FriendRowItem extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTypography.titleSmall.copyWith(
-                        color: AppColors.getTextPrimary(isDark),
+                        color: AppColors.darkPremiumTextPrimary,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       'Bạn bè từ ${_formatFriendsSince(friend.friendsSince)}',
                       style: AppTypography.bodySmall.copyWith(
-                        color: AppColors.getTextSecondary(isDark),
+                        color: AppColors.darkPremiumTextSecondary,
                       ),
                     ),
                   ],
@@ -232,7 +227,7 @@ class _FriendRowItem extends StatelessWidget {
                 icon: Icons.chat_bubble_outline_rounded,
                 onPressed: onMessageTap,
                 gradient: const LinearGradient(
-                  colors: AppColors.brandGradient,
+                  colors: AppColors.darkBubbleMineGradient,
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -253,5 +248,125 @@ class _FriendRowItem extends StatelessWidget {
     if (diff.inDays < 30) return '${diff.inDays} ngày trước';
     if (diff.inDays < 365) return '${(diff.inDays / 30).floor()} tháng trước';
     return '${(diff.inDays / 365).floor()} năm trước';
+  }
+}
+
+class _FriendEmptyState extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppColors.darkPremiumBackground,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 104,
+                height: 104,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.neonRoyal.withValues(alpha: 0.18),
+                      AppColors.neonPink.withValues(alpha: 0.10),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.neonRoyal.withValues(alpha: 0.4),
+                    width: 1.2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.neonRoyal.withValues(alpha: 0.30),
+                      blurRadius: 24,
+                      offset: const Offset(0, 0),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  Icons.people_outline_rounded,
+                  size: 50,
+                  color: AppColors.neonRoyal,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Text(
+                'Chưa có bạn bè nào',
+                style: AppTypography.titleMedium.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.darkPremiumTextPrimary,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                'Hãy kết bạn để bắt đầu trò chuyện',
+                textAlign: TextAlign.center,
+                style: AppTypography.bodyMedium.copyWith(
+                  color: AppColors.darkPremiumTextSecondary,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: AppColors.darkBubbleMineGradient,
+                  ),
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.neonRoyal.withValues(alpha: 0.45),
+                      blurRadius: 14,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const AddFriendScreen(),
+                      ),
+                    ),
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 10,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.person_add_alt_1_rounded,
+                            size: 18,
+                            color: Colors.white,
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Tìm bạn bè ngay',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
