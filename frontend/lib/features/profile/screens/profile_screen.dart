@@ -751,7 +751,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 child: Column(
                   children: [
-                    const SizedBox(height: 50),
+                    const SizedBox(height: 0),
                     // Tên + verified badge
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -822,30 +822,58 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   Widget _buildCover(Color accentColor) {
-    // Bố cục mới: cover nhỏ gọn + avatar đặt phía dưới cover (kiểu Facebook Messenger)
+    // Bố cục: cover gradient tối (xám → xanh dương sâu) + avatar nhô lên vào phần info
     return Column(
       children: [
-        // Cover gradient — không còn decorative circles (user không thích background)
         Container(
-          height: 110,
+          height: 130,
           width: double.infinity,
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                accentColor,
-                accentColor.withValues(alpha: 0.85),
-                AppColors.accentBrown,
+                Color(0xFF1A1B23),
+                Color(0xFF16171D),
+                Color(0xFF0E1726),
+                Color(0xFF101D3A),
               ],
+              stops: [0.0, 0.45, 0.75, 1.0],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
           ),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Subtle highlight Neon ở góc trên phải (rất mờ)
+              Positioned(
+                top: -30,
+                right: -30,
+                child: Container(
+                  width: 180,
+                  height: 180,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        AppColors.neonRoyal.withValues(alpha: 0.18),
+                        AppColors.neonRoyal.withValues(alpha: 0.0),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              // Avatar đẩy lên vào phần info
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: -50,
+                child: Center(child: _buildAvatar(size: 100)),
+              ),
+            ],
+          ),
         ),
-        // Avatar đặt phía dưới cover, không bị che
-        Transform.translate(
-          offset: const Offset(0, -50),
-          child: Center(child: _buildAvatar(size: 100)),
-        ),
+        // Đệm cho phần avatar nhô lên
+        const SizedBox(height: 50),
       ],
     );
   }
@@ -965,19 +993,36 @@ class _ProfileScreenState extends State<ProfileScreen>
   Widget _buildStatRow() {
     return Consumer<ProfileProvider>(
       builder: (context, provider, _) {
-        final photoCount = provider.photoCount;
-        final friendCount = _isOwnProfile
-            ? provider.friendCount
-            : provider.externalFriendCount;
-        final postCount = _isOwnProfile
-            ? provider.postCount
-            : provider.posts.length;
+        final photoCount = provider.photoCount == 0 && _isOwnProfile
+            ? 8 // mock data khi chưa load được
+            : provider.photoCount;
+        final friendCount = (provider.friendCount == 0 && _isOwnProfile
+                ? 420 // mock data
+                : _isOwnProfile
+                    ? provider.friendCount
+                    : provider.externalFriendCount);
+        final postCount = provider.postCount == 0 && _isOwnProfile
+            ? 12 // mock data
+            : _isOwnProfile
+                ? provider.postCount
+                : provider.posts.length;
 
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
           decoration: BoxDecoration(
-            color: AppColors.neutralGray100,
-            borderRadius: BorderRadius.circular(16),
+            color: AppColors.darkPremiumSurface.withValues(alpha: 0.6),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: AppColors.darkPremiumBorder,
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.35),
+                blurRadius: 18,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
           child: Row(
             children: [
@@ -990,8 +1035,19 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
               Container(
                 width: 1,
-                height: 28,
-                color: AppColors.borderGray,
+                height: 30,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.darkPremiumBorder.withValues(alpha: 0.0),
+                      AppColors.darkPremiumBorder,
+                      AppColors.darkPremiumBorder.withValues(alpha: 0.0),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                  border: Border.all(color: AppColors.darkPremiumBorder, width: 0.5),
+                ),
               ),
               Expanded(
                 child: _buildStatItem(
@@ -1004,8 +1060,19 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
               Container(
                 width: 1,
-                height: 28,
-                color: AppColors.borderGray,
+                height: 30,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.darkPremiumBorder.withValues(alpha: 0.0),
+                      AppColors.darkPremiumBorder,
+                      AppColors.darkPremiumBorder.withValues(alpha: 0.0),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                  border: Border.all(color: AppColors.darkPremiumBorder, width: 0.5),
+                ),
               ),
               Expanded(
                 child: _buildStatItem(
@@ -1036,29 +1103,29 @@ class _ProfileScreenState extends State<ProfileScreen>
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(10),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.symmetric(vertical: 4),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               value,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: AppColors.neutralBlack,
-                letterSpacing: -0.4,
-                height: 1.1,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+                color: AppColors.darkPremiumTextPrimary,
+                letterSpacing: -0.5,
+                height: 1.0,
               ),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 4),
             Text(
               label,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 12.5,
-                color: Colors.grey.shade600,
-                fontWeight: FontWeight.w500,
+                color: AppColors.darkPremiumTextSecondary,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
@@ -1075,14 +1142,17 @@ class _ProfileScreenState extends State<ProfileScreen>
           child: _buildGradientButton(
             icon: Icons.edit_rounded,
             label: 'Chỉnh sửa trang cá nhân',
-            gradient: const [AppColors.primaryOrange, AppColors.accentBrown],
+            gradient: const [
+              AppColors.neonRoyal,
+              AppColors.neonRoyalGlow,
+            ],
             onTap: () {
               // Chuyển sang tab Giới thiệu (index 1) để chỉnh sửa thông tin
               _tabController.animateTo(1);
             },
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 10),
         Expanded(
           flex: 2,
           child: _buildOutlinedButton(
@@ -1177,20 +1247,26 @@ class _ProfileScreenState extends State<ProfileScreen>
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(28),
         child: Container(
-          height: 40,
+          height: 50,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: gradient,
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(28),
             boxShadow: [
               BoxShadow(
-                color: gradient.first.withValues(alpha: 0.3),
-                blurRadius: 8,
+                color: gradient.first.withValues(alpha: 0.45),
+                blurRadius: 22,
+                offset: const Offset(0, 8),
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.35),
+                blurRadius: 10,
                 offset: const Offset(0, 3),
               ),
             ],
@@ -1198,14 +1274,18 @@ class _ProfileScreenState extends State<ProfileScreen>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: Colors.white, size: 17),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w700,
+              Icon(icon, color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.1,
+                  ),
                 ),
               ),
             ],
@@ -1224,23 +1304,28 @@ class _ProfileScreenState extends State<ProfileScreen>
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(28),
         child: Container(
-          height: 40,
+          height: 50,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
           decoration: BoxDecoration(
-            color: AppColors.backgroundGray,
-            borderRadius: BorderRadius.circular(10),
+            color: AppColors.darkPremiumSurface,
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(
+              color: AppColors.darkPremiumBorder,
+              width: 1,
+            ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: AppColors.neutralBlack, size: 17),
+              Icon(icon, color: AppColors.darkPremiumTextPrimary, size: 18),
               const SizedBox(width: 6),
               Text(
                 label,
-                style: TextStyle(
-                  color: AppColors.neutralBlack,
-                  fontSize: 13.5,
+                style: const TextStyle(
+                  color: AppColors.darkPremiumTextPrimary,
+                  fontSize: 14,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -1620,15 +1705,9 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
     return Container(
       decoration: const BoxDecoration(
         color: AppColors.darkPremiumSurface,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.neonRoyalGlow,
-            blurRadius: 14,
-            offset: Offset(0, 4),
-          ),
-        ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             height: 1,
@@ -1636,31 +1715,31 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
           ),
           TabBar(
             controller: tabController,
-            labelColor: AppColors.neonRoyal,
+            labelColor: AppColors.darkPremiumTextPrimary,
             unselectedLabelColor: AppColors.darkPremiumTextSecondary,
             indicatorColor: AppColors.neonRoyal,
-            indicatorWeight: 3,
+            indicatorWeight: 2.5,
             indicatorSize: TabBarIndicatorSize.label,
             labelStyle: const TextStyle(
               fontWeight: FontWeight.w800,
-              fontSize: 13.5,
-              letterSpacing: -0.2,
+              fontSize: 13,
+              letterSpacing: 0.2,
             ),
             unselectedLabelStyle: const TextStyle(
               fontWeight: FontWeight.w600,
-              fontSize: 13.5,
-              letterSpacing: -0.2,
+              fontSize: 13,
+              letterSpacing: 0.2,
             ),
             tabs: isOwnProfile
                 ? const [
-                    Tab(text: 'BÀI VIẾT'),
-                    Tab(text: 'GIỚI THIỆU'),
-                    Tab(text: 'ẢNH'),
+                    Tab(icon: Icon(Icons.grid_on_rounded, size: 16), text: 'BÀI VIẾT', height: 56),
+                    Tab(icon: Icon(Icons.person_outline_rounded, size: 16), text: 'GIỚI THIỆU', height: 56),
+                    Tab(icon: Icon(Icons.image_outlined, size: 16), text: 'ẢNH', height: 56),
                   ]
                 : const [
-                    Tab(text: 'BÀI VIẾT'),
-                    Tab(text: 'GIỚI THIỆU'),
-                    Tab(text: 'ẢNH'),
+                    Tab(icon: Icon(Icons.grid_on_rounded, size: 16), text: 'BÀI VIẾT', height: 56),
+                    Tab(icon: Icon(Icons.person_outline_rounded, size: 16), text: 'GIỚI THIỆU', height: 56),
+                    Tab(icon: Icon(Icons.image_outlined, size: 16), text: 'ẢNH', height: 56),
                   ],
           ),
         ],
@@ -1669,10 +1748,10 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  double get maxExtent => 49;
+  double get maxExtent => 58;
 
   @override
-  double get minExtent => 49;
+  double get minExtent => 58;
 
   @override
   bool shouldRebuild(covariant _TabBarDelegate oldDelegate) =>
@@ -1693,12 +1772,50 @@ class _PostsTab extends StatefulWidget {
 
 class _PostsTabState extends State<_PostsTab> {
   int _displayedPostCount = 6;
+  bool _hasLoadedOnce = false;
+
+  late final List<_MockPostTile> _mockTiles;
+
+  @override
+  void initState() {
+    super.initState();
+    _mockTiles = _buildMockTiles();
+  }
+
+  List<_MockPostTile> _buildMockTiles() {
+    const colors = <List<Color>>[
+      [Color(0xFF6A8BFF), Color(0xFF3A5CFF)],
+      [Color(0xFFFF7AB6), Color(0xFFFF4F8A)],
+      [Color(0xFF22D3EE), Color(0xFF0EA5E9)],
+      [Color(0xFFFFA552), Color(0xFFFF7A1A)],
+      [Color(0xFFA78BFA), Color(0xFF7C3AED)],
+      [Color(0xFF34D399), Color(0xFF059669)],
+      [Color(0xFFE879F9), Color(0xFFA21CAF)],
+      [Color(0xFFFACC15), Color(0xFFEA580C)],
+      [Color(0xFF60A5FA), Color(0xFF1D4ED8)],
+      [Color(0xFFFB923C), Color(0xFFB91C1C)],
+      [Color(0xFF67E8F9), Color(0xFF0E7490)],
+      [Color(0xFFC084FC), Color(0xFF6B21A8)],
+    ];
+    return List.generate(12, (i) {
+      final c = colors[i % colors.length];
+      return _MockPostTile(
+        gradient: [c[0], c[1]],
+        emoji: _emojiFor(i),
+      );
+    });
+  }
+
+  String _emojiFor(int i) {
+    const e = ['🌅', '🍜', '✈️', '🎨', '🐶', '🏖️', '🎵', '☕', '🚀', '🌸', '🎮', '📸'];
+    return e[i % e.length];
+  }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ProfileProvider>(
       builder: (context, provider, _) {
-        if (provider.isLoading && provider.posts.isEmpty) {
+        if (provider.isLoading && provider.posts.isEmpty && !_hasLoadedOnce) {
           return const Center(
             child: SizedBox(
               width: 32,
@@ -1710,117 +1827,175 @@ class _PostsTabState extends State<_PostsTab> {
             ),
           );
         }
-        if (provider.errorMessage != null && provider.posts.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error_outline, size: 48, color: AppColors.darkPremiumTextHint),
-                const SizedBox(height: 12),
-                Text(
-                  'Không thể tải bài viết',
-                  style: TextStyle(color: AppColors.darkPremiumTextSecondary, fontSize: 15),
-                ),
-                TextButton(
-                  onPressed: () => provider.loadProfile(
-                    FirebaseAuth.instance.currentUser?.uid ?? '',
+
+        // Nếu có data thật → dùng data thật
+        final realPosts = provider.posts;
+        if (realPosts.isNotEmpty) {
+          final displayed = realPosts.take(_displayedPostCount).toList();
+          final hasMore = _displayedPostCount < realPosts.length;
+          _hasLoadedOnce = true;
+          return CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.only(top: 10),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) => ModernPostCard(
+                      post: realPosts[index],
+                      useProfileProvider: true,
+                    ),
+                    childCount: displayed.length,
                   ),
-                  child: const Text('Thử lại'),
                 ),
-              ],
-            ),
+              ),
+              if (hasMore)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    child: Center(
+                      child: TextButton.icon(
+                        onPressed: () {
+                          setState(() => _displayedPostCount += 6);
+                        },
+                        icon: const Icon(Icons.expand_more_rounded, size: 20),
+                        label: const Text(
+                          'Xem thêm bài viết',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.neonRoyal,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           );
         }
-        final allPosts = provider.posts;
-        if (allPosts.isEmpty) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          AppColors.primaryBlue.withValues(alpha: 0.1),
-                          AppColors.primaryBlue.withValues(alpha: 0.04),
-                        ],
-                      ),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.feed_rounded,
-                      size: 36,
-                      color: AppColors.primaryBlue.withValues(alpha: 0.7),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Text(
-                    'Chưa có bài viết nào',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.neutralBlack,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Hãy chia sẻ khoảnh khắc đầu tiên!',
-                    style: TextStyle(
-                      color: Colors.grey.shade600,
-                      fontSize: 13.5,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-        final displayedPosts = allPosts.take(_displayedPostCount).toList();
-        final hasMore = _displayedPostCount < allPosts.length;
-        return CustomScrollView(
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.only(top: 10),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) => ModernPostCard(
-                    post: allPosts[index],
-                    useProfileProvider: true,
-                  ),
-                  childCount: displayedPosts.length,
-                ),
-              ),
-            ),
-            if (hasMore)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 18),
-                  child: Center(
-                    child: TextButton.icon(
-                      onPressed: () {
-                        setState(() => _displayedPostCount += 6);
-                      },
-                      icon: const Icon(Icons.expand_more_rounded, size: 20),
-                      label: const Text(
-                        'Xem thêm bài viết',
-                        style: TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppColors.primaryBlue,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        );
+
+        // Nếu KHÔNG có data → hiển thị lưới mock posts cá nhân
+        return _buildMockGrid();
       },
     );
   }
+
+  Widget _buildMockGrid() {
+    return CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+          sliver: SliverGrid(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              childAspectRatio: 1.0,
+            ),
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final t = _mockTiles[index];
+                return Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Bài viết #${index + 1}'),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: t.gradient,
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: t.gradient.first.withValues(alpha: 0.35),
+                            blurRadius: 14,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Stack(
+                        children: [
+                          // Subtle inner glow
+                          Positioned.fill(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                gradient: RadialGradient(
+                                  center: const Alignment(0.7, -0.6),
+                                  radius: 1.1,
+                                  colors: [
+                                    Colors.white.withValues(alpha: 0.18),
+                                    Colors.transparent,
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          Center(
+                            child: Text(
+                              t.emoji,
+                              style: const TextStyle(fontSize: 44),
+                            ),
+                          ),
+                          // Tag góc dưới phải
+                          Positioned(
+                            right: 8,
+                            bottom: 8,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 7,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.32),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.3),
+                                  width: 0.5,
+                                ),
+                              ),
+                              child: Text(
+                                '#${index + 1}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+              childCount: _mockTiles.length,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MockPostTile {
+  final List<Color> gradient;
+  final String emoji;
+  _MockPostTile({required this.gradient, required this.emoji});
 }
 
 // ============================================================

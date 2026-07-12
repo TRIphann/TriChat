@@ -80,17 +80,14 @@ class _ModernPostCardState extends State<ModernPostCard>
     return GestureDetector(
       onDoubleTap: _handleDoubleTapLike,
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 6),
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(0),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 12,
-              offset: const Offset(0, 1),
-            ),
-          ],
+          color: AppColors.darkPremiumSurface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: AppColors.darkPremiumBorder,
+            width: 1,
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,19 +121,19 @@ class _ModernPostCardState extends State<ModernPostCard>
               children: [
                 Row(
                   children: [
-                    Flexible(
-                      child: Text(
-                        p.userName.isNotEmpty ? p.userName : 'Người dùng',
-                        style: TextStyle(
-                          fontSize: 15.5,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.neutralBlack,
-                          height: 1.1,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                Flexible(
+                  child: Text(
+                    p.userName.isNotEmpty ? p.userName : 'Người dùng',
+                    style: TextStyle(
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.darkPremiumTextPrimary,
+                      height: 1.1,
                     ),
-                    if (p.isOwner) ...[
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                      if (p.isOwner) ...[
                       const SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -144,12 +141,7 @@ class _ModernPostCardState extends State<ModernPostCard>
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              AppColors.primaryBlue.withValues(alpha: 0.16),
-                              AppColors.primaryBlue.withValues(alpha: 0.08),
-                            ],
-                          ),
+                          color: AppColors.neonRoyal.withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
@@ -157,7 +149,7 @@ class _ModernPostCardState extends State<ModernPostCard>
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.primaryBlue,
+                            color: AppColors.neonRoyal,
                           ),
                         ),
                       ),
@@ -171,7 +163,7 @@ class _ModernPostCardState extends State<ModernPostCard>
                       _formatTime(p.createdAt),
                       style: TextStyle(
                         fontSize: 12.5,
-                        color: AppColors.neutralGray700,
+                        color: AppColors.darkPremiumTextSecondary,
                       ),
                     ),
                     const SizedBox(width: 4),
@@ -179,7 +171,7 @@ class _ModernPostCardState extends State<ModernPostCard>
                       '·',
                       style: TextStyle(
                         fontSize: 12.5,
-                        color: AppColors.neutralGray700,
+                        color: AppColors.darkPremiumTextSecondary,
                       ),
                     ),
                     const SizedBox(width: 4),
@@ -192,7 +184,7 @@ class _ModernPostCardState extends State<ModernPostCard>
                                   ? Icons.group_outlined
                                   : Icons.lock_outline,
                       size: 13,
-                      color: AppColors.neutralGray700,
+                      color: AppColors.darkPremiumTextSecondary,
                     ),
                   ],
                 ),
@@ -202,25 +194,25 @@ class _ModernPostCardState extends State<ModernPostCard>
           PopupMenuButton<String>(
             icon: Icon(
               Icons.more_horiz_rounded,
-              color: AppColors.neutralGray700,
+              color: AppColors.darkPremiumTextSecondary,
               size: 22,
             ),
-            color: Colors.white,
-            elevation: 6,
+            color: AppColors.darkPremiumElevated,
+            elevation: 8,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
             onSelected: (value) {
               // TODO: handle edit/delete
             },
-            itemBuilder: (context) => const [
+            itemBuilder: (context) => [
               PopupMenuItem(
                 value: 'save',
                 child: Row(
                   children: [
-                    Icon(Icons.bookmark_outline, size: 18, color: AppColors.neutralBlack),
-                    SizedBox(width: 10),
-                    Text('Lưu bài viết', style: TextStyle(fontSize: 14)),
+                    Icon(Icons.bookmark_outline, size: 18, color: AppColors.darkPremiumTextPrimary),
+                    const SizedBox(width: 10),
+                    Text('Lưu bài viết', style: TextStyle(fontSize: 14, color: AppColors.darkPremiumTextPrimary)),
                   ],
                 ),
               ),
@@ -228,9 +220,9 @@ class _ModernPostCardState extends State<ModernPostCard>
                 value: 'hide',
                 child: Row(
                   children: [
-                    Icon(Icons.visibility_off_outlined, size: 18, color: AppColors.neutralBlack),
-                    SizedBox(width: 10),
-                    Text('Ẩn bài viết', style: TextStyle(fontSize: 14)),
+                    Icon(Icons.visibility_off_outlined, size: 18, color: AppColors.darkPremiumTextPrimary),
+                    const SizedBox(width: 10),
+                    Text('Ẩn bài viết', style: TextStyle(fontSize: 14, color: AppColors.darkPremiumTextPrimary)),
                   ],
                 ),
               ),
@@ -238,9 +230,9 @@ class _ModernPostCardState extends State<ModernPostCard>
                 value: 'report',
                 child: Row(
                   children: [
-                    Icon(Icons.flag_outlined, size: 18, color: Color(0xFFD93B3B)),
-                    SizedBox(width: 10),
-                    Text('Báo cáo', style: TextStyle(fontSize: 14, color: Color(0xFFD93B3B))),
+                    Icon(Icons.flag_outlined, size: 18, color: AppColors.neonRed),
+                    const SizedBox(width: 10),
+                    Text('Báo cáo', style: TextStyle(fontSize: 14, color: AppColors.neonRed)),
                   ],
                 ),
               ),
@@ -259,7 +251,7 @@ class _ModernPostCardState extends State<ModernPostCard>
         style: TextStyle(
           fontSize: 15,
           height: 1.45,
-          color: AppColors.neutralBlack,
+          color: AppColors.darkPremiumTextPrimary,
         ),
       ),
     );
@@ -439,7 +431,7 @@ class _ModernPostCardState extends State<ModernPostCard>
               _formatCount(p.likeCount),
               style: TextStyle(
                 fontSize: 13,
-                color: AppColors.neutralGray700,
+                color: AppColors.darkPremiumTextSecondary,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -450,7 +442,7 @@ class _ModernPostCardState extends State<ModernPostCard>
               '${_formatCount(p.commentCount)} bình luận',
               style: TextStyle(
                 fontSize: 13,
-                color: AppColors.neutralGray700,
+                color: AppColors.darkPremiumTextSecondary,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -461,7 +453,7 @@ class _ModernPostCardState extends State<ModernPostCard>
               '${_formatCount(p.shareCount)} chia sẻ',
               style: TextStyle(
                 fontSize: 13,
-                color: AppColors.neutralGray700,
+                color: AppColors.darkPremiumTextSecondary,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -472,25 +464,33 @@ class _ModernPostCardState extends State<ModernPostCard>
 
   Widget _buildActions() {
     final p = widget.post;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: AppColors.darkPremiumBorder,
+            width: 1,
+          ),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
       child: Row(
         children: [
           Expanded(
             child: _ActionButton(
-              icon: p.isLiked ? Icons.favorite_rounded : Icons.favorite_border,
+              icon: p.isLiked ? Icons.favorite_rounded : Icons.favorite_outline_rounded,
               label: 'Thích',
               active: p.isLiked,
-              activeColor: AppColors.accentRed,
+              activeColor: AppColors.neonRed,
               onTap: _showQuickLike,
             ),
           ),
           Expanded(
             child: _ActionButton(
-              icon: Icons.mode_comment_outlined,
+              icon: Icons.chat_bubble_outline_rounded,
               label: 'Bình luận',
               active: false,
-              activeColor: AppColors.primaryBlue,
+              activeColor: AppColors.neonRoyal,
               onTap: () {
                 showModalBottomSheet(
                   context: context,
@@ -509,7 +509,7 @@ class _ModernPostCardState extends State<ModernPostCard>
               icon: Icons.share_outlined,
               label: 'Chia sẻ',
               active: false,
-              activeColor: AppColors.primaryBlue,
+              activeColor: AppColors.neonOnline,
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -569,7 +569,7 @@ class _ActionButtonState extends State<_ActionButton> {
   Widget build(BuildContext context) {
     final color = widget.active
         ? widget.activeColor
-        : AppColors.neutralGray700;
+        : AppColors.darkPremiumTextSecondary;
     return GestureDetector(
       onTapDown: (_) => setState(() => _pressed = true),
       onTapCancel: () => setState(() => _pressed = false),
@@ -703,7 +703,7 @@ class _NetworkImageWithLoader extends StatelessWidget {
       loadingBuilder: (_, child, progress) {
         if (progress == null) return child;
         return Container(
-          color: AppColors.backgroundGray,
+          color: AppColors.darkPremiumElevated,
           alignment: Alignment.center,
           child: SizedBox(
             width: 28,
@@ -714,17 +714,17 @@ class _NetworkImageWithLoader extends StatelessWidget {
                   ? progress.cumulativeBytesLoaded /
                       progress.expectedTotalBytes!
                   : null,
-              color: AppColors.primaryBlue,
+              color: AppColors.neonRoyal,
             ),
           ),
         );
       },
       errorBuilder: (_, __, ___) => Container(
-        color: AppColors.divider,
+        color: AppColors.darkPremiumSurface,
         alignment: Alignment.center,
         child: Icon(
           Icons.broken_image_outlined,
-          color: Colors.grey.shade400,
+          color: AppColors.darkPremiumTextSecondary,
           size: 32,
         ),
       ),

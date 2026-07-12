@@ -154,8 +154,7 @@ class AuthService {
         queryParameters: {'email': email.trim()},
       );
     } on DioException catch (e) {
-      final errorMsg = e.response?.data?['message'] ?? 'Không thể gửi OTP';
-      throw Exception(errorMsg);
+      throw Exception(_extractErrorMessage(e, 'Không thể gửi OTP'));
     } catch (e) {
       throw Exception('Lỗi kết nối hệ thống');
     }
@@ -169,11 +168,43 @@ class AuthService {
       );
       return response.statusCode == 200;
     } on DioException catch (e) {
-      final errorMsg = e.response?.data?['message'] ?? 'Mã OTP không hợp lệ';
-      throw Exception(errorMsg);
+      throw Exception(_extractErrorMessage(e, 'Mã OTP không hợp lệ'));
     } catch (e) {
       throw Exception('Lỗi xác thực: $e');
     }
+  }
+
+  /// Trích xuất thông báo lỗi từ DioException một cách an toàn.
+  ///
+  /// Backend có thể trả về body không phải JSON (ví dụ 404 với body rỗng hoặc
+/// text/plain), khi đó `e.response?.data` là `String` chứ không phải `Map`.
+/// Việc truy cập trực tiếp `data['message']` sẽ ném TypeError trên Flutter
+/// web vì `String[]` yêu cầu tham số `int`. Hàm này kiểm tra kiểu trước khi
+/// truy cập và fallback về thông báo mặc định nếu body không hợp lệ.
+  static String _extractErrorMessage(DioException e, String fallback) {
+    // Trường hợp lỗi mạng / timeout — không có response từ server.
+    if (e.response == null) {
+      switch (e.type) {
+        case DioExceptionType.connectionTimeout:
+        case DioExceptionType.sendTimeout:
+        case DioExceptionType.receiveTimeout:
+          return '$fallback: máy chủ phản hồi chậm, vui lòng thử lại.';
+        case DioExceptionType.connectionError:
+          return '$fallback: không kết nối được tới máy chủ.';
+        default:
+          return '$fallback: ${e.message ?? "lỗi mạng"}';
+      }
+    }
+
+    final dynamic data = e.response?.data;
+    if (data is Map) {
+      final dynamic raw = data['message'];
+      if (raw is String && raw.isNotEmpty) return raw;
+      if (raw != null) return raw.toString();
+    }
+    final status = e.response?.statusCode;
+    if (status != null) return '$fallback (mã $status)';
+    return fallback;
   }
 
   static Future<UserModel> getUserById(String userId) async {

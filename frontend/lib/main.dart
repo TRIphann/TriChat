@@ -28,11 +28,15 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // dotenv chỉ đọc được file `.env` đã bundle trong assets/ trên mobile/desktop.
-  // Trên web dùng --dart-define=KEY=VALUE cho các biến môi trường.
-  if (!kIsWeb) {
-    try {
-      await dotenv.load(fileName: ".env");
-    } catch (_) {}
+  // Trên web vẫn load được vì file đã đăng ký trong pubspec.yaml `assets:` —
+  // chỉ cần đảm bảo dev/prod server không ignore dotfile (đã verify với
+  // Flutter web dev server). Nếu sau này deploy lên server khác mà `.env`
+  // bị ignore, hãy đổi tên thành `env` và cập nhật `fileName` + `assets:`.
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (_) {
+    // Web server có thể chặn file bắt đầu bằng `.` — fallback im lặng để
+    // ApiConfig rơi về `--dart-define` hoặc `_webOrigin()`.
   }
 
   if (!kIsWeb) {

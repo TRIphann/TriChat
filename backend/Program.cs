@@ -26,10 +26,23 @@ builder.Host.UseSerilog((ctx, config) => config
 
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 {
-    var connStr = builder.Configuration["Redis:ConnectString"]!;
+    var connStr = builder.Configuration["Redis:ConnectString"]
+                  ?? throw new InvalidOperationException(
+                      "Missing Redis:ConnectString. Set the env var on your host.");
     var options = ConfigurationOptions.Parse(connStr);
-    options.AbortOnConnectFail = false;
-    options.ConnectRetry = 2;
+
+    // Upstash-compatible defaults — ghi đè lên mọi gì connection string có thể
+    // đã thiếu/sai. Upstash Redis yêu cầu SSL và timeout đủ lớn vì server có
+    // thể trễ khi cold start.
+    options.Ssl = connStr.StartsWith("rediss://", StringComparison.OrdinalIgnoreCase);
+    options.AbortOnConnectFail = false;      // không fail app khi Redis chưa sẵn sàng
+    options.ConnectRetry = 3;
+    options.ConnectTimeout = 10_000;          // 10s cho lần kết nối đầu tiên
+    options.SyncTimeout = 5_000;
+    options.AsyncTimeout = 5_000;
+    options.KeepAlive = 60;
+    options.ReconnectRetryPolicy = new ExponentialRetry(2_000);
+
     return ConnectionMultiplexer.Connect(options);
 });
 

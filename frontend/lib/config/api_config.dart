@@ -46,7 +46,7 @@ class ApiConfig {
   }
 
   /// Read a dotenv key safely. Returns null if dotenv is not loaded yet
-  /// (which happens on web because we skip dotenv.load() there).
+  /// (e.g. file bị web server chặn dotfile, hoặc `load()` thất bại).
   static String? _tryGetDotenv(String key) {
     try {
       return dotenv.env[key];

@@ -73,10 +73,12 @@ class DioClient {
   static Dio _createDio() {
     final dio = Dio(
       BaseOptions(
-        // Thay bằng base URL thực tế của backend
         baseUrl: ApiConfig.baseUrl,
-        connectTimeout: const Duration(seconds: 15),
-        receiveTimeout: const Duration(seconds: 15),
+        // Render free tier "cold start" sau 15 phút không có traffic có thể
+        // mất 30–60s để wake service, nên timeout phải lớn hơn 15s.
+        connectTimeout: const Duration(seconds: 60),
+        sendTimeout: const Duration(seconds: 60),
+        receiveTimeout: const Duration(seconds: 60),
         headers: {
           // Không đặt Content-Type mặc định để Dio tự động chọn đúng:
           // - multipart/form-data khi body là FormData (upload file)
