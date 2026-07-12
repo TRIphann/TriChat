@@ -74,11 +74,12 @@ class DioClient {
     final dio = Dio(
       BaseOptions(
         baseUrl: ApiConfig.baseUrl,
-        // Render free tier "cold start" sau 15 phút không có traffic có thể
-        // mất 30–60s để wake service, nên timeout phải lớn hơn 15s.
-        connectTimeout: const Duration(seconds: 60),
-        sendTimeout: const Duration(seconds: 60),
-        receiveTimeout: const Duration(seconds: 60),
+        // Render free-tier service cold-start (~30-60s sau khi idle) + thời gian
+        // SMTP connect đến Gmail có thể mất 10-20s. Timeout 120s cho cả 3 pha
+        // để cover worst-case trên cả mobile và web.
+        connectTimeout: const Duration(seconds: 120),
+        sendTimeout: const Duration(seconds: 120),
+        receiveTimeout: const Duration(seconds: 120),
         headers: {
           // Không đặt Content-Type mặc định để Dio tự động chọn đúng:
           // - multipart/form-data khi body là FormData (upload file)
