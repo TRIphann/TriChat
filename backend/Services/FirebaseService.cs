@@ -6,6 +6,7 @@ using backend.Models;
 using System.IO;
 using Microsoft.Extensions.Configuration;
 using System;
+using System.Text.Json;
 
 namespace backend.Services;
 
@@ -18,41 +19,63 @@ public class FirebaseService
         var section = configuration.GetSection("Firebase");
         var credentialsFilePath = section.GetValue<string>("CredentialsFilePath");
         var projectId = section.GetValue<string>("ProjectId");
-
-        if (string.IsNullOrWhiteSpace(credentialsFilePath))
-            throw new InvalidOperationException("Missing Firebase:CredentialsFilePath in appsettings.json.");
+        var credentialsJson = section.GetValue<string>("CredentialsJson");
 
         if (string.IsNullOrWhiteSpace(projectId))
-            throw new InvalidOperationException("Missing Firebase:ProjectId in appsettings.json.");
+            throw new InvalidOperationException("Missing Firebase:ProjectId in appsettings.json or FIREBASE__PROJECTID env var.");
 
-        var resolvedPath = Path.GetFullPath(credentialsFilePath, AppContext.BaseDirectory);
-        Console.WriteLine($"[FIREBASE] Resolved path: {resolvedPath}");
-        Console.WriteLine($"[FIREBASE] File exists: {File.Exists(resolvedPath)}");
-        if (!File.Exists(resolvedPath))
-            throw new FileNotFoundException($"Firebase credentials file not found: {resolvedPath}");
+        GoogleCredential credential;
+
+        if (!string.IsNullOrWhiteSpace(credentialsJson))
+        {
+            // Credentials được truyền trực tiếp qua JSON string (từ env var).
+            // Render/Koyeb/Railway: đặt FIREBASE__CREDENTIALSJSON=<json_string>
+            // trong dashboard environment variables.
+            Console.WriteLine("[FIREBASE] Loading credentials from FIREBASE__CREDENTIALSJSON env var.");
+            using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(credentialsJson));
+            credential = GoogleCredential.FromStream(stream);
+        }
+        else if (!string.IsNullOrWhiteSpace(credentialsFilePath))
+        {
+            var resolvedPath = Path.GetFullPath(credentialsFilePath, AppContext.BaseDirectory);
+            Console.WriteLine($"[FIREBASE] Resolved path: {resolvedPath}");
+            Console.WriteLine($"[FIREBASE] File exists: {File.Exists(resolvedPath)}");
+            if (!File.Exists(resolvedPath))
+                throw new FileNotFoundException(
+                    $"Firebase credentials file not found: {resolvedPath}. " +
+                    "Set FIREBASE__CREDENTIALSJSON env var with the full JSON string instead.");
+            credential = GoogleCredential.FromFile(resolvedPath);
+        }
+        else
+        {
+            throw new InvalidOperationException(
+                "Missing Firebase credentials. Set FIREBASE__CREDENTIALSJSON env var with the service account JSON, " +
+                "or Firebase:CredentialsFilePath in appsettings.json.");
+        }
 
 #pragma warning disable CS0618 // GoogleCredential.FromFile is deprecated; no replacement that works with FirestoreDbBuilder
         if (FirebaseApp.DefaultInstance == null)
         {
             FirebaseApp.Create(new AppOptions
             {
-                Credential = GoogleCredential.FromFile(resolvedPath),
+                Credential = credential,
                 ProjectId = projectId
             });
         }
+#pragma warning restore CS0618
 
-        var databaseId = section.GetValue<string>("DatabaseId");
         var builder = new FirestoreDbBuilder
         {
             ProjectId = projectId,
-            Credential = GoogleCredential.FromFile(resolvedPath)
+            Credential = credential
         };
-#pragma warning restore CS0618
 
+        var databaseId = section.GetValue<string>("DatabaseId");
         if (!string.IsNullOrWhiteSpace(databaseId))
             builder.DatabaseId = databaseId;
 
         FirestoreDb = builder.Build();
+        Console.WriteLine($"[FIREBASE] FirestoreDb initialized for project: {projectId}");
     }
 
     public async Task<UserRecord> CreateOrUpdateAuthUserAsync(string userId, string email)
