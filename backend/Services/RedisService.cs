@@ -1,5 +1,5 @@
-using StackExchange.Redis;
 using backend.Attributes;
+using backend.Interfaces;
 
 namespace backend.Services
 {
@@ -10,112 +10,84 @@ namespace backend.Services
         private const string LastSeenKeyPrefix = "last_seen:";
         private static readonly TimeSpan OnlineTtl = TimeSpan.FromMinutes(5);
 
-        private readonly IConnectionMultiplexer _redis;
+        private readonly IKeyValueStore _kv;
+        private readonly ILogger<RedisService> _logger;
 
-        public RedisService(IConnectionMultiplexer redis)
+        public RedisService(IKeyValueStore kv, ILogger<RedisService> logger)
         {
-            _redis = redis;
+            _kv = kv;
+            _logger = logger;
         }
-
-        // NOTE: KHÔNG gate theo `_redis.IsConnected` nữa. StackExchange.Redis
-        // với `AbortOnConnectFail = false` sẽ lazy-connect + tự reconnect;
-        // cờ `IsConnected` chỉ flip `true` SAU khi có round-trip thành công,
-        // nên check trước sẽ luôn trả về `false` trên cold connection — đó
-        // chính là nguyên nhân gốc khiến OTP / heartbeat đầu tiên luôn fail.
-        // Bây giờ ta chỉ cần gọi trực tiếp; các hàm `*OrNull` đã được wrap
-        // với try/catch để tránh nuốt exception vĩnh viễn.
-        private IDatabase Db => _redis.GetDatabase();
 
         // ── Generic ────────────────────────────────────────────
 
         public async Task<string?> GetAsync(string key)
         {
-            try
+            try { return await _kv.GetAsync(key); }
+            catch (Exception ex)
             {
-                var v = await Db.StringGetAsync(key);
-                return v.IsNullOrEmpty ? null : v.ToString();
-            }
-            catch (Exception ex) when (IsTransient(ex))
-            {
-                // Caller đã có fallback; để chuỗi "best-effort" cho online status
+                _logger.LogWarning(ex, "KeyValueStore GET failed for {Key}", key);
                 return null;
             }
         }
 
         public async Task SetAsync(string key, string value, TimeSpan expiry)
         {
-            try { await Db.StringSetAsync(key, value, expiry); }
-            catch (Exception ex) when (IsTransient(ex)) { /* best-effort */ }
+            try { await _kv.SetAsync(key, value, expiry); }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "KeyValueStore SET failed for {Key}", key);
+            }
         }
 
         public async Task DeleteAsync(string key)
         {
-            try { await Db.KeyDeleteAsync(key); }
-            catch (Exception ex) when (IsTransient(ex)) { /* best-effort */ }
+            try { await _kv.DeleteAsync(key); }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "KeyValueStore DEL failed for {Key}", key);
+            }
         }
 
         public async Task<bool> KeyExistsAsync(string key)
         {
-            try { return await Db.KeyExistsAsync(key); }
-            catch (Exception ex) when (IsTransient(ex)) { return false; }
+            try { return await _kv.KeyExistsAsync(key); }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "KeyValueStore EXISTS failed for {Key}", key);
+                return false;
+            }
         }
 
         // ── Online status ───────────────────────────────────────
 
         public async Task SetOnlineAsync(string userId)
         {
-            try { await Db.StringSetAsync($"{OnlineKeyPrefix}{userId}", "1", OnlineTtl); }
-            catch (Exception ex) when (IsTransient(ex)) { /* best-effort */ }
+            await SetAsync($"{OnlineKeyPrefix}{userId}", "1", OnlineTtl);
         }
 
         public async Task RefreshOnlineTtlAsync(string userId)
         {
-            try { await Db.KeyExpireAsync($"{OnlineKeyPrefix}{userId}", OnlineTtl); }
-            catch (Exception ex) when (IsTransient(ex)) { /* best-effort */ }
+            // Re-SET là cách portable nhất qua REST API (không phụ thuộc EXPIRE)
+            await SetAsync($"{OnlineKeyPrefix}{userId}", "1", OnlineTtl);
         }
 
         public async Task SetOfflineAsync(string userId)
         {
-            try
-            {
-                await Db.StringSetAsync($"{LastSeenKeyPrefix}{userId}", DateTime.UtcNow.ToString("O"));
-                await Db.KeyDeleteAsync($"{OnlineKeyPrefix}{userId}");
-            }
-            catch (Exception ex) when (IsTransient(ex)) { /* best-effort */ }
+            await SetAsync($"{LastSeenKeyPrefix}{userId}", DateTime.UtcNow.ToString("O"), TimeSpan.FromDays(30));
+            await DeleteAsync($"{OnlineKeyPrefix}{userId}");
         }
 
-        public async Task<bool> IsOnlineAsync(string userId)
-        {
-            try { return await Db.KeyExistsAsync($"{OnlineKeyPrefix}{userId}"); }
-            catch (Exception ex) when (IsTransient(ex)) { return false; }
-        }
+        public async Task<bool> IsOnlineAsync(string userId) =>
+            await KeyExistsAsync($"{OnlineKeyPrefix}{userId}");
 
         public async Task<DateTime?> GetLastSeenAsync(string userId)
         {
-            try
-            {
-                var raw = await Db.StringGetAsync($"{LastSeenKeyPrefix}{userId}");
-                if (raw.IsNullOrEmpty) return null;
-                return DateTime.Parse(raw!, null, System.Globalization.DateTimeStyles.RoundtripKind);
-            }
-            catch (Exception ex) when (IsTransient(ex))
-            {
-                return null;
-            }
-        }
-
-        private static bool IsTransient(Exception ex)
-        {
-            for (var e = ex; e != null; e = e.InnerException!)
-            {
-                if (e is RedisConnectionException
-                    || e is RedisTimeoutException
-                    || e is System.Net.Sockets.SocketException)
-                {
-                    return true;
-                }
-            }
-            return false;
+            var raw = await GetAsync($"{LastSeenKeyPrefix}{userId}");
+            if (string.IsNullOrEmpty(raw)) return null;
+            if (DateTime.TryParse(raw, null, System.Globalization.DateTimeStyles.RoundtripKind, out var dt))
+                return dt;
+            return null;
         }
     }
 }

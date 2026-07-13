@@ -1,17 +1,17 @@
 using System.Reflection;
 using backend.Attributes;
 using backend.Hubs;
+using backend.Interfaces;
 using backend.Middleware;
 using backend.Services;
+using backend.settings;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Mapster;
 using MapsterMapper;
 using Microsoft.OpenApi.Models;
 using Serilog;
-using StackExchange.Redis;
 using backend.swagger;
-using backend.settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,33 +24,10 @@ builder.Host.UseSerilog((ctx, config) => config
     .WriteTo.Console(outputTemplate:
         "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext} | {Message}{NewLine}{Exception}"));
 
-builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
-{
-    var connStr = builder.Configuration["Redis:ConnectString"]
-                  ?? throw new InvalidOperationException(
-                      "Missing Redis:ConnectString. Set the env var on your host.");
-    var options = ConfigurationOptions.Parse(connStr);
+builder.Services.Configure<UpstashRedisSettings>(
+    builder.Configuration.GetSection("Redis"));
 
-    // Upstash-compatible defaults — ghi đè lên mọi gì connection string có thể
-    // đã thiếu/sai. Upstash Redis yêu cầu SSL và timeout đủ lớn vì server có
-    // thể trễ khi cold start.
-    options.Ssl = connStr.StartsWith("rediss://", StringComparison.OrdinalIgnoreCase);
-    options.AbortOnConnectFail = false;      // không fail app khi Redis chưa sẵn sàng
-    options.ConnectRetry = 3;
-    options.ConnectTimeout = 10_000;          // 10s cho lần kết nối đầu tiên
-    options.SyncTimeout = 5_000;
-    options.AsyncTimeout = 5_000;
-    options.KeepAlive = 60;
-    options.ReconnectRetryPolicy = new ExponentialRetry(2_000);
-
-    return ConnectionMultiplexer.Connect(options);
-});
-
-builder.Services.AddScoped<IDatabase>(sp =>
-{
-    var redis = sp.GetRequiredService<IConnectionMultiplexer>();
-    return redis.GetDatabase();
-});
+builder.Services.AddHttpClient<IKeyValueStore, UpstashRedisService>();
 
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("Cloudinary"));
