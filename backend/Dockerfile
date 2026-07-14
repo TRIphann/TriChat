@@ -32,6 +32,10 @@ WORKDIR /app
 
 # base64-decode tool is bundled in the base image; no apt needed.
 
+# Remove appsettings.json so the entrypoint generates a fresh one from env vars.
+# ASP.NET on Production always prefers env vars, so the file is not needed.
+RUN rm -f /app/appsettings.json
+
 # Copy the published artefact + our entrypoint.
 COPY --from=build /app/publish ./
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
