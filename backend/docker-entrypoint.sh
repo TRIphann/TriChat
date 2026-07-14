@@ -15,11 +15,15 @@
 #   Cloudinary__CloudName / ApiKey / ApiSecret
 #   Groq__ApiKey                             -> appsettings: Groq:ApiKey
 #   Groq__Model                              -> optional, default "llama-3.1-8b-instant"
-#   Smtp__Host / Port / Username / Password / From
+#   Resend__ApiKey / Resend__From / Resend__FromName
+#                                            -> appsettings: Resend:ApiKey / From / FromName
+#                                            Email is delivered via Resend's HTTPS API
+#                                            (https://api.resend.com/emails) because Render
+#                                            free-tier blocks outbound TCP 25/465/587.
 #   Agora__AppId / AppCertificate (note: backend doesn't use Agora directly today,
 #                                    but web/mobile need it — listed for completeness)
 #
-#   BackendAllowedOrigins                    -> CSV; injected into CORS policy
+#   BackendAllowedOrigins                    -> CSV; appended to CORS allowed origins
 
 set -euo pipefail
 
@@ -83,13 +87,12 @@ else
     "ApiKey": "${Groq__ApiKey:-}",
     "Model":  "${Groq__Model:-llama-3.1-8b-instant}"
   },
-  "Email": {
-    "SmtpHost":  "${Email__SmtpHost:-smtp.gmail.com}",
-    "Port":      "${Email__Port:-587}",
-    "Username":  "${Email__Username:-}",
-    "Password":  "${Email__Password:-}",
-    "From":      "${Email__From:-${Email__Username:-}}"
-  }
+  "Resend": {
+    "ApiKey":    "${Resend__ApiKey:-}",
+    "From":      "${Resend__From:-}",
+    "FromName":  "${Resend__FromName:-TriChat}"
+  },
+  "AllowedCorsOrigins": "${BackendAllowedOrigins:-}"
 }
 EOF
 fi
@@ -97,3 +100,4 @@ fi
 # -- 3. Forward signal handling to dotnet ----------------------------
 echo "[entrypoint] launching: dotnet backend.dll"
 exec dotnet backend.dll
+

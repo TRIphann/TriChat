@@ -39,14 +39,19 @@ services:
     env_file:
       - .env                       # secrets live in repo-root .env
     environment:
-      # SMTP env vars must match the names docker-entrypoint.sh reads (Email__SmtpHost etc.)
-      Email__SmtpHost: "smtp.gmail.com"
-      Email__Port: "587"
-      Email__Username: "${SMTP_USERNAME}"
-      Email__Password: "${SMTP_PASSWORD}"
-      Email__From: "${SMTP_USERNAME}"
-      # Tell the entrypoint where Redis lives (Docker DNS name).
-      Redis__ConnectString: "redis:6379"
+      # Redis: use Upstash REST URL (https://console.upstash.com) or
+      # the Docker DNS name "redis" if running locally with docker-compose.
+      Redis__ConnectString: "${REDIS_CONNECT_STRING:-redis:6379}"
+      Redis__RestUrl: "${REDIS_REST_URL:-}"
+      Redis__RestToken: "${REDIS_REST_TOKEN:-}"
+      # Resend for OTP email delivery (port 443 — not blocked by Render).
+      # API key from https://resend.com/api-keys
+      Resend__ApiKey: "${RESEND_API_KEY:-}"
+      Resend__From: "${RESEND_FROM:-onboarding@resend.dev}"
+      Resend__FromName: "${RESEND_FROM_NAME:-TriChat}"
+      # Extra CORS origins (CSV) to append to the allow-list.
+      # E.g. for local dev: http://localhost:5000,http://localhost:3000
+      BackendAllowedOrigins: "${BACKEND_ALLOWED_ORIGINS:-}"
       ASPNETCORE_ENVIRONMENT: "Production"
 
 volumes:

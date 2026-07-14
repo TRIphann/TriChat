@@ -29,6 +29,17 @@ builder.Services.Configure<UpstashRedisSettings>(
 
 builder.Services.AddHttpClient<IKeyValueStore, UpstashRedisService>();
 
+builder.Services.Configure<ResendSettings>(
+    builder.Configuration.GetSection("Resend"));
+
+builder.Services.AddHttpClient("resend", client =>
+{
+    client.BaseAddress = new Uri("https://api.resend.com/");
+    // Resend p95 < 1s; SMTP timeout used to be 15s. Keep a generous ceiling
+    // so the network blip on Render's free tier doesn't kill the request.
+    client.Timeout = TimeSpan.FromSeconds(15);
+});
+
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("Cloudinary"));
 
@@ -79,16 +90,27 @@ builder.Services.AddSwaggerGen(options =>
     options.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
 });
 
-// CORS — allow Netlify SPA and SignalR WebSocket connections
+// CORS — allow Netlify SPA and SignalR WebSocket connections.
+// Additional origins can be injected at runtime via the `BackendAllowedOrigins`
+// CSV env var (writes "AllowedCorsOrigins" into appsettings.json).
 var allowedOrigins = builder.Environment.IsDevelopment()
-    ? new[] {
+    ? new List<string> {
         "http://localhost:5000", "http://localhost:5244",
         "http://127.0.0.1:5000", "http://127.0.0.1:5244"
       }
-    : new[] {
+    : new List<string> {
         "https://trichatt.netlify.app",
         "https://www.trichatt.netlify.app"
       };
+
+var extraOrigins = builder.Configuration["AllowedCorsOrigins"];
+if (!string.IsNullOrWhiteSpace(extraOrigins))
+{
+    foreach (var raw in extraOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+    {
+        if (!allowedOrigins.Contains(raw)) allowedOrigins.Add(raw);
+    }
+}
 
 builder.Services.AddCors(opt =>
 {
@@ -96,7 +118,7 @@ builder.Services.AddCors(opt =>
         policy
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .WithOrigins(allowedOrigins)
+            .WithOrigins(allowedOrigins.ToArray())
             .AllowCredentials());
 });
 
@@ -115,7 +137,10 @@ app.Services.GetRequiredService<FirebaseService>();
 
 app.UseMiddleware<GlobalExceptionHandler>();
 
-if (!app.Environment.IsDevelopment())
+// Render terminates TLS at its edge proxy and forwards plain HTTP to the container.
+// UseHttpsRedirection with the default empty HTTPS config on Production throws at
+// startup on Render, so we only enable it for local dev.
+if (app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
