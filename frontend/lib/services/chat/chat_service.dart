@@ -59,18 +59,19 @@ class ChatService {
     String? replyToMessageId,
     bool isForwarded = false,
   }) async {
+    // Backend expects PascalCase field names (SendMessageRequest)
     final response = await _dio.post(
       '/api/chat/messages',
       data: {
-        'conversation_id': conversationId,
-        'type': type,
-        'content': content,
-        'is_forwarded': isForwarded,
-        if (mediaUrl != null) 'media_url': mediaUrl,
-        if (thumbnailUrl != null) 'thumbnail_url': thumbnailUrl,
-        if (fileName != null) 'file_name': fileName,
-        if (fileSize != null) 'file_size': fileSize,
-        if (replyToMessageId != null) 'reply_to_message_id': replyToMessageId,
+        'ConversationId': conversationId,
+        'Type': type,
+        'Content': content,
+        'IsForwarded': isForwarded,
+        if (mediaUrl != null) 'MediaUrl': mediaUrl,
+        if (thumbnailUrl != null) 'ThumbnailUrl': thumbnailUrl,
+        if (fileName != null) 'FileName': fileName,
+        if (fileSize != null) 'FileSize': fileSize,
+        if (replyToMessageId != null) 'ReplyToMessageId': replyToMessageId,
       },
     );
     return Message.fromJson(response.data['result']);
@@ -87,7 +88,7 @@ class ChatService {
     String mimeType = 'application/octet-stream',
   }) async {
     final formData = FormData.fromMap({
-      'conversationId': conversationId,
+      'ConversationId': conversationId,  // PascalCase
       'file': MultipartFile.fromBytes(bytes, filename: fileName),
     });
     final response = await _dio.post('/api/chat/upload', data: formData);
@@ -101,14 +102,15 @@ class ChatService {
     String? groupAvatarUrl,
     String? groupDescription,
   }) async {
+    // Backend expects PascalCase field names (CreateConversationRequest)
     final response = await _dio.post(
       '/api/chat/conversations',
       data: {
-        'type': type,
-        'participant_ids': participantIds,
-        if (groupName != null) 'group_name': groupName,
-        if (groupAvatarUrl != null) 'group_avatar_url': groupAvatarUrl,
-        if (groupDescription != null) 'group_description': groupDescription,
+        'Type': type,
+        'ParticipantIds': participantIds,
+        if (groupName != null) 'GroupName': groupName,
+        if (groupAvatarUrl != null) 'GroupAvatarUrl': groupAvatarUrl,
+        if (groupDescription != null) 'GroupDescription': groupDescription,
       },
     );
     return Conversation.fromJson(response.data['result']);
@@ -119,12 +121,13 @@ class ChatService {
     required String messageId,
     required String newContent,
   }) async {
+    // Backend expects PascalCase field names
     final response = await _dio.put(
       '/api/chat/messages',
       data: {
-        'conversation_id': conversationId,
-        'message_id': messageId,
-        'new_content': newContent,
+        'ConversationId': conversationId,
+        'MessageId': messageId,
+        'NewContent': newContent,
       },
     );
     return Message.fromJson(response.data['result']);
@@ -141,12 +144,13 @@ class ChatService {
     required String messageId,
     required String emoji,
   }) async {
+    // Backend expects PascalCase field names
     await _dio.post(
       '/api/chat/messages/react',
       data: {
-        'conversation_id': conversationId,
-        'message_id': messageId,
-        'emoji': emoji,
+        'ConversationId': conversationId,
+        'MessageId': messageId,
+        'Emoji': emoji,
       },
     );
   }
@@ -169,13 +173,14 @@ class ChatService {
     String? groupAvatarUrl,
     String? groupDescription,
   }) async {
+    // Backend expects PascalCase field names
     final response = await _dio.put(
       '/api/chat/conversations/group',
       data: {
-        'conversation_id': conversationId,
-        if (groupName != null) 'group_name': groupName,
-        if (groupAvatarUrl != null) 'group_avatar_url': groupAvatarUrl,
-        if (groupDescription != null) 'group_description': groupDescription,
+        'ConversationId': conversationId,
+        if (groupName != null) 'GroupName': groupName,
+        if (groupAvatarUrl != null) 'GroupAvatarUrl': groupAvatarUrl,
+        if (groupDescription != null) 'GroupDescription': groupDescription,
       },
     );
     return Conversation.fromJson(response.data['result']);
@@ -185,9 +190,13 @@ class ChatService {
     required String conversationId,
     required List<String> userIds,
   }) async {
+    // Backend expects PascalCase field names
     final response = await _dio.post(
       '/api/chat/conversations/participants',
-      data: {'conversation_id': conversationId, 'user_ids': userIds},
+      data: {
+        'ConversationId': conversationId,
+        'UserIds': userIds,
+      },
     );
     return Conversation.fromJson(response.data['result']);
   }
@@ -217,7 +226,8 @@ class ChatService {
   }
 
   Future<void> saveFcmToken(String token) async {
-    await _dio.post('/api/user/fcm-token', data: {'token': token});
+    // Backend expects PascalCase field name
+    await _dio.post('/api/user/fcm-token', data: {'Token': token});
   }
 
   Future<Conversation> pinMessage(String conversationId, String messageId) async {
@@ -249,14 +259,15 @@ class ChatService {
     String? emojiSet,
     bool? autoDownloadMedia,
   }) async {
+    // Backend expects PascalCase field names
     final response = await _dio.put(
       '/api/chat/conversations/$conversationId/settings',
       data: {
-        if (isNotificationEnabled != null) 'is_notification_enabled': isNotificationEnabled,
-        if (theme != null) 'theme': theme,
-        if (backgroundUrl != null) 'background_url': backgroundUrl,
-        if (emojiSet != null) 'emoji_set': emojiSet,
-        if (autoDownloadMedia != null) 'auto_download_media': autoDownloadMedia,
+        if (isNotificationEnabled != null) 'IsNotificationEnabled': isNotificationEnabled,
+        if (theme != null) 'Theme': theme,
+        if (backgroundUrl != null) 'BackgroundUrl': backgroundUrl,
+        if (emojiSet != null) 'EmojiSet': emojiSet,
+        if (autoDownloadMedia != null) 'AutoDownloadMedia': autoDownloadMedia,
       },
     );
     return response.data['result'] as Map<String, dynamic>;
@@ -266,9 +277,10 @@ class ChatService {
     String conversationId, {
     required int durationSeconds,
   }) async {
+    // Backend expects PascalCase field names
     final response = await _dio.put(
       '/api/chat/conversations/$conversationId/settings/disappearing',
-      data: {'duration_seconds': durationSeconds},
+      data: {'DurationSeconds': durationSeconds},
     );
     return response.data['result'] as Map<String, dynamic>;
   }
@@ -278,9 +290,10 @@ class ChatService {
     String userId, {
     String? nickname,
   }) async {
+    // Backend expects PascalCase field names
     final response = await _dio.put(
       '/api/chat/conversations/$conversationId/members/$userId/nickname',
-      data: {'nickname': nickname},
+      data: {'Nickname': nickname},
     );
     return response.data['result'] as Map<String, dynamic>;
   }
@@ -291,12 +304,13 @@ class ChatService {
     bool? onlyAdminCanEditInfo,
     bool? approvalRequiredToJoin,
   }) async {
+    // Backend expects PascalCase field names
     final response = await _dio.put(
       '/api/chat/conversations/$conversationId/group-settings',
       data: {
-        if (onlyAdminCanSend != null) 'only_admin_can_send': onlyAdminCanSend,
-        if (onlyAdminCanEditInfo != null) 'only_admin_can_edit_info': onlyAdminCanEditInfo,
-        if (approvalRequiredToJoin != null) 'approval_required_to_join': approvalRequiredToJoin,
+        if (onlyAdminCanSend != null) 'OnlyAdminCanSend': onlyAdminCanSend,
+        if (onlyAdminCanEditInfo != null) 'OnlyAdminCanEditInfo': onlyAdminCanEditInfo,
+        if (approvalRequiredToJoin != null) 'ApprovalRequiredToJoin': approvalRequiredToJoin,
       },
     );
     return Conversation.fromJson(response.data['result']);

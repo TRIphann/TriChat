@@ -175,7 +175,8 @@ class FriendService {
     try {
       final res = await _dio.post(
         '/api/friends/requests',
-        data: {'addressee_id': addresseeId, 'source_type': sourceType},
+        // Backend uses PascalCase (snake_case is configured globally but DTOs use PascalCase)
+        data: {'AddresseeId': addresseeId, 'SourceType': sourceType},
       );
       final data = res.data as Map<String, dynamic>;
       return FriendshipModel.fromJson(data['result'] as Map<String, dynamic>);
@@ -191,7 +192,8 @@ class FriendService {
     try {
       final res = await _dio.patch(
         '/api/friends/requests/$friendshipId',
-        data: {'accept': accept},
+        // Backend expects PascalCase field names
+        data: {'Accept': accept},
       );
       final data = res.data as Map<String, dynamic>;
       return FriendshipModel.fromJson(data['result'] as Map<String, dynamic>);

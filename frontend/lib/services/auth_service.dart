@@ -100,16 +100,17 @@ class AuthService {
 
       final user = credential.user!;
 
+      // Backend expects PascalCase field names
       await DioClient.instance.post(
         '/api/user',
         data: {
-          'id': user.uid,
-          'first_name': req.firstName,
-          'last_name': req.lastName,
-          'email': req.email,
-          'password': req.password,
-          'date_of_birth': req.dateOfBirth,
-          'bio': req.bio ?? '',
+          'Id': user.uid,
+          'FirstName': req.firstName,
+          'LastName': req.lastName,
+          'Email': req.email,
+          'Password': req.password,
+          'DateOfBirth': req.dateOfBirth,
+          'Bio': req.bio ?? '',
         },
       );
     } on FirebaseAuthException catch (e) {
@@ -149,9 +150,10 @@ class AuthService {
 
   static Future<void> sendOtp(String email) async {
     try {
+      // Backend expects JSON body (FromBody), not query parameters
       await DioClient.instance.post(
         '/api/otp/generate',
-        queryParameters: {'email': email.trim()},
+        data: {'email': email.trim()},
       );
     } on DioException catch (e) {
       throw Exception(_extractErrorMessage(e, 'Không thể gửi OTP'));
@@ -162,9 +164,10 @@ class AuthService {
 
   static Future<bool> verifyOtp(String email, String otp) async {
     try {
+      // Backend expects JSON body (FromBody), not query parameters
       final response = await DioClient.instance.post(
         '/api/otp/verify',
-        queryParameters: {'email': email.trim(), 'otp': otp.trim()},
+        data: {'email': email.trim(), 'otp': otp.trim()},
       );
       return response.statusCode == 200;
     } on DioException catch (e) {
@@ -221,13 +224,14 @@ class AuthService {
     try {
       final fullName = '$firstName $lastName'.trim();
 
+      // Backend expects PascalCase field names (UpdateUserRequest)
       final response = await DioClient.instance.put(
         '/api/user/me',
         data: {
-          'firstName': firstName,
-          'lastName': lastName,
-          if (dateOfBirth != null) 'dateOfBirth': dateOfBirth,
-          if (bio != null) 'bio': bio,
+          'FirstName': firstName,
+          'LastName': lastName,
+          'Bio': bio ?? '',
+          if (dateOfBirth != null) 'DateOfBirth': dateOfBirth,
         },
       );
 

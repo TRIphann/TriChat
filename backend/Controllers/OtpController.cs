@@ -29,7 +29,7 @@ namespace backend.Controllers
         [AllowAnonymous]
         [ProducesResponseType(typeof(ApiResponse<OtpResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<ErrorDetail>), StatusCodes.Status422UnprocessableEntity)]
-        public async Task<IActionResult> GenerateOtp([FromQuery] GenerateOtpRequest request)
+        public async Task<IActionResult> GenerateOtp([FromBody] GenerateOtpRequest request)
         {
             var generatedOtp = await otpService.GenerateOtpAsync(request.Email);
 
@@ -56,7 +56,7 @@ namespace backend.Controllers
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<ErrorDetail>), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ApiResponse<ErrorDetail>), StatusCodes.Status422UnprocessableEntity)]
-        public async Task<IActionResult> VerifyOtp([FromQuery] VerifyOtpRequest request)
+        public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest request)
         {
             await otpService.VerifyOtpAsync(request.Email, request.Otp);
             return Ok(ApiResponse<object>.SuccessResponse(true, "OTP verified successfully"));

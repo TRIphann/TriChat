@@ -118,23 +118,16 @@ class FeedService {
     try {
       late final Response response;
 
-      if (image == null) {
-        response = await _dio.post(
-          '/api/feed/$feedId/comments',
-          data: {
-            'Content': content,
-          },
-        );
-      } else {
-        final formData = FormData.fromMap({
-          'Content': content,
+      // Backend expects multipart/form-data, not JSON
+      final formData = FormData.fromMap({
+        'Content': content,
+        if (image != null)
           'File': MultipartFile.fromBytes(
             await image.readAsBytes(),
             filename: image.name.isNotEmpty ? image.name : 'comment.jpg',
           ),
-        });
-        response = await _dio.post('/api/feed/$feedId/comments', data: formData);
-      }
+      });
+      response = await _dio.post('/api/feed/$feedId/comments', data: formData);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = response.data as Map<String, dynamic>;
