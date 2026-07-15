@@ -9,11 +9,26 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Mapster;
 using MapsterMapper;
+using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using backend.swagger;
 
+// Disable file watching on containerised Linux (avoids inotify limit on Render)
+if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Development")
+{
+    AppContext.SetSwitch("Microsoft.AspNetCore.Server.Kestrel.AllowSynchronousIO", true);
+}
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Clear default config sources (appsettings.json) to avoid inotify on Linux containers
+// All config must come from environment variables
+if (builder.Environment.IsProduction())
+{
+    builder.Configuration.Sources.Clear();
+    builder.Configuration.AddEnvironmentVariables();
+}
 
 builder.Services.AddHostedService<StoryExpirationService>();
 builder.Services.AddHostedService<DisappearingMessageService>();

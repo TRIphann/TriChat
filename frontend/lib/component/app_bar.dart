@@ -22,7 +22,7 @@ class ZaloAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           colors: AppColors.appBarGradient,
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,

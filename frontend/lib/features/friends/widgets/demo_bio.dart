@@ -20,10 +20,10 @@ class UserProfileScreen extends StatefulWidget {
 }
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
-  static const Color primaryColor = AppColors.primaryOrange;
-  static const Color lightBlue = Color(0xFFE5EFFF);
-  static const Color backgroundColor = Color(0xFFF1F2F4);
-  static const Color greyText = Color(0xFF767E89);
+  static final Color primaryColor = AppColors.primaryOrange;
+  static final Color lightBlue = Color(0xFFE5EFFF);
+  static final Color backgroundColor = Color(0xFFF1F2F4);
+  static final Color greyText = Color(0xFF767E89);
 
   RelationStatus _getRelationshipStatus(FriendProvider provider) {
     final userId = widget.user.id;
@@ -140,8 +140,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
         if (!isFriend) ...[
           const SizedBox(height: 12),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 40),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
             child: Text(
               "Bạn chưa thể xem nhật ký của đối phương khi chưa là bạn bè",
               textAlign: TextAlign.center,

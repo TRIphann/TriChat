@@ -890,7 +890,7 @@ class _CommentItem extends StatelessWidget {
   }
 
   Color _avatarColor(String name) {
-    const colors = [
+    final colors = [
       AppColors.primaryOrange,
       AppColors.primaryOrangeLight,
       AppColors.success,

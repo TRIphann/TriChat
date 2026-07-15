@@ -83,7 +83,7 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
       backgroundColor: AppColors.creamBackground,
       appBar: AppBar(
         flexibleSpace: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: AppColors.appBarGradient,
               begin: Alignment.topLeft,

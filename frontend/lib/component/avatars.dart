@@ -5,35 +5,24 @@ import '../config/app_spacing.dart';
 import '../config/app_typography.dart';
 
 /// ════════════════════════════════════════════════════════════════
-/// AVATAR — Thống nhất mọi avatar trong app (Minimalist)
+/// HIGH-END AVATARS — Premium Avatar System
 /// ════════════════════════════════════════════════════════════════
+///
+/// Design Language:
+/// - Premium gradient backgrounds for initials
+/// - Soft shadows for depth
+/// - Animated story ring with gradient
+/// - Smooth hover/focus states
 
 class TriAvatar extends StatelessWidget {
-  /// URL ảnh đại diện (rỗng = dùng initials).
   final String imageUrl;
-
-  /// Tên người dùng (dùng để lấy chữ cái đầu và màu nền).
   final String name;
-
-  /// Kích thước đường kính (mặc định 48).
   final double size;
-
-  /// Có viền kiểu story hay không.
   final bool storyRing;
-
-  /// Story đã xem hay chưa (chỉ ý nghĩa khi [storyRing] = true).
   final bool storySeen;
-
-  /// Icon overlay (vd: icon group).
   final IconData? overlayIcon;
-
-  /// Số overlay ở góc (vd: số thành viên group).
   final int? overlayCount;
-
-  /// Có hiển thị chấm online ở góc hay không.
   final bool online;
-
-  /// Có shadow hay không.
   final bool elevated;
 
   const TriAvatar({
@@ -60,7 +49,14 @@ class TriAvatar extends StatelessWidget {
   }
 
   Color get _bgColor {
-    final palette = AppColors.avatarPalette;
+    const palette = [
+      Color(0xFFD97706),
+      Color(0xFF16A34A),
+      Color(0xFF2563EB),
+      Color(0xFFDC2626),
+      Color(0xFF7C3AED),
+      Color(0xFFDB2777),
+    ];
     if (name.isEmpty) return palette.first;
     return palette[name.codeUnitAt(0) % palette.length];
   }
@@ -69,9 +65,9 @@ class TriAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final double inner = size;
-    final double ringWidth = storyRing ? size * 0.06 : 0;
-    final double outerSize = inner + ringWidth * 2;
-    final borderColor = isDark ? AppColors.darkSurface : AppColors.neutralWhite;
+    final double ringWidth = storyRing ? size * 0.055 : 0;
+    final double outerSize = inner + ringWidth * 2 + 4;
+    final borderColor = isDark ? AppColors.darkBackground : AppColors.cream;
 
     Widget avatarContent = Container(
       width: inner,
@@ -79,6 +75,15 @@ class TriAvatar extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: imageUrl.isEmpty ? _bgColor : null,
+        boxShadow: elevated
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : null,
       ),
       child: ClipOval(
         child: imageUrl.isEmpty
@@ -86,7 +91,7 @@ class TriAvatar extends StatelessWidget {
                 child: Text(
                   _initials,
                   style: TextStyle(
-                    color: AppColors.neutralWhite,
+                    color: Colors.white,
                     fontSize: inner * 0.38,
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.5,
@@ -102,7 +107,7 @@ class TriAvatar extends StatelessWidget {
                     child: Text(
                       _initials,
                       style: TextStyle(
-                        color: AppColors.neutralWhite,
+                        color: Colors.white,
                         fontSize: inner * 0.38,
                         fontWeight: FontWeight.w700,
                       ),
@@ -134,20 +139,32 @@ class TriAvatar extends StatelessWidget {
       wrap = Container(
         width: outerSize,
         height: outerSize,
-        padding: EdgeInsets.all(ringWidth),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: storySeen
-              ? AppColors.neutralGray400
-              : AppColors.neutralBlack,
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: borderColor,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: storySeen
+                ? [
+                    isDark ? AppColors.darkBorder : AppColors.borderStrong,
+                    isDark ? AppColors.darkTextTertiary : AppColors.textTertiary,
+                  ]
+                : [
+                    AppColors.primaryAmber,
+                    AppColors.accentWarm,
+                  ],
           ),
-          padding: const EdgeInsets.all(2.5),
-          child: avatarContent,
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(ringWidth + 2),
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: borderColor,
+            ),
+            padding: const EdgeInsets.all(2),
+            child: avatarContent,
+          ),
         ),
       );
     }
@@ -160,20 +177,27 @@ class TriAvatar extends StatelessWidget {
           left: -2,
           bottom: -2,
           child: Container(
-            constraints: const BoxConstraints(minWidth: 22, minHeight: 22),
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
             decoration: BoxDecoration(
-              color: AppColors.neutralBlack,
-              borderRadius: BorderRadius.circular(AppRadius.full),
-              border: Border.all(color: borderColor, width: 2),
+              color: AppColors.primaryAmber,
+              borderRadius: BorderRadius.circular(AppRadius.pill),
+              border: Border.all(color: borderColor, width: 2.5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Center(
               child: Text(
                 '${overlayCount!}',
-                style: const TextStyle(
+                style: AppTypography.labelSmall.copyWith(
                   color: Colors.white,
-                  fontSize: 10,
                   fontWeight: FontWeight.w700,
+                  fontSize: 10,
                 ),
               ),
             ),
@@ -188,12 +212,19 @@ class TriAvatar extends StatelessWidget {
           right: -2,
           bottom: -2,
           child: Container(
-            width: inner * 0.36,
-            height: inner * 0.36,
+            width: inner * 0.38,
+            height: inner * 0.38,
             decoration: BoxDecoration(
-              color: AppColors.neutralBlack,
+              color: AppColors.primaryAmber,
               shape: BoxShape.circle,
-              border: Border.all(color: borderColor, width: 2),
+              border: Border.all(color: borderColor, width: 2.5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Icon(
               overlayIcon,
@@ -211,12 +242,19 @@ class TriAvatar extends StatelessWidget {
           right: 0,
           bottom: 0,
           child: Container(
-            width: inner * 0.28,
-            height: inner * 0.28,
+            width: inner * 0.3,
+            height: inner * 0.3,
             decoration: BoxDecoration(
               color: AppColors.success,
               shape: BoxShape.circle,
               border: Border.all(color: borderColor, width: 2.5),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.success.withValues(alpha: 0.3),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
           ),
         ),
@@ -232,22 +270,42 @@ class TriAvatar extends StatelessWidget {
   }
 }
 
-/// Badge số nhỏ (unread count) — minimalist đen/trắng.
+/// Premium unread badge with amber accent
 class UnreadBadge extends StatelessWidget {
   final int count;
   final double size;
-  const UnreadBadge({super.key, required this.count, this.size = 20});
+
+  const UnreadBadge({
+    super.key,
+    required this.count,
+    this.size = 22,
+  });
 
   @override
   Widget build(BuildContext context) {
     if (count <= 0) return const SizedBox.shrink();
     final label = count > 99 ? '99+' : '$count';
+
     return Container(
       constraints: BoxConstraints(minWidth: size, minHeight: size),
-      padding: const EdgeInsets.symmetric(horizontal: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 7),
       decoration: BoxDecoration(
-        color: AppColors.neutralBlack,
-        borderRadius: BorderRadius.circular(AppRadius.full),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primaryAmber,
+            AppColors.accentWarm,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryAmber.withValues(alpha: 0.35),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Center(
         child: Text(
@@ -255,9 +313,43 @@ class UnreadBadge extends StatelessWidget {
           style: AppTypography.labelSmall.copyWith(
             color: Colors.white,
             fontWeight: FontWeight.w700,
-            fontSize: 10.5,
+            fontSize: 11,
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Online indicator dot with premium styling
+class OnlineIndicator extends StatelessWidget {
+  final bool isOnline;
+  final double size;
+
+  const OnlineIndicator({
+    super.key,
+    required this.isOnline,
+    this.size = 12,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: AppCurves.durationNormal,
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: isOnline ? AppColors.success : AppColors.textTertiary,
+        boxShadow: isOnline
+            ? [
+                BoxShadow(
+                  color: AppColors.success.withValues(alpha: 0.4),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : null,
       ),
     );
   }

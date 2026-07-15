@@ -81,7 +81,7 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
             backgroundColor: AppColors.creamWhite,
             elevation: 0.5,
             shadowColor: AppColors.accentBrown.withValues(alpha: 0.08),
-            leading: const BackButton(color: AppColors.primaryOrange),
+            leading: BackButton(color: AppColors.primaryOrange),
             titleSpacing: AppSpacing.sm,
             title: Text(
               'Thêm bạn',
@@ -148,7 +148,7 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
+              gradient: LinearGradient(
                 colors: AppColors.brandGradient,
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,

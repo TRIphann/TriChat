@@ -38,7 +38,7 @@ class LoadingDialog {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(
+                SizedBox(
                   width: 38,
                   height: 38,
                   child: CircularProgressIndicator(

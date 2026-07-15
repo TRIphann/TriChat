@@ -31,8 +31,16 @@ import 'package:frontend/views/contacts/contacts_view.dart';
 import 'package:provider/provider.dart';
 
 /// ════════════════════════════════════════════════════════════════
-/// ChatListView — TriChat (Minimalist Black & White)
+/// HIGH-END CHAT LIST VIEW — Premium Messaging Screen
 /// ════════════════════════════════════════════════════════════════
+///
+/// Design Language:
+/// - Premium Editorial with warm cream tones
+/// - Double-Bezel card architecture
+/// - Soft diffused shadows
+/// - Amber accent for CTAs
+/// - Large squircle radii (24px+)
+
 class ChatListView extends StatefulWidget {
   const ChatListView({super.key});
 
@@ -40,13 +48,17 @@ class ChatListView extends StatefulWidget {
   State<ChatListView> createState() => ChatListViewState();
 }
 
-class ChatListViewState extends State<ChatListView> {
+class ChatListViewState extends State<ChatListView>
+    with TickerProviderStateMixin {
   String _filterMode = 'all';
   int _selectedNavIndex = 0;
   Conversation? _selectedConversation;
   bool _coldStartCallHandled = false;
   bool _callScreenOpened = false;
   late CallProvider _callProvider;
+
+  late AnimationController _fadeController;
+  late Animation<double> _fadeAnimation;
 
   void switchTab(int index) {
     setState(() => _selectedNavIndex = index);
@@ -55,21 +67,26 @@ class ChatListViewState extends State<ChatListView> {
   @override
   void initState() {
     super.initState();
+
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeOutCubic,
+    );
+    _fadeController.forward();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       const hasPendingFeedbackEvaluation = true;
       if (hasPendingFeedbackEvaluation) {
         _showFeedbackFlow(context);
       }
     });
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-      ),
-    );
+
     Future.microtask(() {
       final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
-
       final provider = context.read<FriendProvider>();
       if (uid.isNotEmpty) {
         provider.setCurrentUid(uid);
@@ -105,6 +122,7 @@ class ChatListViewState extends State<ChatListView> {
     _callProvider.removeListener(_onCallStateChanged);
     CallNotificationService.acceptedCall.removeListener(_onCallAcceptedNotifier);
     CallNotificationService.declinedCall.removeListener(_onCallDeclinedNotifier);
+    _fadeController.dispose();
     super.dispose();
   }
 
@@ -270,15 +288,18 @@ class ChatListViewState extends State<ChatListView> {
             final isVeryWideScreen = screenWidth >= 1200;
 
             return Scaffold(
-              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              backgroundColor: isDark ? AppColors.darkBackground : AppColors.cream,
               body: SafeArea(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    if (isWideScreen) {
-                      return _buildWideLayout(t, isDark, isVeryWideScreen);
-                    }
-                    return _buildMobileView(t, isDark);
-                  },
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      if (isWideScreen) {
+                        return _buildWideLayout(t, isDark, isVeryWideScreen);
+                      }
+                      return _buildMobileView(t, isDark);
+                    },
+                  ),
                 ),
               ),
             );
@@ -303,7 +324,7 @@ class ChatListViewState extends State<ChatListView> {
 
     final theme = Theme.of(context);
     return Container(
-      color: theme.scaffoldBackgroundColor,
+      color: isDark ? AppColors.darkBackground : AppColors.cream,
       child: Row(
         children: [
           _buildSidebar(theme),
@@ -329,7 +350,7 @@ class ChatListViewState extends State<ChatListView> {
   Widget _buildMobileView(AppLocalizations t, bool isDark) {
     final theme = Theme.of(context);
     return Container(
-      color: theme.scaffoldBackgroundColor,
+      color: isDark ? AppColors.darkBackground : AppColors.cream,
       child: Column(
         children: [
           Expanded(
@@ -344,39 +365,42 @@ class ChatListViewState extends State<ChatListView> {
               ],
             ),
           ),
-          _buildBottomNavigation(theme),
+          _buildBottomNavigation(theme, isDark),
         ],
       ),
     );
   }
 
   // ════════════════════════════════════════════════════════════════
-  // CỘT 1 — SIDEBAR (Minimalist — đơn sắc đen)
+  // PREMIUM SIDEBAR
   // ════════════════════════════════════════════════════════════════
   Widget _buildSidebar(ThemeData theme) {
     final isDark = theme.brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.darkSurface : AppColors.neutralBlack;
+    final bgColor = isDark ? AppColors.darkSurface : AppColors.textPrimary;
+
     return Container(
-      width: 72,
+      width: 80,
       decoration: BoxDecoration(
         color: bgColor,
-        border: Border(
-          right: BorderSide(
-            color: isDark ? AppColors.darkDivider : AppColors.neutralGray800,
-            width: 1,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 20,
+            offset: const Offset(4, 0),
           ),
-        ),
+        ],
       ),
       child: Column(
         children: [
           const SizedBox(height: AppSpacing.lg),
-          _buildUserAvatar(),
+          _buildUserAvatar(isDark),
           const SizedBox(height: AppSpacing.xl),
           _buildSidebarItem(
             Icons.chat_bubble_rounded,
             Icons.chat_bubble_outline_rounded,
             0,
             theme,
+            isDark,
             tooltip: 'Tin nhắn',
           ),
           _buildSidebarItem(
@@ -384,6 +408,7 @@ class ChatListViewState extends State<ChatListView> {
             Icons.people_outline_rounded,
             1,
             theme,
+            isDark,
             tooltip: 'Bạn bè',
           ),
           _buildSidebarItem(
@@ -391,6 +416,7 @@ class ChatListViewState extends State<ChatListView> {
             Icons.auto_stories_outlined,
             2,
             theme,
+            isDark,
             tooltip: 'Bảng tin',
           ),
           _buildSidebarItem(
@@ -398,6 +424,7 @@ class ChatListViewState extends State<ChatListView> {
             Icons.person_outline_rounded,
             3,
             theme,
+            isDark,
             tooltip: 'Cá nhân',
           ),
           const Spacer(),
@@ -406,6 +433,7 @@ class ChatListViewState extends State<ChatListView> {
             Icons.settings_outlined,
             4,
             theme,
+            isDark,
             tooltip: 'Cài đặt',
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -414,14 +442,27 @@ class ChatListViewState extends State<ChatListView> {
     );
   }
 
-  Widget _buildUserAvatar() {
+  Widget _buildUserAvatar(bool isDark) {
     final firebaseUser = FirebaseAuth.instance.currentUser;
     final avatarUrl = firebaseUser?.photoURL ?? '';
     final displayName = firebaseUser?.displayName ?? 'U';
-    return TriAvatar(
-      imageUrl: avatarUrl,
-      name: displayName,
-      size: 44,
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: TriAvatar(
+        imageUrl: avatarUrl,
+        name: displayName,
+        size: 48,
+        elevated: true,
+      ),
     );
   }
 
@@ -429,30 +470,38 @@ class ChatListViewState extends State<ChatListView> {
     IconData activeIcon,
     IconData inactiveIcon,
     int index,
-    ThemeData theme, {
+    ThemeData theme,
+    bool isDark, {
     String? tooltip,
   }) {
     final isSelected = _selectedNavIndex == index;
-    final Widget item = Padding(
+    final activeColor = isDark ? AppColors.darkTextPrimary : AppColors.textWhite;
+    final inactiveColor = isDark ? AppColors.darkTextTertiary : AppColors.textTertiary;
+
+    Widget item = Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Container(
+      child: AnimatedContainer(
+        duration: AppCurves.durationNormal,
         margin: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.neutralGray800 : Colors.transparent,
-          borderRadius: BorderRadius.circular(AppRadius.md),
+          color: isSelected
+              ? (isDark ? AppColors.darkElevated : AppColors.primaryAmberLight)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
         child: Stack(
           children: [
             if (isSelected)
               Positioned(
                 left: 0,
-                top: 8,
-                bottom: 8,
-                child: Container(
-                  width: 2,
+                top: 10,
+                bottom: 10,
+                child: AnimatedContainer(
+                  duration: AppCurves.durationNormal,
+                  width: 3,
                   decoration: BoxDecoration(
-                    color: AppColors.neutralWhite,
-                    borderRadius: BorderRadius.circular(1),
+                    color: isDark ? AppColors.primaryAmber : AppColors.primaryAmber,
+                    borderRadius: BorderRadius.circular(1.5),
                   ),
                 ),
               ),
@@ -463,12 +512,14 @@ class ChatListViewState extends State<ChatListView> {
                   _selectedConversation = null;
                 });
               },
-              icon: Icon(
-                isSelected ? activeIcon : inactiveIcon,
-                color: isSelected
-                    ? AppColors.neutralWhite
-                    : AppColors.neutralGray400,
-                size: 22,
+              icon: AnimatedSwitcher(
+                duration: AppCurves.durationFast,
+                child: Icon(
+                  isSelected ? activeIcon : inactiveIcon,
+                  key: ValueKey(isSelected),
+                  color: isSelected ? activeColor : inactiveColor,
+                  size: 24,
+                ),
               ),
             ),
           ],
@@ -480,7 +531,7 @@ class ChatListViewState extends State<ChatListView> {
   }
 
   // ════════════════════════════════════════════════════════════════
-  // CỘT 2 — LIST
+  // PREMIUM CHAT LIST PANEL
   // ════════════════════════════════════════════════════════════════
   Widget _buildChatListPanel(AppLocalizations t, bool isDark) {
     return Column(
@@ -501,15 +552,18 @@ class ChatListViewState extends State<ChatListView> {
     if (isMobile) {
       return Container(
         padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
           AppSpacing.md,
-          AppSpacing.md,
-          AppSpacing.md,
+          AppSpacing.lg,
           AppSpacing.md,
         ),
         decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
+          color: isDark ? AppColors.darkCard : AppColors.creamWhite,
           border: Border(
-            bottom: BorderSide(color: theme.dividerColor, width: 1),
+            bottom: BorderSide(
+              color: isDark ? AppColors.darkBorder : AppColors.borderDefault,
+              width: 1,
+            ),
           ),
         ),
         child: SafeArea(
@@ -523,16 +577,16 @@ class ChatListViewState extends State<ChatListView> {
                         FirebaseAuth.instance.currentUser?.photoURL ?? '',
                     name:
                         FirebaseAuth.instance.currentUser?.displayName ?? 'U',
-                    size: 36,
+                    size: 40,
                   ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Text(
                       t.get('messages'),
-                      style: AppTypography.titleLarge.copyWith(
-                        color: theme.colorScheme.onSurface,
+                      style: AppTypography.headlineMedium.copyWith(
+                        color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: -0.3,
+                        letterSpacing: -0.5,
                       ),
                     ),
                   ),
@@ -540,11 +594,14 @@ class ChatListViewState extends State<ChatListView> {
                     Icons.search_rounded,
                     () => _openSearchOverlay(context),
                     theme,
+                    isDark,
                   ),
+                  const SizedBox(width: AppSpacing.sm),
                   _buildHeaderIconButton(
                     Icons.qr_code_scanner_rounded,
                     () {},
                     theme,
+                    isDark,
                   ),
                 ],
               ),
@@ -563,9 +620,12 @@ class ChatListViewState extends State<ChatListView> {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: isDark ? AppColors.darkCard : AppColors.creamWhite,
         border: Border(
-          bottom: BorderSide(color: theme.dividerColor, width: 1),
+          bottom: BorderSide(
+            color: isDark ? AppColors.darkBorder : AppColors.borderDefault,
+            width: 1,
+          ),
         ),
       ),
       child: SafeArea(
@@ -580,11 +640,9 @@ class ChatListViewState extends State<ChatListView> {
               ),
               child: Text(
                 t.get('messages').toString().toUpperCase(),
-                style: AppTypography.labelMedium.copyWith(
-                  color: theme.colorScheme.onSurface,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1.2,
-                  fontSize: 12,
+                style: AppTypography.eyebrow.copyWith(
+                  color: AppColors.primaryAmber,
+                  letterSpacing: 1.5,
                 ),
               ),
             ),
@@ -601,6 +659,7 @@ class ChatListViewState extends State<ChatListView> {
                   Icons.person_add_alt_1_outlined,
                   () {},
                   theme,
+                  isDark,
                   tooltip: 'Thêm bạn',
                 ),
                 _buildHeaderIconButton(
@@ -612,6 +671,7 @@ class ChatListViewState extends State<ChatListView> {
                     ),
                   ),
                   theme,
+                  isDark,
                   tooltip: 'Tạo nhóm',
                 ),
               ],
@@ -625,32 +685,33 @@ class ChatListViewState extends State<ChatListView> {
   Widget _buildHeaderIconButton(
     IconData icon,
     VoidCallback onTap,
-    ThemeData theme, {
-    Color? iconColor,
+    ThemeData theme,
+    bool isDark, {
     String? tooltip,
   }) {
-    final isDark = theme.brightness == Brightness.dark;
     final btn = Material(
-      color: Colors.transparent,
+      color: isDark ? AppColors.darkElevated : AppColors.creamSurface,
       shape: const CircleBorder(),
       child: InkWell(
         customBorder: const CircleBorder(),
         onTap: onTap,
         child: Container(
-          width: 36,
-          height: 36,
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
             shape: BoxShape.circle,
-            border: Border.all(
-              color: theme.dividerColor,
-              width: 1,
-            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Icon(
             icon,
-            color: iconColor ?? theme.colorScheme.onSurface,
-            size: 18,
+            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+            size: 20,
           ),
         ),
       ),
@@ -661,59 +722,6 @@ class ChatListViewState extends State<ChatListView> {
   void _openSearchOverlay(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const FriendSearchPage()),
-    );
-  }
-
-  Widget _buildFilterTabs(AppLocalizations t, ThemeData theme) {
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(color: theme.dividerColor, width: 1),
-        ),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      height: 44,
-      child: Row(
-        children: [
-          _buildFilterTab(t.get('all'), 'all', theme),
-          _buildFilterTab(t.get('unread'), 'unread', theme),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterTab(String label, String value, ThemeData theme) {
-    final isSelected = _filterMode == value;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _filterMode = value),
-        behavior: HitTestBehavior.opaque,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: isSelected
-                    ? theme.colorScheme.onSurface
-                    : Colors.transparent,
-                width: 2,
-              ),
-            ),
-          ),
-          child: AnimatedDefaultTextStyle(
-            duration: const Duration(milliseconds: 200),
-            style: AppTypography.bodyMedium.copyWith(
-              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-              color: isSelected
-                  ? theme.colorScheme.onSurface
-                  : theme.hintColor,
-            ),
-            child: Text(label),
-          ),
-        ),
-      ),
     );
   }
 
@@ -733,14 +741,14 @@ class ChatListViewState extends State<ChatListView> {
             : chat.conversations;
 
         if (list.isEmpty) {
-          return _buildEmptyState(t);
+          return _buildEmptyState(t, isDark);
         }
 
         return RefreshIndicator(
-          color: AppColors.neutralBlack,
+          color: AppColors.primaryAmber,
           onRefresh: () => chat.loadConversations(),
           child: ListView.builder(
-            padding: EdgeInsets.zero,
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
             itemCount: list.length,
             itemBuilder: (context, index) {
               final conversation = list[index];
@@ -752,62 +760,70 @@ class ChatListViewState extends State<ChatListView> {
     );
   }
 
-  Widget _buildEmptyState(AppLocalizations t) {
+  Widget _buildEmptyState(AppLocalizations t, bool isDark) {
     final theme = Theme.of(context);
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
+        padding: const EdgeInsets.all(AppSpacing.xxl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 80,
-              height: 80,
+              width: 100,
+              height: 100,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: theme.brightness == Brightness.dark
-                    ? AppColors.darkCard
-                    : AppColors.neutralGray100,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDark
+                      ? [AppColors.darkElevated, AppColors.darkSurface]
+                      : [AppColors.creamWhite, AppColors.creamSurface],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
               child: Icon(
                 _filterMode == 'unread'
                     ? Icons.mark_chat_read_outlined
                     : Icons.chat_bubble_outline_rounded,
-                size: 36,
-                color: theme.colorScheme.onSurface,
+                size: 44,
+                color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
               ),
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.xl),
             Text(
               _filterMode == 'unread'
                   ? 'Không có tin nhắn chưa đọc'
                   : 'Chưa có cuộc trò chuyện nào',
               textAlign: TextAlign.center,
-              style: AppTypography.titleMedium.copyWith(
+              style: AppTypography.titleLarge.copyWith(
                 fontWeight: FontWeight.w700,
-                color: theme.colorScheme.onSurface,
+                color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
               ),
             ),
-            const SizedBox(height: AppSpacing.xs),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               _filterMode == 'unread'
                   ? 'Mọi tin nhắn của bạn đã được đọc.'
-                  : 'Hãy kết bạn để bắt đầu nhắn tin — cuộc trò chuyện sẽ xuất hiện ở đây.',
+                  : 'Hãy kết bạn để bắt đầu nhắn tin.',
               textAlign: TextAlign.center,
               style: AppTypography.bodyMedium.copyWith(
-                color: theme.hintColor,
+                color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
                 height: 1.5,
               ),
             ),
             if (_filterMode != 'unread') ...[
-              const SizedBox(height: AppSpacing.lg),
-              SizedBox(
-                height: 44,
-                child: PrimaryButton(
-                  label: 'Tìm bạn bè ngay',
-                  icon: Icons.person_search_rounded,
-                  onPressed: () => _openSearchOverlay(context),
-                ),
+              const SizedBox(height: AppSpacing.xl),
+              PrimaryButton(
+                label: 'Tìm bạn bè ngay',
+                icon: Icons.person_search_rounded,
+                onPressed: () => _openSearchOverlay(context),
               ),
             ],
           ],
@@ -818,66 +834,12 @@ class ChatListViewState extends State<ChatListView> {
 
   Widget _buildErrorState(
       String? error, VoidCallback onRetry, AppLocalizations t) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.errorLight,
-              ),
-              child: const Icon(
-                Icons.error_outline_rounded,
-                size: 36,
-                color: AppColors.error,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Text(
-              'Bắt đầu cuộc trò chuyện mới',
-              textAlign: TextAlign.center,
-              style: AppTypography.titleMedium.copyWith(
-                fontWeight: FontWeight.w700,
-                color: theme.colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              'Kết bạn để bắt đầu nhắn tin — mọi cuộc trò chuyện sẽ xuất hiện ở đây.',
-              textAlign: TextAlign.center,
-              style: AppTypography.bodyMedium.copyWith(
-                color: theme.hintColor,
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            SizedBox(
-              height: 44,
-              child: PrimaryButton(
-                label: 'Tìm bạn bè ngay',
-                icon: Icons.person_search_rounded,
-                onPressed: () => _openSearchOverlay(context),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            TextButton(
-              onPressed: onRetry,
-              child: Text(
-                'Thử lại',
-                style: AppTypography.labelMedium.copyWith(
-                  color: theme.hintColor,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return ErrorStateView(
+      error: error,
+      onRetry: onRetry,
+      title: 'Lỗi tải cuộc trò chuyện',
+      message: 'Vui lòng thử lại.',
     );
   }
 
@@ -895,121 +857,155 @@ class ChatListViewState extends State<ChatListView> {
     final isSelected = _selectedConversation?.id == conversation.id;
     final otherUserId = conversation.otherUserId;
 
-    return InkWell(
-      onTap: () => _onConversationTap(conversation),
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.xs,
+      ),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
+        duration: AppCurves.durationNormal,
         decoration: BoxDecoration(
           color: isSelected
-              ? (isDark ? AppColors.darkCard : AppColors.neutralGray100)
-              : Colors.transparent,
-          border: Border(
-            bottom: BorderSide(color: theme.dividerColor, width: 0.5),
+              ? (isDark ? AppColors.darkElevated : AppColors.primaryAmberLight.withValues(alpha: 0.3))
+              : (isDark ? AppColors.darkCard : AppColors.creamWhite),
+          borderRadius: BorderRadius.circular(AppRadius.xl),
+          border: Border.all(
+            color: isSelected
+                ? AppColors.primaryAmber
+                : (isDark ? AppColors.darkBorder : AppColors.borderDefault),
+            width: isSelected ? 1.5 : 1,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md + 2,
-          vertical: AppSpacing.md,
-        ),
-        child: Row(
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                TriAvatar(
-                  imageUrl: conversation.displayAvatar,
-                  name: name,
-                  size: 48,
-                  overlayCount: isGroup ? memberCount : null,
-                ),
-                if (!isGroup && otherUserId != null)
-                  Selector<ChatProvider, bool>(
-                    selector: (_, p) => p.isUserOnline(otherUserId),
-                    builder: (_, isOnline, __) => isOnline
-                        ? Positioned(
-                            right: 0,
-                            bottom: 0,
-                            child: Container(
-                              width: 12,
-                              height: 12,
-                              decoration: BoxDecoration(
-                                color: AppColors.success,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: theme.colorScheme.surface,
-                                  width: 2,
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(AppRadius.xl),
+          child: InkWell(
+            onTap: () => _onConversationTap(conversation),
+            borderRadius: BorderRadius.circular(AppRadius.xl),
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Row(
+                children: [
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      TriAvatar(
+                        imageUrl: conversation.displayAvatar,
+                        name: name,
+                        size: 52,
+                        overlayCount: isGroup ? memberCount : null,
+                      ),
+                      if (!isGroup && otherUserId != null)
+                        Selector<ChatProvider, bool>(
+                          selector: (_, p) => p.isUserOnline(otherUserId),
+                          builder: (_, isOnline, __) => isOnline
+                              ? Positioned(
+                                  right: 0,
+                                  bottom: 0,
+                                  child: Container(
+                                    width: 14,
+                                    height: 14,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.success,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: isDark
+                                            ? AppColors.darkCard
+                                            : AppColors.creamWhite,
+                                        width: 2.5,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: AppColors.success.withValues(alpha: 0.3),
+                                          blurRadius: 4,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              : const SizedBox.shrink(),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTypography.titleMedium.copyWith(
+                                  fontWeight: unreadCount > 0
+                                      ? FontWeight.w700
+                                      : FontWeight.w600,
+                                  color: isDark
+                                      ? AppColors.darkTextPrimary
+                                      : AppColors.textPrimary,
                                 ),
                               ),
                             ),
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-              ],
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTypography.bodyLarge.copyWith(
-                            fontWeight: unreadCount > 0
-                                ? FontWeight.w700
-                                : FontWeight.w500,
-                            color: theme.colorScheme.onSurface,
-                          ),
+                            const SizedBox(width: AppSpacing.sm),
+                            Text(
+                              _formatConversationTime(conversation.updatedAt, t),
+                              style: AppTypography.timestamp.copyWith(
+                                color: unreadCount > 0
+                                    ? AppColors.primaryAmber
+                                    : (isDark
+                                        ? AppColors.darkTextTertiary
+                                        : AppColors.textTertiary),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Text(
-                        _formatConversationTime(conversation.updatedAt, t),
-                        style: AppTypography.timestamp.copyWith(
-                          fontWeight: unreadCount > 0
-                              ? FontWeight.w600
-                              : FontWeight.w500,
-                          color: unreadCount > 0
-                              ? theme.colorScheme.onSurface
-                              : theme.hintColor,
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                lastMessage.isEmpty
+                                    ? 'Chưa có tin nhắn nào'
+                                    : lastMessage,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTypography.bodySmall.copyWith(
+                                  color: unreadCount > 0
+                                      ? (isDark
+                                          ? AppColors.darkTextSecondary
+                                          : AppColors.textSecondary)
+                                      : (isDark
+                                          ? AppColors.darkTextTertiary
+                                          : AppColors.textTertiary),
+                                  fontWeight: unreadCount > 0
+                                      ? FontWeight.w500
+                                      : FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                            if (unreadCount > 0) ...[
+                              const SizedBox(width: AppSpacing.sm),
+                              UnreadBadge(count: unreadCount),
+                            ],
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          lastMessage.isEmpty
-                              ? 'Chưa có tin nhắn nào'
-                              : lastMessage,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTypography.bodySmall.copyWith(
-                            color: unreadCount > 0
-                                ? theme.colorScheme.onSurface
-                                : theme.hintColor,
-                            fontWeight: unreadCount > 0
-                                ? FontWeight.w500
-                                : FontWeight.w400,
-                          ),
-                        ),
-                      ),
-                      if (unreadCount > 0) ...[
-                        const SizedBox(width: AppSpacing.sm),
-                        UnreadBadge(count: unreadCount),
                       ],
-                    ],
+                    ),
                   ),
                 ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -1025,73 +1021,31 @@ class ChatListViewState extends State<ChatListView> {
     return '${updatedAt.day}/${updatedAt.month}';
   }
 
-  Widget _buildWelcomePanel(AppLocalizations t, bool isDark) {
-    final theme = Theme.of(context);
-    return Container(
-      color: theme.scaffoldBackgroundColor,
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.huge),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: theme.brightness == Brightness.dark
-                      ? AppColors.darkCard
-                      : AppColors.neutralGray100,
-                  border: Border.all(
-                    color: theme.dividerColor,
-                    width: 1,
-                  ),
-                ),
-                child: Icon(
-                  Icons.chat_bubble_outline_rounded,
-                  size: 56,
-                  color: theme.colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              Text(
-                'Tin nhắn',
-                style: AppTypography.headlineMedium.copyWith(
-                  color: theme.colorScheme.onSurface,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                'Chọn một cuộc trò chuyện để bắt đầu nhắn tin',
-                style: AppTypography.bodyMedium.copyWith(
-                  color: theme.hintColor,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   // ════════════════════════════════════════════════════════════════
-  // BOTTOM NAVIGATION (Mobile) — Minimalist
+  // PREMIUM BOTTOM NAVIGATION
   // ════════════════════════════════════════════════════════════════
-  Widget _buildBottomNavigation(ThemeData theme) {
+  Widget _buildBottomNavigation(ThemeData theme, bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: isDark ? AppColors.darkCard : AppColors.creamWhite,
         border: Border(
-          top: BorderSide(color: theme.dividerColor, width: 1),
+          top: BorderSide(
+            color: isDark ? AppColors.darkBorder : AppColors.borderDefault,
+            width: 1,
+          ),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -4),
+          ),
+        ],
       ),
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 64,
+          height: 68,
           child: Row(
             children: [
               _buildBottomNavItem(
@@ -1100,6 +1054,7 @@ class ChatListViewState extends State<ChatListView> {
                 0,
                 'Tin nhắn',
                 theme,
+                isDark,
               ),
               _buildBottomNavItem(
                 Icons.people_rounded,
@@ -1107,6 +1062,7 @@ class ChatListViewState extends State<ChatListView> {
                 1,
                 'Bạn bè',
                 theme,
+                isDark,
               ),
               _buildBottomNavItem(
                 Icons.auto_stories_rounded,
@@ -1114,6 +1070,7 @@ class ChatListViewState extends State<ChatListView> {
                 2,
                 'Bảng tin',
                 theme,
+                isDark,
               ),
               _buildBottomNavItem(
                 Icons.person_rounded,
@@ -1121,6 +1078,7 @@ class ChatListViewState extends State<ChatListView> {
                 3,
                 'Cá nhân',
                 theme,
+                isDark,
               ),
             ],
           ),
@@ -1135,31 +1093,49 @@ class ChatListViewState extends State<ChatListView> {
     int index,
     String label,
     ThemeData theme,
+    bool isDark,
   ) {
     final isSelected = _selectedNavIndex == index;
-    final activeColor = AppColors.neutralBlack;
-    final inactiveColor = theme.hintColor;
+    final activeColor = AppColors.primaryAmber;
+    final inactiveColor = isDark ? AppColors.darkTextTertiary : AppColors.textTertiary;
     final color = isSelected ? activeColor : inactiveColor;
+
     return Expanded(
-      child: InkWell(
-        onTap: () => setState(() => _selectedNavIndex = index),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              isSelected ? activeIcon : inactiveIcon,
-              color: color,
-              size: 22,
+      child: AnimatedContainer(
+        duration: AppCurves.durationNormal,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => setState(() => _selectedNavIndex = index),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedContainer(
+                  duration: AppCurves.durationNormal,
+                  padding: EdgeInsets.all(isSelected ? AppSpacing.sm : 0),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppColors.primaryAmber.withValues(alpha: 0.15)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                  ),
+                  child: Icon(
+                    isSelected ? activeIcon : inactiveIcon,
+                    color: color,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: AppTypography.labelSmall.copyWith(
+                    color: color,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: AppTypography.labelSmall.copyWith(
-                color: color,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -1174,15 +1150,16 @@ class ChatListViewState extends State<ChatListView> {
   }
 }
 
-/// Panel Cài đặt — hiển thị ở cột 2/3 của layout rộng.
+/// Premium Settings Panel
 class _SettingsPanel extends StatelessWidget {
   const _SettingsPanel();
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = Theme.of(context);
     return Container(
-      color: theme.scaffoldBackgroundColor,
+      color: isDark ? AppColors.darkBackground : AppColors.cream,
       child: Column(
         children: [
           Container(
@@ -1193,32 +1170,43 @@ class _SettingsPanel extends StatelessWidget {
               AppSpacing.md,
             ),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
+              color: isDark ? AppColors.darkCard : AppColors.creamWhite,
               border: Border(
-                bottom: BorderSide(color: theme.dividerColor, width: 1),
+                bottom: BorderSide(
+                  color: isDark ? AppColors.darkBorder : AppColors.borderDefault,
+                  width: 1,
+                ),
               ),
             ),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(AppSpacing.xs),
+                  padding: const EdgeInsets.all(AppSpacing.sm),
                   decoration: BoxDecoration(
-                    color: AppColors.neutralBlack,
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                    gradient: const LinearGradient(
+                      colors: [AppColors.primaryAmber, AppColors.accentWarm],
+                    ),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primaryAmber.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   child: const Icon(
                     Icons.settings_rounded,
-                    size: 18,
+                    size: 20,
                     color: Colors.white,
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Text(
                   'CÀI ĐẶT',
-                  style: AppTypography.titleMedium.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: theme.colorScheme.onSurface,
-                    letterSpacing: 0.5,
+                  style: AppTypography.eyebrow.copyWith(
+                    color: AppColors.primaryAmber,
+                    letterSpacing: 1.5,
                   ),
                 ),
               ],

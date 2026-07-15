@@ -143,7 +143,7 @@ class _NewfeedScreenState extends State<NewfeedScreen>
   }
 
   Color get _avatarColor {
-    const colors = [
+    final colors = [
       AppColors.primaryOrange,
       AppColors.primaryOrangeLight,
       AppColors.success,

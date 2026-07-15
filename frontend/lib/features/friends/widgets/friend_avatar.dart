@@ -68,16 +68,16 @@ class FriendAvatar extends StatelessWidget {
   }
 
   Color _colorFromName(String n) {
-    const colors = [
+    final colors = [
       AppColors.success,
       AppColors.primaryOrange,
       AppColors.accentRed,
-      AppColors.accentBrown,
+      AppColors.textPrimary,
       AppColors.primaryOrangeLight,
-      AppColors.accentBrown,
-      AppColors.accentBrown,
-      AppColors.neutralGray700,
-      Color(0xFFFF5722),
+      AppColors.textSecondary,
+      AppColors.textSecondary,
+      AppColors.textTertiary,
+      const Color(0xFFFF5722),
       AppColors.primaryOrange,
     ];
     return colors[n.codeUnitAt(0) % colors.length];

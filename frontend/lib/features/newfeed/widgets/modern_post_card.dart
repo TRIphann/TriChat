@@ -733,7 +733,7 @@ class _NetworkImageWithLoader extends StatelessWidget {
 }
 
 Color _avatarColor(String name) {
-  const colors = [
+  final colors = [
     AppColors.success,
     AppColors.primaryOrange,
     AppColors.primaryOrangeLight,
@@ -743,7 +743,7 @@ Color _avatarColor(String name) {
     AppColors.accentBrown,
     AppColors.neutralGray700,
     AppColors.primaryOrange,
-    Color(0xFFFF5722),
+    const Color(0xFFFF5722),
   ];
   if (name.isEmpty) return colors[0];
   return colors[name.codeUnitAt(0) % colors.length];

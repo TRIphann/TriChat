@@ -611,7 +611,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   Color _avatarColor(String name) {
-    const colors = [
+    final colors = [
       AppColors.primaryOrange,
       AppColors.primaryOrangeLight,
       AppColors.success,
@@ -1201,7 +1201,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               ? _buildGradientButton(
                   icon: Icons.person_add_alt_1_rounded,
                   label: 'Kết bạn',
-                  gradient: const [AppColors.primaryOrange, AppColors.accentBrown],
+                  gradient: [AppColors.primaryOrange, AppColors.accentBrown],
                   onTap: _sendFriendRequest,
                 )
               : isPendingSentByMe
@@ -1214,7 +1214,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                       ? _buildGradientButton(
                           icon: Icons.check_rounded,
                           label: 'Phản hồi',
-                          gradient: const [AppColors.primaryOrange, AppColors.accentBrown],
+                          gradient: [AppColors.primaryOrange, AppColors.accentBrown],
                           onTap: _showRespondDialog,
                         )
                       : _buildGradientButton(
@@ -1479,7 +1479,7 @@ class _FriendRowItem extends StatelessWidget {
   });
 
   Color _avatarColor(String name) {
-    const colors = [
+    final colors = [
       AppColors.primaryOrange,
       AppColors.primaryOrangeLight,
       AppColors.success,
@@ -1609,7 +1609,7 @@ class _FriendRowItem extends StatelessWidget {
                   if (receivedRequest != null) {
                     return _buildFriendRowAction(
                       icon: Icons.reply_rounded,
-                      gradient: const [AppColors.primaryOrange, AppColors.accentBrown],
+                      gradient: [AppColors.primaryOrange, AppColors.accentBrown],
                       onTap: () => onRespondFriend(friend.friendId),
                     );
                   }
@@ -1648,7 +1648,7 @@ class _FriendRowItem extends StatelessWidget {
                   }
                   return _buildFriendRowAction(
                     icon: Icons.person_add_alt_1_rounded,
-                    gradient: const [AppColors.primaryOrange, AppColors.accentBrown],
+                    gradient: [AppColors.primaryOrange, AppColors.accentBrown],
                     onTap: () async {
                       await friendProvider.sendFriendRequest(friend.friendId);
                     },
@@ -2554,7 +2554,7 @@ class _ImagePostSheet extends StatelessWidget {
   const _ImagePostSheet({required this.post});
 
   Color _avatarColor(String name) {
-    const colors = [
+    final colors = [
       AppColors.primaryOrange,
       AppColors.primaryOrangeLight,
       AppColors.success,

@@ -90,7 +90,7 @@ class TriAppBar extends StatelessWidget implements PreferredSizeWidget {
             : null,
         border: Border(
           bottom: BorderSide(
-            color: isDark ? AppColors.darkDivider : AppColors.neutralGray200,
+            color: isDark ? AppColors.darkBorder : AppColors.borderDefault,
             width: 1,
           ),
         ),
@@ -159,7 +159,7 @@ class TriLightAppBar extends StatelessWidget implements PreferredSizeWidget {
         color: isDark ? AppColors.darkSurface : AppColors.neutralWhite,
         border: Border(
           bottom: BorderSide(
-            color: isDark ? AppColors.darkDivider : AppColors.neutralGray200,
+            color: isDark ? AppColors.darkBorder : AppColors.borderDefault,
             width: 1,
           ),
         ),
