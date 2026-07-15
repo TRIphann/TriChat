@@ -14,7 +14,11 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 using backend.swagger;
 
-// Disable file watching on containerised Linux (avoids inotify limit on Render)
+// Disable inotify-based file watching on Linux containers (Render has low inotify limits)
+// Polling watcher will be used instead when file watching is needed
+Environment.SetEnvironmentVariable("DOTNET_USE_POLLING_FILE_WATCHER", "1");
+Environment.SetEnvironmentVariable("POLLING_INTERVAL", "10000");
+
 if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Development")
 {
     AppContext.SetSwitch("Microsoft.AspNetCore.Server.Kestrel.AllowSynchronousIO", true);
@@ -22,9 +26,9 @@ if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Development
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Clear default config sources (appsettings.json) to avoid inotify on Linux containers
-// All config must come from environment variables
-if (builder.Environment.IsProduction())
+// In production, only use environment variables for configuration
+// This avoids loading any JSON files that would create FileSystemWatchers
+if (!builder.Environment.IsDevelopment())
 {
     builder.Configuration.Sources.Clear();
     builder.Configuration.AddEnvironmentVariables();
