@@ -9,10 +9,10 @@ import 'package:frontend/config/tri_chat_logo.dart';
 import 'package:frontend/utils/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
-/// Trang chào mừng — phong cách Glassmorphism:
-/// - Nền kem với hiệu ứng kính mờ
-/// - Card kính trắng cho nội dung chính
-/// - Logo TriChat lớn ở giữa
+/// Trang chào mừng — phong cách Minimalist:
+/// - Nền trắng / off-white
+/// - Logo TriChat lớn ở giữa, chữ đen đậm
+/// - Typography sạch, không gradient, không glow
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
 
@@ -46,7 +46,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
 
     _contentCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1200),
     );
 
     _logoFade = Tween<double>(begin: 0, end: 1).animate(
@@ -56,7 +56,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       ),
     );
     _logoSlide = Tween<Offset>(
-      begin: const Offset(0, -0.15),
+      begin: const Offset(0, -0.1),
       end: Offset.zero,
     ).animate(
       CurvedAnimation(
@@ -72,7 +72,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       ),
     );
     _titleSlide = Tween<Offset>(
-      begin: const Offset(0, 0.1),
+      begin: const Offset(0, 0.08),
       end: Offset.zero,
     ).animate(
       CurvedAnimation(
@@ -88,7 +88,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       ),
     );
     _cardSlide = Tween<Offset>(
-      begin: const Offset(0, 0.12),
+      begin: const Offset(0, 0.1),
       end: Offset.zero,
     ).animate(
       CurvedAnimation(
@@ -104,7 +104,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       ),
     );
     _buttonsSlide = Tween<Offset>(
-      begin: const Offset(0, 0.18),
+      begin: const Offset(0, 0.14),
       end: Offset.zero,
     ).animate(
       CurvedAnimation(
@@ -132,17 +132,15 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   void _showLanguageSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
+      ),
       builder: (sheetContext) {
+        final theme = Theme.of(sheetContext);
         return SafeArea(
-          child: Container(
-            margin: const EdgeInsets.all(AppSpacing.md),
+          child: Padding(
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-            decoration: BoxDecoration(
-              color: AppColors.creamWhite,
-              borderRadius: BorderRadius.circular(AppRadius.xl),
-              boxShadow: AppShadows.lg,
-            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -156,7 +154,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     child: Text(
                       'Chọn ngôn ngữ',
                       style: AppTypography.titleLarge.copyWith(
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
@@ -171,7 +169,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                         Navigator.pop(sheetContext);
                         _onLanguageChanged(lang);
                       },
-                      borderRadius: BorderRadius.circular(AppRadius.md),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: AppSpacing.xl,
@@ -187,15 +184,16 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                                       ? FontWeight.w700
                                       : FontWeight.w400,
                                   color: isSelected
-                                      ? AppColors.primaryOrange
-                                      : AppColors.neutralBlack,
+                                      ? AppColors.neutralBlack
+                                      : theme.colorScheme.onSurface,
                                 ),
                               ),
                             ),
                             if (isSelected)
                               const Icon(
-                                Icons.check_circle_rounded,
-                                color: AppColors.primaryOrange,
+                                Icons.check_rounded,
+                                color: AppColors.neutralBlack,
+                                size: 20,
                               ),
                           ],
                         ),
@@ -213,6 +211,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return ValueListenableBuilder(
       valueListenable: localeNotifier,
       builder: (context, locale, _) {
@@ -221,38 +220,30 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           animation: _contentCtrl,
           builder: (context, _) {
             return Scaffold(
-              body: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: AppColors.creamBackgroundGradient,
-                  ),
-                ),
-                child: SafeArea(
-                  child: Column(
-                    children: [
-                      _buildLanguageSelector(),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.xl,
-                          ),
-                          child: Column(
-                            children: [
-                              const SizedBox(height: AppSpacing.huge),
-                              _buildHero(t),
-                              const SizedBox(height: AppSpacing.huge),
-                              _buildGlassCard(t),
-                              const SizedBox(height: AppSpacing.xxl),
-                              _buildButtons(t),
-                              const SizedBox(height: AppSpacing.xl),
-                            ],
-                          ),
+              backgroundColor: theme.scaffoldBackgroundColor,
+              body: SafeArea(
+                child: Column(
+                  children: [
+                    _buildLanguageSelector(),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.xl,
+                        ),
+                        child: Column(
+                          children: [
+                            const SizedBox(height: AppSpacing.huge),
+                            _buildHero(t),
+                            const SizedBox(height: AppSpacing.huge),
+                            _buildFeatureCard(t),
+                            const SizedBox(height: AppSpacing.xxl),
+                            _buildButtons(t),
+                            const SizedBox(height: AppSpacing.xl),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             );
@@ -263,6 +254,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   }
 
   Widget _buildLanguageSelector() {
+    final theme = Theme.of(context);
     return FadeTransition(
       opacity: _logoFade,
       child: Padding(
@@ -276,46 +268,42 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           children: [
             GestureDetector(
               onTap: _showLanguageSheet,
+              behavior: HitTestBehavior.opaque,
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.md,
                   vertical: AppSpacing.sm,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.7),
-                  borderRadius: BorderRadius.circular(AppRadius.full),
+                  color: theme.brightness == Brightness.dark
+                      ? AppColors.darkSurface
+                      : AppColors.neutralGray100,
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                   border: Border.all(
-                    color: AppColors.neutralGray300.withValues(alpha: 0.5),
+                    color: theme.dividerColor,
                     width: 1,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.accentBrown.withValues(alpha: 0.08),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.language_rounded,
-                      color: AppColors.accentBrown,
+                      color: theme.colorScheme.onSurface,
                       size: 16,
                     ),
                     const SizedBox(width: 6),
                     Text(
                       _selectedLanguage,
                       style: AppTypography.bodySmall.copyWith(
-                        color: AppColors.neutralBlack,
+                        color: theme.colorScheme.onSurface,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(width: 2),
-                    const Icon(
+                    Icon(
                       Icons.keyboard_arrow_down_rounded,
-                      color: AppColors.accentBrown,
+                      color: theme.colorScheme.onSurface,
                       size: 18,
                     ),
                   ],
@@ -329,6 +317,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   }
 
   Widget _buildHero(AppLocalizations t) {
+    final theme = Theme.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -336,7 +325,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           opacity: _logoFade,
           child: SlideTransition(
             position: _logoSlide,
-            child: const TriChatLogoLarge(size: 120),
+            child: const TriChatLogoLarge(size: 110),
           ),
         ),
         const SizedBox(height: AppSpacing.xl),
@@ -346,29 +335,19 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
             position: _titleSlide,
             child: Column(
               children: [
-                ShaderMask(
-                  shaderCallback: (rect) => const LinearGradient(
-                    colors: [
-                      AppColors.accentBrown,
-                      AppColors.primaryOrange,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ).createShader(rect),
-                  child: Text(
-                    'TriChat',
-                    style: AppTypography.displayLarge.copyWith(
-                      color: Colors.white,
-                      fontSize: 56,
-                      letterSpacing: -1.5,
-                    ),
+                Text(
+                  'TriChat',
+                  style: AppTypography.displayLarge.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    fontSize: 48,
+                    letterSpacing: -1.5,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   t.get('appName'),
                   style: AppTypography.bodyLarge.copyWith(
-                    color: AppColors.neutralGray700,
+                    color: theme.hintColor,
                     fontWeight: FontWeight.w500,
                   ),
                   textAlign: TextAlign.center,
@@ -381,7 +360,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildGlassCard(AppLocalizations t) {
+  Widget _buildFeatureCard(AppLocalizations t) {
+    final theme = Theme.of(context);
     return FadeTransition(
       opacity: _cardFade,
       child: SlideTransition(
@@ -390,19 +370,9 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           width: double.infinity,
           padding: const EdgeInsets.all(AppSpacing.xl),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.55),
-            borderRadius: BorderRadius.circular(AppRadius.xxl),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.8),
-              width: 1.2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.accentBrown.withValues(alpha: 0.10),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
-              ),
-            ],
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            border: Border.all(color: theme.dividerColor, width: 1),
           ),
           child: Column(
             children: [
@@ -410,19 +380,19 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _buildFeatureChip(
-                    Icons.chat_bubble_rounded,
+                    Icons.chat_bubble_outline_rounded,
                     'Chat',
-                    AppColors.primaryOrange,
+                    theme,
                   ),
                   _buildFeatureChip(
-                    Icons.people_alt_rounded,
+                    Icons.people_outline_rounded,
                     'Bạn bè',
-                    AppColors.accentBrown,
+                    theme,
                   ),
                   _buildFeatureChip(
-                    Icons.auto_stories_rounded,
+                    Icons.auto_stories_outlined,
                     'Bản tin',
-                    AppColors.primaryOrangeLight,
+                    theme,
                   ),
                 ],
               ),
@@ -431,7 +401,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 'Trò chuyện. Kết nối. Mọi lúc mọi nơi.',
                 textAlign: TextAlign.center,
                 style: AppTypography.bodySmall.copyWith(
-                  color: AppColors.neutralGray700,
+                  color: theme.hintColor,
                   height: 1.5,
                 ),
               ),
@@ -442,7 +412,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildFeatureChip(IconData icon, String label, Color color) {
+  Widget _buildFeatureChip(IconData icon, String label, ThemeData theme) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -451,19 +421,21 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           height: 52,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: color.withValues(alpha: 0.15),
+            color: theme.brightness == Brightness.dark
+                ? AppColors.darkCard
+                : AppColors.neutralGray100,
             border: Border.all(
-              color: color.withValues(alpha: 0.3),
+              color: theme.dividerColor,
               width: 1,
             ),
           ),
-          child: Icon(icon, color: color, size: 24),
+          child: Icon(icon, color: theme.colorScheme.onSurface, size: 22),
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
           label,
           style: AppTypography.labelMedium.copyWith(
-            color: AppColors.neutralBlack,
+            color: theme.colorScheme.onSurface,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -476,105 +448,21 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       opacity: _buttonsFade,
       child: SlideTransition(
         position: _buttonsSlide,
-        child: Padding(
-          padding: EdgeInsets.zero,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                width: double.infinity,
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: AppColors.primaryButtonGradient,
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(AppRadius.pill),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primaryOrange.withValues(alpha: 0.35),
-                        blurRadius: 18,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () => context.go('/login'),
-                      borderRadius: BorderRadius.circular(AppRadius.pill),
-                      child: Container(
-                        height: 54,
-                        alignment: Alignment.center,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.login_rounded,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                            const SizedBox(width: AppSpacing.sm),
-                            Text(
-                              t.get('login'),
-                              style: AppTypography.labelLarge.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              SizedBox(
-                width: double.infinity,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.7),
-                    borderRadius: BorderRadius.circular(AppRadius.pill),
-                    border: Border.all(
-                      color: AppColors.neutralGray300.withValues(alpha: 0.6),
-                      width: 1.4,
-                    ),
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () => context.go('/sign-up'),
-                      borderRadius: BorderRadius.circular(AppRadius.pill),
-                      child: Container(
-                        height: 54,
-                        alignment: Alignment.center,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.person_add_alt_1_rounded,
-                              color: AppColors.accentBrown,
-                              size: 20,
-                            ),
-                            const SizedBox(width: AppSpacing.sm),
-                            Text(
-                              t.get('createAccount'),
-                              style: AppTypography.labelLarge.copyWith(
-                                color: AppColors.accentBrown,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            PrimaryButton(
+              label: t.get('login'),
+              icon: Icons.login_rounded,
+              onPressed: () => context.go('/login'),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            SecondaryButton(
+              label: t.get('createAccount'),
+              icon: Icons.person_add_alt_1_outlined,
+              onPressed: () => context.go('/sign-up'),
+            ),
+          ],
         ),
       ),
     );

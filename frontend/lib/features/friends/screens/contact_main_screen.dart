@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/component/friend_search_page.dart';
+import 'package:frontend/component/inputs.dart';
 import 'package:frontend/config/app_colors.dart';
+import 'package:frontend/config/app_spacing.dart';
+import 'package:frontend/config/app_typography.dart';
 import 'package:frontend/features/friends/screens/add_friend_screen.dart';
 import 'package:frontend/features/friends/screens/friend_tab_content.dart';
 import 'package:frontend/features/friends/screens/group_tab_content.dart';
@@ -12,7 +15,8 @@ class ContactsMainScreen extends StatefulWidget {
   State<ContactsMainScreen> createState() => _ContactsMainScreenState();
 }
 
-class _ContactsMainScreenState extends State<ContactsMainScreen> with SingleTickerProviderStateMixin {
+class _ContactsMainScreenState extends State<ContactsMainScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -29,75 +33,78 @@ class _ContactsMainScreenState extends State<ContactsMainScreen> with SingleTick
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: AppColors.primaryBlue,
-        titleSpacing: 0,
-        title: GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const FriendSearchPage()),
-            );
-          },
-          child: Container(
-            height: 40,
-            margin: const EdgeInsets.only(left: 12),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.25),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Row(
-              children: [
-                const SizedBox(width: 12),
-                Icon(Icons.search, color: Colors.white.withValues(alpha: 0.8), size: 20),
-                const SizedBox(width: 10),
-                Text(
-                  'Tìm kiếm',
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 15),
-                ),
-              ],
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(64),
+        child: Container(
+          color: theme.colorScheme.surface,
+          child: SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.sm,
+                AppSpacing.xs,
+                AppSpacing.sm,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TriSearchField(
+                      hintText: 'Tìm kiếm',
+                      readOnly: true,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const FriendSearchPage()),
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      Icons.person_add_alt_1_outlined,
+                      color: theme.colorScheme.onSurface,
+                      size: 22,
+                    ),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const AddFriendScreen()),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-        centerTitle: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person_add_alt_1_outlined, color: Colors.white, size: 24),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const AddFriendScreen()),
-            ),
-          ),
-        ],
       ),
       body: Column(
         children: [
           Container(
-            color: Colors.white,
+            color: theme.colorScheme.surface,
             child: TabBar(
               controller: _tabController,
-              labelColor: Colors.black,
-              unselectedLabelColor: Colors.grey,
-              indicatorColor: const Color(0xFF0091FF),
-              indicatorWeight: 3,
-              indicatorSize: TabBarIndicatorSize.label,
-              indicatorPadding: const EdgeInsets.symmetric(horizontal: -80),
-              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              labelColor: theme.colorScheme.onSurface,
+              unselectedLabelColor: theme.hintColor,
+              indicatorColor: theme.colorScheme.onSurface,
+              indicatorWeight: 2,
+              labelStyle: AppTypography.labelLarge.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+              unselectedLabelStyle: AppTypography.labelLarge,
               tabs: const [
                 Tab(text: 'Bạn bè'),
                 Tab(text: 'Nhóm'),
               ],
             ),
           ),
+          Divider(color: theme.dividerColor, height: 1),
           Expanded(
             child: TabBarView(
               controller: _tabController,
-              children: const [
-                FriendTabView(),
-                GroupTabView(),
+              children: [
+                const FriendTabView(),
+                const GroupTabView(),
               ],
             ),
           ),

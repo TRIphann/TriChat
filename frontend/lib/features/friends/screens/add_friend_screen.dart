@@ -259,7 +259,7 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
               Container(
                 padding: const EdgeInsets.all(AppSpacing.sm + 2),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryOrangePale.withValues(
+                  color: AppColors.neutralGray100.withValues(
                     alpha: isDark ? 0.2 : 1,
                   ),
                   borderRadius: BorderRadius.circular(AppRadius.md),

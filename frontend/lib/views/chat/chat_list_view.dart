@@ -31,16 +31,7 @@ import 'package:frontend/views/contacts/contacts_view.dart';
 import 'package:provider/provider.dart';
 
 /// ════════════════════════════════════════════════════════════════
-/// ChatListView — TriChat
-///
-/// Bố cục 3 cột chuẩn cho Desktop / Wide Screen:
-///   ┌─Sidebar─┬────List────┬─────Main Chat─────┐
-///   │ Avatar  │  Header    │                   │
-///   │ Menu    │  Filter    │   ChatScreen /    │
-///   │ Settings│  List      │   Empty Panel     │
-///   └─────────┴────────────┴───────────────────┘
-///
-/// Trên mobile (width < 900): dùng IndexedStack + bottom nav.
+/// ChatListView — TriChat (Minimalist Black & White)
 /// ════════════════════════════════════════════════════════════════
 class ChatListView extends StatefulWidget {
   const ChatListView({super.key});
@@ -179,7 +170,7 @@ class ChatListViewState extends State<ChatListView> {
     if (!mounted || _callScreenOpened) return;
     _callScreenOpened = true;
     _coldStartCallHandled = true;
-    final extra = event.extra ?? {};
+    final extra = event.extra!;
     final currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
     final call = CallModel(
       conversationId: extra['conversation_id'] ?? '',
@@ -210,7 +201,7 @@ class ChatListViewState extends State<ChatListView> {
 
   void _handleCallDeclined(CallEvent event) {
     if (!mounted) return;
-    final extra = event.extra ?? {};
+    final extra = event.extra!;
     final chat = context.read<ChatProvider>();
     chat.rejectCall(
       extra['conversation_id'] ?? '',
@@ -279,18 +270,13 @@ class ChatListViewState extends State<ChatListView> {
             final isVeryWideScreen = screenWidth >= 1200;
 
             return Scaffold(
-              backgroundColor: AppColors.getBackground(isDark),
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               body: SafeArea(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     if (isWideScreen) {
-                      return _buildWideLayout(
-                        t,
-                        isDark,
-                        isVeryWideScreen,
-                      );
+                      return _buildWideLayout(t, isDark, isVeryWideScreen);
                     }
-
                     return _buildMobileView(t, isDark);
                   },
                 ),
@@ -302,16 +288,11 @@ class ChatListViewState extends State<ChatListView> {
     );
   }
 
-  // ─── WIDE LAYOUT ─────────────────────────────────────────────
-  // Khi người dùng đang ở tab Chat (index 0), dùng Ultra-Dark 4-column
-  // dashboard (Slim Sidebar + Message List + Chat + Details). Các tab
-  // khác giữ nguyên layout cũ 3-column cream.
   Widget _buildWideLayout(
     AppLocalizations t,
     bool isDark,
     bool isVeryWideScreen,
   ) {
-    // Tab chat → Ultra Dark 4-column
     if (_selectedNavIndex == 0) {
       return UltraDarkChatLayout(
         t: t,
@@ -320,13 +301,12 @@ class ChatListViewState extends State<ChatListView> {
       );
     }
 
+    final theme = Theme.of(context);
     return Container(
-      color: AppColors.darkPremiumBackground,
+      color: theme.scaffoldBackgroundColor,
       child: Row(
         children: [
-          // Cột 1: Navigation Sidebar (Glassmorphism nâu)
-          _buildSidebar(isDark),
-          // Cột 2 + 3: list + main
+          _buildSidebar(theme),
           Expanded(
             child: Row(
               children: [
@@ -346,10 +326,10 @@ class ChatListViewState extends State<ChatListView> {
     );
   }
 
-  // ─── MOBILE LAYOUT (bottom nav) ──────────────────────────────
   Widget _buildMobileView(AppLocalizations t, bool isDark) {
+    final theme = Theme.of(context);
     return Container(
-      color: AppColors.creamBackground,
+      color: theme.scaffoldBackgroundColor,
       child: Column(
         children: [
           Expanded(
@@ -364,20 +344,28 @@ class ChatListViewState extends State<ChatListView> {
               ],
             ),
           ),
-          _buildBottomNavigation(isDark),
+          _buildBottomNavigation(theme),
         ],
       ),
     );
   }
 
   // ════════════════════════════════════════════════════════════════
-  // CỘT 1 — SIDEBAR (Glassmorphism nâu socola)
+  // CỘT 1 — SIDEBAR (Minimalist — đơn sắc đen)
   // ════════════════════════════════════════════════════════════════
-  Widget _buildSidebar(bool isDark) {
+  Widget _buildSidebar(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+    final bgColor = isDark ? AppColors.darkSurface : AppColors.neutralBlack;
     return Container(
       width: 72,
-      decoration: const BoxDecoration(
-        color: AppColors.darkPremiumBackground,
+      decoration: BoxDecoration(
+        color: bgColor,
+        border: Border(
+          right: BorderSide(
+            color: isDark ? AppColors.darkDivider : AppColors.neutralGray800,
+            width: 1,
+          ),
+        ),
       ),
       child: Column(
         children: [
@@ -388,28 +376,28 @@ class ChatListViewState extends State<ChatListView> {
             Icons.chat_bubble_rounded,
             Icons.chat_bubble_outline_rounded,
             0,
-            isDark,
+            theme,
             tooltip: 'Tin nhắn',
           ),
           _buildSidebarItem(
-            Icons.contacts_rounded,
-            Icons.contacts_outlined,
+            Icons.people_rounded,
+            Icons.people_outline_rounded,
             1,
-            isDark,
+            theme,
             tooltip: 'Bạn bè',
           ),
           _buildSidebarItem(
             Icons.auto_stories_rounded,
             Icons.auto_stories_outlined,
             2,
-            isDark,
+            theme,
             tooltip: 'Bảng tin',
           ),
           _buildSidebarItem(
             Icons.person_rounded,
             Icons.person_outline_rounded,
             3,
-            isDark,
+            theme,
             tooltip: 'Cá nhân',
           ),
           const Spacer(),
@@ -417,7 +405,7 @@ class ChatListViewState extends State<ChatListView> {
             Icons.settings_rounded,
             Icons.settings_outlined,
             4,
-            isDark,
+            theme,
             tooltip: 'Cài đặt',
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -430,30 +418,10 @@ class ChatListViewState extends State<ChatListView> {
     final firebaseUser = FirebaseAuth.instance.currentUser;
     final avatarUrl = firebaseUser?.photoURL ?? '';
     final displayName = firebaseUser?.displayName ?? 'U';
-    return Tooltip(
-      message: displayName,
-      child: Container(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: AppColors.primaryOrange.withValues(alpha: 0.9),
-            width: 2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primaryOrange.withValues(alpha: 0.35),
-              blurRadius: 10,
-              spreadRadius: 1,
-            ),
-          ],
-        ),
-        child: TriAvatar(
-          imageUrl: avatarUrl,
-          name: displayName,
-          size: 48,
-          elevated: true,
-        ),
-      ),
+    return TriAvatar(
+      imageUrl: avatarUrl,
+      name: displayName,
+      size: 44,
     );
   }
 
@@ -461,86 +429,58 @@ class ChatListViewState extends State<ChatListView> {
     IconData activeIcon,
     IconData inactiveIcon,
     int index,
-    bool isDark, {
+    ThemeData theme, {
     String? tooltip,
   }) {
     final isSelected = _selectedNavIndex == index;
-    final tooltipStr = tooltip ?? '';
-    return Tooltip(
-      message: tooltipStr,
-      textStyle: const TextStyle(
-        color: AppColors.darkPremiumTextPrimary,
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0.1,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.darkPremiumSurface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: AppColors.neonRoyal.withValues(alpha: 0.45),
-          width: 1,
+    final Widget item = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.neutralGray800 : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppRadius.md),
         ),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      preferBelow: false,
-      verticalOffset: 12,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          margin: const EdgeInsets.symmetric(horizontal: 10),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? AppColors.neonRoyal.withValues(alpha: 0.20)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            border: isSelected
-                ? Border.all(
-                    color: AppColors.neonRoyal.withValues(alpha: 0.45),
-                    width: 1,
-                  )
-                : null,
-          ),
-          child: Stack(
-            children: [
-              if (isSelected)
-                Positioned(
-                  left: 0,
-                  top: 6,
-                  bottom: 6,
-                  child: Container(
-                    width: 3,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryOrange,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
+        child: Stack(
+          children: [
+            if (isSelected)
+              Positioned(
+                left: 0,
+                top: 8,
+                bottom: 8,
+                child: Container(
+                  width: 2,
+                  decoration: BoxDecoration(
+                    color: AppColors.neutralWhite,
+                    borderRadius: BorderRadius.circular(1),
                   ),
                 ),
-              IconButton(
-                onPressed: () {
-                  setState(() {
-                    _selectedNavIndex = index;
-                    _selectedConversation = null;
-                  });
-                },
-                icon: Icon(
-                  isSelected ? activeIcon : inactiveIcon,
-                  color: isSelected
-                      ? AppColors.primaryOrange
-                      : Colors.white.withValues(alpha: 0.75),
-                  size: 26,
-                ),
               ),
-            ],
-          ),
+            IconButton(
+              onPressed: () {
+                setState(() {
+                  _selectedNavIndex = index;
+                  _selectedConversation = null;
+                });
+              },
+              icon: Icon(
+                isSelected ? activeIcon : inactiveIcon,
+                color: isSelected
+                    ? AppColors.neutralWhite
+                    : AppColors.neutralGray400,
+                size: 22,
+              ),
+            ),
+          ],
         ),
       ),
     );
+
+    return tooltip != null ? Tooltip(message: tooltip, child: item) : item;
   }
 
   // ════════════════════════════════════════════════════════════════
-  // CỘT 2 — LIST (Cream/White)
+  // CỘT 2 — LIST
   // ════════════════════════════════════════════════════════════════
   Widget _buildChatListPanel(AppLocalizations t, bool isDark) {
     return Column(
@@ -551,41 +491,12 @@ class ChatListViewState extends State<ChatListView> {
     );
   }
 
-  Widget _buildChatListPanelWide(
-    AppLocalizations t,
-    bool isDark,
-    bool isVeryWideScreen,
-  ) {
-    return Container(
-      width: isVeryWideScreen ? 380 : 340,
-      decoration: const BoxDecoration(
-        color: AppColors.darkPremiumBackground,
-        border: Border(
-          right: BorderSide(
-            color: AppColors.darkPremiumBorder,
-            width: 1,
-          ),
-        ),
-      ),
-      child: Column(
-        children: [
-          _buildSearchHeader(t, isDark, isMobile: false),
-          _buildFilterTabs(t, isDark),
-          Expanded(child: _buildConversationList(t, isDark)),
-        ],
-      ),
-    );
-  }
-
   Widget _buildSearchHeader(
     AppLocalizations t,
     bool isDark, {
     bool isMobile = false,
   }) {
-    final headerColor = AppColors.darkPremiumSurface;
-    final borderColor = AppColors.darkPremiumBorder;
-    final titleColor = AppColors.darkPremiumTextPrimary;
-    final searchBackground = AppColors.darkPremiumElevated;
+    final theme = Theme.of(context);
 
     if (isMobile) {
       return Container(
@@ -596,9 +507,9 @@ class ChatListViewState extends State<ChatListView> {
           AppSpacing.md,
         ),
         decoration: BoxDecoration(
-          color: headerColor,
+          color: theme.colorScheme.surface,
           border: Border(
-            bottom: BorderSide(color: borderColor, width: 0.5),
+            bottom: BorderSide(color: theme.dividerColor, width: 1),
           ),
         ),
         child: SafeArea(
@@ -612,15 +523,14 @@ class ChatListViewState extends State<ChatListView> {
                         FirebaseAuth.instance.currentUser?.photoURL ?? '',
                     name:
                         FirebaseAuth.instance.currentUser?.displayName ?? 'U',
-                    size: 40,
-                    elevated: true,
+                    size: 36,
                   ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Text(
                       t.get('messages'),
                       style: AppTypography.titleLarge.copyWith(
-                        color: titleColor,
+                        color: theme.colorScheme.onSurface,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.3,
                       ),
@@ -629,10 +539,12 @@ class ChatListViewState extends State<ChatListView> {
                   _buildHeaderIconButton(
                     Icons.search_rounded,
                     () => _openSearchOverlay(context),
+                    theme,
                   ),
                   _buildHeaderIconButton(
                     Icons.qr_code_scanner_rounded,
                     () {},
+                    theme,
                   ),
                 ],
               ),
@@ -641,7 +553,6 @@ class ChatListViewState extends State<ChatListView> {
                 hintText: t.get('searchPlaceholder'),
                 readOnly: true,
                 onTap: () => _openSearchOverlay(context),
-                background: searchBackground,
               ),
             ],
           ),
@@ -649,13 +560,12 @@ class ChatListViewState extends State<ChatListView> {
       );
     }
 
-    // Wide layout (Cột 2)
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: headerColor,
+        color: theme.colorScheme.surface,
         border: Border(
-          bottom: BorderSide(color: borderColor, width: 0.5),
+          bottom: BorderSide(color: theme.dividerColor, width: 1),
         ),
       ),
       child: SafeArea(
@@ -671,10 +581,10 @@ class ChatListViewState extends State<ChatListView> {
               child: Text(
                 t.get('messages').toString().toUpperCase(),
                 style: AppTypography.labelMedium.copyWith(
-                  color: titleColor,
+                  color: theme.colorScheme.onSurface,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 1.2,
-                  fontSize: 13,
+                  fontSize: 12,
                 ),
               ),
             ),
@@ -682,25 +592,26 @@ class ChatListViewState extends State<ChatListView> {
               hintText: t.get('searchPlaceholder'),
               readOnly: true,
               onTap: () => _openSearchOverlay(context),
-              background: searchBackground,
             ),
             const SizedBox(height: AppSpacing.md),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 _buildHeaderIconButton(
-                  Icons.person_add_alt_1_rounded,
+                  Icons.person_add_alt_1_outlined,
                   () {},
+                  theme,
                   tooltip: 'Thêm bạn',
                 ),
                 _buildHeaderIconButton(
-                  Icons.group_add_rounded,
+                  Icons.group_add_outlined,
                   () => Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (_) =>
                           const NewConversationScreen(type: 'group'),
                     ),
                   ),
+                  theme,
                   tooltip: 'Tạo nhóm',
                 ),
               ],
@@ -713,10 +624,12 @@ class ChatListViewState extends State<ChatListView> {
 
   Widget _buildHeaderIconButton(
     IconData icon,
-    VoidCallback onTap, {
+    VoidCallback onTap,
+    ThemeData theme, {
     Color? iconColor,
     String? tooltip,
   }) {
+    final isDark = theme.brightness == Brightness.dark;
     final btn = Material(
       color: Colors.transparent,
       shape: const CircleBorder(),
@@ -724,20 +637,20 @@ class ChatListViewState extends State<ChatListView> {
         customBorder: const CircleBorder(),
         onTap: onTap,
         child: Container(
-          width: 38,
-          height: 38,
+          width: 36,
+          height: 36,
           decoration: BoxDecoration(
-            color: AppColors.darkPremiumElevated,
+            color: theme.colorScheme.surface,
             shape: BoxShape.circle,
             border: Border.all(
-              color: AppColors.darkPremiumBorder,
+              color: theme.dividerColor,
               width: 1,
             ),
           ),
           child: Icon(
             icon,
-            color: iconColor ?? AppColors.darkPremiumTextPrimary,
-            size: 20,
+            color: iconColor ?? theme.colorScheme.onSurface,
+            size: 18,
           ),
         ),
       ),
@@ -751,29 +664,26 @@ class ChatListViewState extends State<ChatListView> {
     );
   }
 
-  Widget _buildFilterTabs(AppLocalizations t, bool isDark) {
+  Widget _buildFilterTabs(AppLocalizations t, ThemeData theme) {
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.darkPremiumSurface,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
         border: Border(
-          bottom: BorderSide(
-            color: AppColors.darkPremiumBorder,
-            width: 1,
-          ),
+          bottom: BorderSide(color: theme.dividerColor, width: 1),
         ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 4),
-      height: 46,
+      height: 44,
       child: Row(
         children: [
-          _buildFilterTab(t.get('all'), 'all', isDark),
-          _buildFilterTab(t.get('unread'), 'unread', isDark),
+          _buildFilterTab(t.get('all'), 'all', theme),
+          _buildFilterTab(t.get('unread'), 'unread', theme),
         ],
       ),
     );
   }
 
-  Widget _buildFilterTab(String label, String value, bool isDark) {
+  Widget _buildFilterTab(String label, String value, ThemeData theme) {
     final isSelected = _filterMode == value;
     return Expanded(
       child: GestureDetector(
@@ -786,9 +696,9 @@ class ChatListViewState extends State<ChatListView> {
             border: Border(
               bottom: BorderSide(
                 color: isSelected
-                    ? AppColors.neonRoyal
+                    ? theme.colorScheme.onSurface
                     : Colors.transparent,
-                width: 2.5,
+                width: 2,
               ),
             ),
           ),
@@ -797,8 +707,8 @@ class ChatListViewState extends State<ChatListView> {
             style: AppTypography.bodyMedium.copyWith(
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
               color: isSelected
-                  ? AppColors.darkPremiumTextPrimary
-                  : AppColors.darkPremiumTextSecondary,
+                  ? theme.colorScheme.onSurface
+                  : theme.hintColor,
             ),
             child: Text(label),
           ),
@@ -814,7 +724,8 @@ class ChatListViewState extends State<ChatListView> {
           return const LoadingView();
         }
         if (chat.conversationsState == ChatLoadingState.error) {
-          return _buildErrorState(chat.errorMessage, () => chat.loadConversations());
+          return _buildErrorState(
+              chat.errorMessage, () => chat.loadConversations(), t);
         }
 
         final list = _filterMode == 'unread'
@@ -822,90 +733,11 @@ class ChatListViewState extends State<ChatListView> {
             : chat.conversations;
 
         if (list.isEmpty) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.xl),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 88,
-                    height: 88,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [
-                          AppColors.neonRoyal.withValues(alpha: 0.18),
-                          AppColors.neonPink.withValues(alpha: 0.10),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      border: Border.all(
-                        color: AppColors.neonRoyal.withValues(alpha: 0.30),
-                        width: 1.2,
-                      ),
-                    ),
-                    child: Icon(
-                      _filterMode == 'unread'
-                          ? Icons.mark_chat_read_rounded
-                          : Icons.chat_bubble_outline_rounded,
-                      size: 42,
-                      color: AppColors.neonRoyal,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  Text(
-                    _filterMode == 'unread'
-                        ? 'Không có tin nhắn chưa đọc'
-                        : 'Chưa có cuộc trò chuyện nào',
-                    textAlign: TextAlign.center,
-                    style: AppTypography.titleMedium.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.darkPremiumTextPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    _filterMode == 'unread'
-                        ? 'Mọi tin nhắn của bạn đã được đọc.'
-                        : 'Hãy kết bạn để bắt đầu nhắn tin — cuộc trò chuyện sẽ xuất hiện ở đây.',
-                    textAlign: TextAlign.center,
-                    style: AppTypography.bodyMedium.copyWith(
-                      color: AppColors.darkPremiumTextSecondary,
-                      height: 1.5,
-                    ),
-                  ),
-                  if (_filterMode != 'unread') ...[
-                    const SizedBox(height: AppSpacing.lg),
-                    FilledButton.icon(
-                      onPressed: () => _openSearchOverlay(context),
-                      icon: const Icon(
-                        Icons.person_search_rounded,
-                        size: 18,
-                      ),
-                      label: const Text('Tìm bạn bè ngay'),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.neonRoyal,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.lg,
-                          vertical: AppSpacing.sm + 2,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.pill),
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          );
+          return _buildEmptyState(t);
         }
 
         return RefreshIndicator(
-          color: AppColors.primaryOrange,
+          color: AppColors.neutralBlack,
           onRefresh: () => chat.loadConversations(),
           child: ListView.builder(
             padding: EdgeInsets.zero,
@@ -920,7 +752,8 @@ class ChatListViewState extends State<ChatListView> {
     );
   }
 
-  Widget _buildErrorState(String? error, VoidCallback onRetry) {
+  Widget _buildEmptyState(AppLocalizations t) {
+    final theme = Theme.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),
@@ -928,27 +761,81 @@ class ChatListViewState extends State<ChatListView> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 88,
-              height: 88,
+              width: 80,
+              height: 80,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.neonRoyal.withValues(alpha: 0.18),
-                    AppColors.neonPink.withValues(alpha: 0.10),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                border: Border.all(
-                  color: AppColors.neonRoyal.withValues(alpha: 0.30),
-                  width: 1.2,
+                color: theme.brightness == Brightness.dark
+                    ? AppColors.darkCard
+                    : AppColors.neutralGray100,
+              ),
+              child: Icon(
+                _filterMode == 'unread'
+                    ? Icons.mark_chat_read_outlined
+                    : Icons.chat_bubble_outline_rounded,
+                size: 36,
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              _filterMode == 'unread'
+                  ? 'Không có tin nhắn chưa đọc'
+                  : 'Chưa có cuộc trò chuyện nào',
+              textAlign: TextAlign.center,
+              style: AppTypography.titleMedium.copyWith(
+                fontWeight: FontWeight.w700,
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              _filterMode == 'unread'
+                  ? 'Mọi tin nhắn của bạn đã được đọc.'
+                  : 'Hãy kết bạn để bắt đầu nhắn tin — cuộc trò chuyện sẽ xuất hiện ở đây.',
+              textAlign: TextAlign.center,
+              style: AppTypography.bodyMedium.copyWith(
+                color: theme.hintColor,
+                height: 1.5,
+              ),
+            ),
+            if (_filterMode != 'unread') ...[
+              const SizedBox(height: AppSpacing.lg),
+              SizedBox(
+                height: 44,
+                child: PrimaryButton(
+                  label: 'Tìm bạn bè ngay',
+                  icon: Icons.person_search_rounded,
+                  onPressed: () => _openSearchOverlay(context),
                 ),
               ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(
+      String? error, VoidCallback onRetry, AppLocalizations t) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.errorLight,
+              ),
               child: const Icon(
-                Icons.chat_bubble_outline_rounded,
-                size: 42,
-                color: AppColors.neonRoyal,
+                Icons.error_outline_rounded,
+                size: 36,
+                color: AppColors.error,
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -957,7 +844,7 @@ class ChatListViewState extends State<ChatListView> {
               textAlign: TextAlign.center,
               style: AppTypography.titleMedium.copyWith(
                 fontWeight: FontWeight.w700,
-                color: AppColors.darkPremiumTextPrimary,
+                color: theme.colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: AppSpacing.xs),
@@ -965,25 +852,17 @@ class ChatListViewState extends State<ChatListView> {
               'Kết bạn để bắt đầu nhắn tin — mọi cuộc trò chuyện sẽ xuất hiện ở đây.',
               textAlign: TextAlign.center,
               style: AppTypography.bodyMedium.copyWith(
-                color: AppColors.darkPremiumTextSecondary,
+                color: theme.hintColor,
                 height: 1.5,
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
-            FilledButton.icon(
-              onPressed: () => _openSearchOverlay(context),
-              icon: const Icon(Icons.person_search_rounded, size: 18),
-              label: const Text('Tìm bạn bè ngay'),
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.neonRoyal,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.lg,
-                  vertical: AppSpacing.sm + 2,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.pill),
-                ),
+            SizedBox(
+              height: 44,
+              child: PrimaryButton(
+                label: 'Tìm bạn bè ngay',
+                icon: Icons.person_search_rounded,
+                onPressed: () => _openSearchOverlay(context),
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
@@ -992,7 +871,7 @@ class ChatListViewState extends State<ChatListView> {
               child: Text(
                 'Thử lại',
                 style: AppTypography.labelMedium.copyWith(
-                  color: AppColors.darkPremiumTextSecondary,
+                  color: theme.hintColor,
                 ),
               ),
             ),
@@ -1007,6 +886,7 @@ class ChatListViewState extends State<ChatListView> {
     AppLocalizations t,
     bool isDark,
   ) {
+    final theme = Theme.of(context);
     final name = conversation.displayName;
     final lastMessage = conversation.lastMessage?.content ?? '';
     final unreadCount = conversation.unreadCount;
@@ -1021,13 +901,10 @@ class ChatListViewState extends State<ChatListView> {
         duration: const Duration(milliseconds: 150),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.neonRoyal.withValues(alpha: 0.14)
+              ? (isDark ? AppColors.darkCard : AppColors.neutralGray100)
               : Colors.transparent,
           border: Border(
-            bottom: BorderSide(
-              color: AppColors.darkPremiumBorder,
-              width: 0.5,
-            ),
+            bottom: BorderSide(color: theme.dividerColor, width: 0.5),
           ),
         ),
         padding: const EdgeInsets.symmetric(
@@ -1039,67 +916,12 @@ class ChatListViewState extends State<ChatListView> {
             Stack(
               clipBehavior: Clip.none,
               children: [
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: conversation.displayAvatar.isEmpty
-                        ? const LinearGradient(
-                            colors: AppColors.chatBubbleMineGradient,
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          )
-                        : null,
-                  ),
-                  padding: const EdgeInsets.all(2),
-                  child: CircleAvatar(
-                    radius: 24,
-                    backgroundImage:
-                        conversation.displayAvatar.isNotEmpty
-                            ? NetworkImage(conversation.displayAvatar)
-                            : null,
-                    backgroundColor: Colors.transparent,
-                    child: conversation.displayAvatar.isEmpty
-                        ? Text(
-                            _getInitials(name),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16,
-                            ),
-                          )
-                        : null,
-                  ),
+                TriAvatar(
+                  imageUrl: conversation.displayAvatar,
+                  name: name,
+                  size: 48,
+                  overlayCount: isGroup ? memberCount : null,
                 ),
-                if (isGroup)
-                  Positioned(
-                    left: -4,
-                    bottom: -4,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: AppColors.chatBubbleMineGradient,
-                        ),
-                      ),
-                      constraints: const BoxConstraints(
-                        minWidth: 22,
-                        minHeight: 22,
-                      ),
-                      child: Center(
-                        child: Text(
-                          '$memberCount',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
                 if (!isGroup && otherUserId != null)
                   Selector<ChatProvider, bool>(
                     selector: (_, p) => p.isUserOnline(otherUserId),
@@ -1108,24 +930,15 @@ class ChatListViewState extends State<ChatListView> {
                             right: 0,
                             bottom: 0,
                             child: Container(
-                              width: 14,
-                              height: 14,
+                              width: 12,
+                              height: 12,
                               decoration: BoxDecoration(
                                 color: AppColors.success,
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: AppColors.darkPremiumBackground,
-                                  width: 2.5,
+                                  color: theme.colorScheme.surface,
+                                  width: 2,
                                 ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.success.withValues(
-                                      alpha: 0.4,
-                                    ),
-                                    blurRadius: 4,
-                                    spreadRadius: 1,
-                                  ),
-                                ],
                               ),
                             ),
                           )
@@ -1149,7 +962,7 @@ class ChatListViewState extends State<ChatListView> {
                             fontWeight: unreadCount > 0
                                 ? FontWeight.w700
                                 : FontWeight.w500,
-                            color: AppColors.darkPremiumTextPrimary,
+                            color: theme.colorScheme.onSurface,
                           ),
                         ),
                       ),
@@ -1161,8 +974,8 @@ class ChatListViewState extends State<ChatListView> {
                               ? FontWeight.w600
                               : FontWeight.w500,
                           color: unreadCount > 0
-                              ? AppColors.neonRoyal
-                              : AppColors.darkPremiumTextSecondary,
+                              ? theme.colorScheme.onSurface
+                              : theme.hintColor,
                         ),
                       ),
                     ],
@@ -1179,8 +992,8 @@ class ChatListViewState extends State<ChatListView> {
                           overflow: TextOverflow.ellipsis,
                           style: AppTypography.bodySmall.copyWith(
                             color: unreadCount > 0
-                                ? AppColors.darkPremiumTextPrimary
-                                : AppColors.darkPremiumTextSecondary,
+                                ? theme.colorScheme.onSurface
+                                : theme.hintColor,
                             fontWeight: unreadCount > 0
                                 ? FontWeight.w500
                                 : FontWeight.w400,
@@ -1212,164 +1025,138 @@ class ChatListViewState extends State<ChatListView> {
     return '${updatedAt.day}/${updatedAt.month}';
   }
 
-// ════════════════════════════════════════════════════════════════
-// CỘT 3 — MAIN CHAT (Dark Premium)
-// ════════════════════════════════════════════════════════════════
-Widget _buildWelcomePanel(AppLocalizations t, bool isDark) {
-  return Container(
-    decoration: const BoxDecoration(
-      color: AppColors.darkPremiumBackground,
-    ),
-    child: Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.huge),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.neonRoyal.withValues(alpha: 0.20),
-                    AppColors.neonPink.withValues(alpha: 0.06),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+  Widget _buildWelcomePanel(AppLocalizations t, bool isDark) {
+    final theme = Theme.of(context);
+    return Container(
+      color: theme.scaffoldBackgroundColor,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.huge),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: theme.brightness == Brightness.dark
+                      ? AppColors.darkCard
+                      : AppColors.neutralGray100,
+                  border: Border.all(
+                    color: theme.dividerColor,
+                    width: 1,
+                  ),
                 ),
-                border: Border.all(
-                  color: AppColors.neonRoyal.withValues(alpha: 0.30),
-                  width: 1.5,
+                child: Icon(
+                  Icons.chat_bubble_outline_rounded,
+                  size: 56,
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
-              child: const Icon(
+              const SizedBox(height: AppSpacing.xl),
+              Text(
+                'Tin nhắn',
+                style: AppTypography.headlineMedium.copyWith(
+                  color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                'Chọn một cuộc trò chuyện để bắt đầu nhắn tin',
+                style: AppTypography.bodyMedium.copyWith(
+                  color: theme.hintColor,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // BOTTOM NAVIGATION (Mobile) — Minimalist
+  // ════════════════════════════════════════════════════════════════
+  Widget _buildBottomNavigation(ThemeData theme) {
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        border: Border(
+          top: BorderSide(color: theme.dividerColor, width: 1),
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 64,
+          child: Row(
+            children: [
+              _buildBottomNavItem(
+                Icons.chat_bubble_rounded,
                 Icons.chat_bubble_outline_rounded,
-                size: 56,
-                color: AppColors.neonRoyal,
+                0,
+                'Tin nhắn',
+                theme,
               ),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            Text(
-              'Tin nhắn',
-              style: AppTypography.headlineMedium.copyWith(
-                color: AppColors.darkPremiumTextPrimary,
-                fontWeight: FontWeight.w700,
+              _buildBottomNavItem(
+                Icons.people_rounded,
+                Icons.people_outline_rounded,
+                1,
+                'Bạn bè',
+                theme,
               ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              'Chọn một cuộc trò chuyện để bắt đầu nhắn tin',
-              style: AppTypography.bodyMedium.copyWith(
-                color: AppColors.darkPremiumTextSecondary,
+              _buildBottomNavItem(
+                Icons.auto_stories_rounded,
+                Icons.auto_stories_outlined,
+                2,
+                'Bảng tin',
+                theme,
               ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+              _buildBottomNavItem(
+                Icons.person_rounded,
+                Icons.person_outline_rounded,
+                3,
+                'Cá nhân',
+                theme,
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
-// ════════════════════════════════════════════════════════════════
-// BOTTOM NAVIGATION (Mobile)
-// ════════════════════════════════════════════════════════════════
-Widget _buildBottomNavigation(bool isDark) {
-  return Container(
-    decoration: const BoxDecoration(
-      color: AppColors.darkPremiumSurface,
-      border: Border(
-        top: BorderSide(
-          color: AppColors.darkPremiumBorder,
-          width: 0.6,
-        ),
-      ),
-    ),
-    child: SafeArea(
-      top: false,
-      child: SizedBox(
-        height: 64,
-        child: Row(
-          children: [
-            _buildBottomNavItem(
-              Icons.chat_bubble_rounded,
-              Icons.chat_bubble_outline_rounded,
-              0,
-              'Tin nhắn',
-              isDark,
-            ),
-            _buildBottomNavItem(
-              Icons.contacts_rounded,
-              Icons.contacts_outlined,
-              1,
-              'Bạn bè',
-              isDark,
-            ),
-            _buildBottomNavItem(
-              Icons.auto_stories_rounded,
-              Icons.auto_stories_outlined,
-              2,
-              'Bảng tin',
-              isDark,
-            ),
-            _buildBottomNavItem(
-              Icons.person_rounded,
-              Icons.person_outline_rounded,
-              3,
-              'Cá nhân',
-              isDark,
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
-Widget _buildBottomNavItem(
-  IconData activeIcon,
-  IconData inactiveIcon,
-  int index,
-  String label,
-  bool isDark,
-) {
-  final isSelected = _selectedNavIndex == index;
-  final activeColor = AppColors.primaryOrange;
-  final inactiveColor = AppColors.darkPremiumTextSecondary;
-  final color = isSelected ? activeColor : inactiveColor;
+  Widget _buildBottomNavItem(
+    IconData activeIcon,
+    IconData inactiveIcon,
+    int index,
+    String label,
+    ThemeData theme,
+  ) {
+    final isSelected = _selectedNavIndex == index;
+    final activeColor = AppColors.neutralBlack;
+    final inactiveColor = theme.hintColor;
+    final color = isSelected ? activeColor : inactiveColor;
     return Expanded(
       child: InkWell(
         onTap: () => setState(() => _selectedNavIndex = index),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 220),
-              padding: EdgeInsets.symmetric(
-                horizontal: isSelected ? 16 : 8,
-                vertical: 4,
-              ),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.primaryOrange.withValues(alpha: 0.14)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(AppRadius.full),
-              ),
-              child: Icon(
-                isSelected ? activeIcon : inactiveIcon,
-                color: color,
-                size: 22,
-              ),
+            Icon(
+              isSelected ? activeIcon : inactiveIcon,
+              color: color,
+              size: 22,
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 4),
             Text(
               label,
               style: AppTypography.labelSmall.copyWith(
                 color: color,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                letterSpacing: 0.1,
               ),
             ),
           ],
@@ -1387,15 +1174,15 @@ Widget _buildBottomNavItem(
   }
 }
 
-/// Panel Cài đặt — hiển thị ở cột 2/3 của layout rộng khi người dùng
-/// nhấn vào biểu tượng bánh răng ở sidebar trái.
+/// Panel Cài đặt — hiển thị ở cột 2/3 của layout rộng.
 class _SettingsPanel extends StatelessWidget {
   const _SettingsPanel();
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
-      color: AppColors.creamBackground,
+      color: theme.scaffoldBackgroundColor,
       child: Column(
         children: [
           Container(
@@ -1405,35 +1192,23 @@ class _SettingsPanel extends StatelessWidget {
               AppSpacing.xl,
               AppSpacing.md,
             ),
-            decoration: const BoxDecoration(
-              color: AppColors.creamWhite,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
               border: Border(
-                bottom: BorderSide(
-                  color: AppColors.neutralGray300,
-                  width: 0.5,
-                ),
+                bottom: BorderSide(color: theme.dividerColor, width: 1),
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0x0D7B4F35),
-                  blurRadius: 8,
-                  offset: Offset(0, 2),
-                ),
-              ],
             ),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.xs),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: AppColors.appBarGradient,
-                    ),
+                    color: AppColors.neutralBlack,
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                   child: const Icon(
                     Icons.settings_rounded,
-                    size: 20,
+                    size: 18,
                     color: Colors.white,
                   ),
                 ),
@@ -1442,7 +1217,7 @@ class _SettingsPanel extends StatelessWidget {
                   'CÀI ĐẶT',
                   style: AppTypography.titleMedium.copyWith(
                     fontWeight: FontWeight.w800,
-                    color: AppColors.neutralBlack,
+                    color: theme.colorScheme.onSurface,
                     letterSpacing: 0.5,
                   ),
                 ),

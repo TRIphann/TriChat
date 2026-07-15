@@ -23,16 +23,25 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
+        backgroundColor: theme.colorScheme.surface,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back_rounded, color: theme.colorScheme.onSurface),
           onPressed: () => GoRouter.of(context).pop(),
         ),
-        title: Text('Thông tin nhóm', style: TextStyle(color: Colors.black)),
+        title: Text(
+          'Thông tin nhóm',
+          style: TextStyle(
+            color: theme.colorScheme.onSurface,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.3,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(

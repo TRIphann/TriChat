@@ -1,4 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/component/buttons.dart';
+import 'package:frontend/component/dialogs.dart';
+import 'package:frontend/component/inputs.dart';
+import 'package:frontend/component/widgets.dart';
+import 'package:frontend/config/app_colors.dart';
+import 'package:frontend/config/app_spacing.dart';
+import 'package:frontend/config/app_typography.dart';
 import 'package:frontend/features/friends/services/friend_service.dart';
 import 'package:frontend/services/chat/chat_service.dart';
 import 'package:frontend/views/chat/chat_screen.dart';
@@ -111,26 +118,37 @@ class _NewConversationScreenState extends State<NewConversationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
+        backgroundColor: theme.colorScheme.surface,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.black),
+          icon: Icon(Icons.close_rounded, color: theme.colorScheme.onSurface),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
           widget.type == 'group' ? 'Tạo nhóm' : 'Tin nhắn mới',
-          style: const TextStyle(color: Colors.black),
+          style: AppTypography.titleLarge.copyWith(
+            color: theme.colorScheme.onSurface,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.3,
+          ),
         ),
         actions: [
-          if (widget.type == 'group' ? _selectedUsers.length >= 2 : _selectedUsers.isNotEmpty)
+          if (widget.type == 'group'
+              ? _selectedUsers.length >= 2
+              : _selectedUsers.isNotEmpty)
             TextButton(
               onPressed: widget.type == 'group' ? _showGroupNameDialog : _createConversation,
               child: Text(
                 widget.type == 'group' ? 'Tiếp' : 'Tạo',
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: AppTypography.labelLarge.copyWith(
+                  color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
         ],
@@ -138,43 +156,34 @@ class _NewConversationScreenState extends State<NewConversationScreen> {
       body: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            color: theme.colorScheme.surface,
+            child: TriSearchField(
               controller: _searchController,
               onChanged: _filterUsers,
-              decoration: InputDecoration(
-                hintText: 'Tìm kiếm...',
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: Colors.grey[100],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-              ),
+              hintText: 'Tìm kiếm...',
             ),
           ),
           if (_selectedUsers.isNotEmpty)
             Container(
               height: 100,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              color: theme.colorScheme.surface,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: _selectedUsers.length,
                 itemBuilder: (context, index) {
                   final user = _selectedUsers[index];
                   return Padding(
-                    padding: const EdgeInsets.only(right: 12),
+                    padding: const EdgeInsets.only(right: AppSpacing.md),
                     child: Column(
                       children: [
                         Stack(
                           children: [
-                            CircleAvatar(
-                              radius: 28,
-                              backgroundImage: user.avatar.isNotEmpty ? NetworkImage(user.avatar) : null,
-                              backgroundColor: Colors.grey[300],
-                              child: user.avatar.isEmpty ? Text(user.name[0].toUpperCase()) : null,
+                            TriAvatar(
+                              imageUrl: user.avatar,
+                              name: user.name,
+                              size: 56,
                             ),
                             Positioned(
                               right: 0,
@@ -183,14 +192,21 @@ class _NewConversationScreenState extends State<NewConversationScreen> {
                                 onTap: () => _toggleUser(user),
                                 child: Container(
                                   padding: const EdgeInsets.all(2),
-                                  decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                                  child: const Icon(Icons.close, size: 16, color: Colors.white),
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.neutralBlack,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.close_rounded,
+                                    size: 14,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: AppSpacing.xs),
                         SizedBox(
                           width: 60,
                           child: Text(
@@ -198,7 +214,9 @@ class _NewConversationScreenState extends State<NewConversationScreen> {
                             textAlign: TextAlign.center,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 12),
+                            style: AppTypography.labelSmall.copyWith(
+                              color: theme.colorScheme.onSurface,
+                            ),
                           ),
                         ),
                       ],
@@ -207,64 +225,103 @@ class _NewConversationScreenState extends State<NewConversationScreen> {
                 },
               ),
             ),
-          const Divider(),
+          Divider(color: theme.dividerColor, height: 1),
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const LoadingView()
                 : _filteredUsers.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.people_outline, size: 64, color: Colors.grey[400]),
-                            const SizedBox(height: 16),
-                            Text('Không tìm thấy người dùng', style: TextStyle(color: Colors.grey[600])),
-                          ],
-                        ),
+                    ? EmptyState(
+                        icon: Icons.people_outline_rounded,
+                        title: 'Không tìm thấy người dùng',
                       )
                     : ListView.builder(
                         itemCount: _filteredUsers.length,
                         itemBuilder: (context, index) {
                           final user = _filteredUsers[index];
                           final isSelected = _selectedUsers.contains(user);
-                          return ListTile(
-                            leading: Stack(
-                              children: [
-                                CircleAvatar(
-                                  radius: 24,
-                                  backgroundImage: user.avatar.isNotEmpty ? NetworkImage(user.avatar) : null,
-                                  backgroundColor: Colors.grey[300],
-                                  child: user.avatar.isEmpty ? Text(user.name[0].toUpperCase()) : null,
+                          return InkWell(
+                            onTap: () => _toggleUser(user),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.lg,
+                                vertical: AppSpacing.md,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? (theme.brightness == Brightness.dark
+                                        ? AppColors.darkCard
+                                        : AppColors.neutralGray100)
+                                    : Colors.transparent,
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: theme.dividerColor,
+                                    width: 0.5,
+                                  ),
                                 ),
-                                if (user.isOnline)
-                                  Positioned(
-                                    right: 0,
-                                    bottom: 0,
-                                    child: Container(
-                                      width: 14,
-                                      height: 14,
-                                      decoration: BoxDecoration(
-                                        color: Colors.green,
-                                        shape: BoxShape.circle,
-                                        border: Border.all(color: Colors.white, width: 2),
+                              ),
+                              child: Row(
+                                children: [
+                                  Stack(
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      TriAvatar(
+                                        imageUrl: user.avatar,
+                                        name: user.name,
+                                        size: 48,
                                       ),
+                                      if (user.isOnline)
+                                        Positioned(
+                                          right: 0,
+                                          bottom: 0,
+                                          child: Container(
+                                            width: 12,
+                                            height: 12,
+                                            decoration: BoxDecoration(
+                                              color: AppColors.success,
+                                              shape: BoxShape.circle,
+                                              border: Border.all(
+                                                color: theme.colorScheme.surface,
+                                                width: 2,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(width: AppSpacing.md),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          user.name,
+                                          style: AppTypography.bodyLarge.copyWith(
+                                            color: theme.colorScheme.onSurface,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        Text(
+                                          user.isOnline ? 'Đang hoạt động' : 'Không hoạt động',
+                                          style: AppTypography.bodySmall.copyWith(
+                                            color: theme.hintColor,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                              ],
+                                  if (widget.type == 'group')
+                                    Icon(
+                                      isSelected
+                                          ? Icons.check_circle_rounded
+                                          : Icons.radio_button_unchecked_rounded,
+                                      color: isSelected
+                                          ? theme.colorScheme.onSurface
+                                          : theme.hintColor,
+                                      size: 22,
+                                    ),
+                                ],
+                              ),
                             ),
-                            title: Text(user.name, style: const TextStyle(fontWeight: FontWeight.w500)),
-                            subtitle: Text(
-                              user.isOnline ? 'Đang hoạt động' : 'Không hoạt động',
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                            trailing: widget.type == 'group'
-                                ? Checkbox(
-                                    value: isSelected,
-                                    onChanged: (_) => _toggleUser(user),
-                                    shape: const CircleBorder(),
-                                  )
-                                : null,
-                            onTap: () => _toggleUser(user),
                           );
                         },
                       ),
@@ -275,39 +332,62 @@ class _NewConversationScreenState extends State<NewConversationScreen> {
   }
 
   void _showGroupNameDialog() {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Tên nhóm'),
-        content: TextField(
-          controller: _groupNameController,
-          decoration: const InputDecoration(
-            hintText: 'Nhập tên nhóm...',
-            border: OutlineInputBorder(),
-          ),
-          autofocus: true,
+      builder: (context) => Dialog(
+        backgroundColor: theme.colorScheme.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Hủy'),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Tên nhóm',
+                style: AppTypography.titleLarge.copyWith(
+                  color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              TriTextField(
+                controller: _groupNameController,
+                hintText: 'Nhập tên nhóm...',
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Row(
+                children: [
+                  Expanded(
+                    child: SecondaryButton(
+                      label: 'Hủy',
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: PrimaryButton(
+                      label: 'Tạo',
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _createConversation();
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _createConversation();
-            },
-            child: const Text('Tạo'),
-          ),
-        ],
+        ),
       ),
     );
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
-    );
+    showTriSnack(context, message, type: TriSnackType.error);
   }
 }
 
@@ -326,7 +406,8 @@ class UserItem {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) || other is UserItem && runtimeType == other.runtimeType && id == other.id;
+      identical(this, other) ||
+      other is UserItem && runtimeType == other.runtimeType && id == other.id;
 
   @override
   int get hashCode => id.hashCode;

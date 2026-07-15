@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 /// ════════════════════════════════════════════════════════════════
-/// TRIẾT LÝ THIẾT KẾ — Typography scale cho TriChat
+/// TRIẾT LÝ THIẾT KẾ — Typography scale cho TriChat (Minimalist)
 /// ════════════════════════════════════════════════════════════════
 ///
-/// Hệ thống type 8pt dựa trên Material 3 nhưng tinh chỉnh cho tiếng
-/// Việt: letterSpacing âm cho display/title để chữ đậm-nét,
-/// lineHeight vừa phải để dễ đọc nhiều dòng.
+/// Hệ thống type tối giản, đơn sắc:
+/// - Font: system font (Roboto trên Android, SF trên iOS) — không dùng Inter
+///   vì app Flutter mobile không bundle Inter mặc định. Dùng Roboto làm fallback.
+/// - Tracking âm cho display/title để chữ đậm-nét
+/// - lineHeight vừa phải, không quá thoáng
 class AppTypography {
   AppTypography._();
 
@@ -18,7 +20,7 @@ class AppTypography {
   // ════════════════════════════════════════════════════════════════
   static const TextStyle displayLarge = TextStyle(
     fontFamily: fontFamily,
-    fontSize: 56,
+    fontSize: 48,
     fontWeight: FontWeight.w800,
     height: 1.05,
     letterSpacing: -1.5,
@@ -26,7 +28,7 @@ class AppTypography {
 
   static const TextStyle displayMedium = TextStyle(
     fontFamily: fontFamily,
-    fontSize: 40,
+    fontSize: 36,
     fontWeight: FontWeight.w800,
     height: 1.1,
     letterSpacing: -1.0,
@@ -37,7 +39,7 @@ class AppTypography {
   // ════════════════════════════════════════════════════════════════
   static const TextStyle headlineLarge = TextStyle(
     fontFamily: fontFamily,
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: FontWeight.w700,
     height: 1.2,
     letterSpacing: -0.5,
@@ -45,7 +47,7 @@ class AppTypography {
 
   static const TextStyle headlineMedium = TextStyle(
     fontFamily: fontFamily,
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: FontWeight.w700,
     height: 1.25,
     letterSpacing: -0.3,
@@ -53,7 +55,7 @@ class AppTypography {
 
   static const TextStyle headlineSmall = TextStyle(
     fontFamily: fontFamily,
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: FontWeight.w700,
     height: 1.3,
     letterSpacing: -0.2,
@@ -64,21 +66,21 @@ class AppTypography {
   // ════════════════════════════════════════════════════════════════
   static const TextStyle titleLarge = TextStyle(
     fontFamily: fontFamily,
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: FontWeight.w700,
     height: 1.3,
   );
 
   static const TextStyle titleMedium = TextStyle(
     fontFamily: fontFamily,
-    fontSize: 15,
+    fontSize: 14.5,
     fontWeight: FontWeight.w600,
     height: 1.35,
   );
 
   static const TextStyle titleSmall = TextStyle(
     fontFamily: fontFamily,
-    fontSize: 13.5,
+    fontSize: 13,
     fontWeight: FontWeight.w600,
     height: 1.4,
   );
@@ -88,23 +90,23 @@ class AppTypography {
   // ════════════════════════════════════════════════════════════════
   static const TextStyle bodyLarge = TextStyle(
     fontFamily: fontFamily,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: FontWeight.w400,
-    height: 1.45,
+    height: 1.5,
   );
 
   static const TextStyle bodyMedium = TextStyle(
     fontFamily: fontFamily,
-    fontSize: 14,
+    fontSize: 13.5,
     fontWeight: FontWeight.w400,
-    height: 1.45,
+    height: 1.5,
   );
 
   static const TextStyle bodySmall = TextStyle(
     fontFamily: fontFamily,
-    fontSize: 12.5,
+    fontSize: 12,
     fontWeight: FontWeight.w400,
-    height: 1.4,
+    height: 1.45,
   );
 
   // ════════════════════════════════════════════════════════════════
@@ -112,7 +114,7 @@ class AppTypography {
   // ════════════════════════════════════════════════════════════════
   static const TextStyle labelLarge = TextStyle(
     fontFamily: fontFamily,
-    fontSize: 14.5,
+    fontSize: 14,
     fontWeight: FontWeight.w600,
     height: 1.2,
     letterSpacing: 0.1,
@@ -139,7 +141,7 @@ class AppTypography {
     fontFamily: fontFamily,
     fontSize: 14.5,
     fontWeight: FontWeight.w400,
-    height: 1.35,
+    height: 1.4,
     letterSpacing: 0.05,
   );
 

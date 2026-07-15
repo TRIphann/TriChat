@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/component/buttons.dart';
+import 'package:frontend/component/inputs.dart';
 import 'package:frontend/component/loading_dialog.dart';
+import 'package:frontend/component/widgets.dart';
 import 'package:frontend/config/app_colors.dart';
+import 'package:frontend/config/app_spacing.dart';
+import 'package:frontend/config/app_typography.dart';
 import 'package:frontend/utils/validator.dart';
 import 'package:go_router/go_router.dart';
 
 class ResetPasswordView extends StatefulWidget {
-  final String? email; // Biến lưu email để truyền vào API reset password
+  final String? email;
   const ResetPasswordView({super.key, required this.email});
 
   @override
@@ -55,9 +60,9 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
     final password = _passwordCtrl.text;
     final confirm = _confirmPasswordCtrl.text;
 
-    bool isValid = password.length >= 8 && 
-                   confirm.isNotEmpty && 
-                   password == confirm;
+    bool isValid = password.length >= 8 &&
+        confirm.isNotEmpty &&
+        password == confirm;
 
     if (isValid != _isFormValid) {
       setState(() {
@@ -88,19 +93,19 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
         case 0:
         case 1:
           _passwordStrengthLabel = 'Yếu';
-          _passwordStrengthColor = AppColors.accentRed;
+          _passwordStrengthColor = AppColors.error;
           break;
         case 2:
           _passwordStrengthLabel = 'Trung bình';
-          _passwordStrengthColor = const Color(0xFFFF8F00);
+          _passwordStrengthColor = AppColors.warning;
           break;
         case 3:
           _passwordStrengthLabel = 'Mạnh';
-          _passwordStrengthColor = const Color(0xFF43A047);
+          _passwordStrengthColor = AppColors.success;
           break;
         case 4:
           _passwordStrengthLabel = 'Rất mạnh';
-          _passwordStrengthColor = const Color(0xFF00897B);
+          _passwordStrengthColor = AppColors.success;
           break;
       }
     });
@@ -121,93 +126,110 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black, size: 20),
-          onPressed: () => context.pop(),
-        ),
-        backgroundColor: Colors.white,
-      ),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.xl,
+            vertical: AppSpacing.lg,
+          ),
           child: Form(
             key: _formKey,
             autovalidateMode: AutovalidateMode.onUserInteraction,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                _buildBackRow(theme),
+                const SizedBox(height: AppSpacing.md),
                 Text(
                   'Cài đặt mật khẩu',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-                  textAlign: TextAlign.center,
+                  style: AppTypography.headlineLarge.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: theme.colorScheme.onSurface,
+                  ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   'Mật khẩu mới phải từ 8 ký tự và bao gồm tối thiểu 1 chữ hoa, 1 chữ số, có thể chứa ký tự đặc biệt.',
-                  style: TextStyle(color: AppColors.textSecondary, height: 1.4),
-                  textAlign: TextAlign.center,
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: theme.hintColor,
+                    height: 1.5,
+                  ),
                 ),
                 if (_errorMessage != null) ...[
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSpacing.xl),
                   Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(8)),
-                    child: Text(_errorMessage!, style: const TextStyle(color: Colors.red, fontSize: 13), textAlign: TextAlign.center),
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: AppColors.errorLight,
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                      border: Border.all(
+                        color: AppColors.error.withValues(alpha: 0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Text(
+                      _errorMessage!,
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.error,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                 ],
-
-                const SizedBox(height: 32),
-
-                _buildPasswordField(
+                const SizedBox(height: AppSpacing.xxl),
+                TriTextField(
                   controller: _passwordCtrl,
                   focusNode: _passwordFocus,
-                  label: 'Nhập mật khẩu mới',
-                  isObscured: _obscurePassword,
-                  onToggleVisibility: () => setState(() => _obscurePassword = !_obscurePassword),
-                  validator: (v) => Validator.password(v),
-                  onFieldSubmitted: (_) => _confirmFocus.requestFocus(),
-                ),
-
-                if (_passwordCtrl.text.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    child: _buildPasswordStrengthBar(),
+                  obscureText: _obscurePassword,
+                  textInputAction: TextInputAction.next,
+                  hintText: 'Nhập mật khẩu mới',
+                  prefixIcon: const Icon(Icons.lock_outline_rounded, size: 18),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                      size: 20,
+                    ),
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
                   ),
+                  validator: (v) => Validator.password(v),
+                  onSubmitted: () => _confirmFocus.requestFocus(),
+                ),
+                if (_passwordCtrl.text.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  _buildPasswordStrengthBar(theme),
                 ],
-
-                const SizedBox(height: 20),
-
-                _buildPasswordField(
+                const SizedBox(height: AppSpacing.lg),
+                TriTextField(
                   controller: _confirmPasswordCtrl,
                   focusNode: _confirmFocus,
-                  label: 'Nhập lại mật khẩu mới',
-                  isObscured: _obscureConfirm,
-                  onToggleVisibility: () => setState(() => _obscureConfirm = !_obscureConfirm),
-                  validator: (v) => Validator.confirmPassword(v, _passwordCtrl.text),
-                  onFieldSubmitted: _isFormValid ? (_) => _handleSubmit() : null,
-                ),
-
-                const SizedBox(height: 40),
-
-                SizedBox(
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: _isFormValid ? _handleSubmit : null, 
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-                      backgroundColor: AppColors.primaryBlue,
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: AppColors.primaryBlue.withValues(alpha: 0.3),
-                      disabledForegroundColor: Colors.white,
-                      elevation: 0,
+                  obscureText: _obscureConfirm,
+                  textInputAction: TextInputAction.done,
+                  hintText: 'Nhập lại mật khẩu mới',
+                  prefixIcon: const Icon(Icons.lock_outline_rounded, size: 18),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureConfirm
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                      size: 20,
                     ),
-                    child: const Text('Tiếp tục', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    onPressed: () =>
+                        setState(() => _obscureConfirm = !_obscureConfirm),
                   ),
+                  validator: (v) =>
+                      Validator.confirmPassword(v, _passwordCtrl.text),
+                  onSubmitted: _isFormValid ? () => _handleSubmit() : null,
+                ),
+                const SizedBox(height: AppSpacing.huge),
+                PrimaryButton(
+                  label: 'Tiếp tục',
+                  onPressed: _isFormValid ? _handleSubmit : null,
                 ),
               ],
             ),
@@ -217,96 +239,58 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
     );
   }
 
-  Widget _buildPasswordStrengthBar() {
+  Widget _buildBackRow(ThemeData theme) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Material(
+        color: theme.brightness == Brightness.dark
+            ? AppColors.darkSurface
+            : AppColors.neutralGray100,
+        shape: const CircleBorder(),
+        child: InkWell(
+          onTap: () => context.pop(),
+          customBorder: const CircleBorder(),
+          child: Container(
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: theme.dividerColor, width: 1),
+            ),
+            child: Icon(
+              Icons.arrow_back_rounded,
+              color: theme.colorScheme.onSurface,
+              size: 20,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPasswordStrengthBar(ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ClipRRect(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
           child: LinearProgressIndicator(
             value: _passwordStrength,
-            minHeight: 6,
-            backgroundColor: Colors.grey[200],
+            minHeight: 4,
+            backgroundColor: theme.dividerColor,
             valueColor: AlwaysStoppedAnimation<Color>(_passwordStrengthColor),
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: AppSpacing.xs),
         Text(
           'Độ mạnh: $_passwordStrengthLabel',
-          style: TextStyle(fontSize: 12, color: _passwordStrengthColor, fontWeight: FontWeight.w600),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPasswordField({
-    required TextEditingController controller,
-    required FocusNode focusNode,
-    required String label,
-    required bool isObscured,
-    required VoidCallback onToggleVisibility,
-    required String? Function(String?) validator,
-    required Function(String)? onFieldSubmitted,
-  }) {
-    return TextFormField(
-      controller: controller,
-      focusNode: focusNode,
-      obscureText: isObscured,
-      textInputAction: TextInputAction.next,
-      onFieldSubmitted: onFieldSubmitted,
-      validator: validator,
-      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(color: Colors.grey, fontSize: 14),
-        floatingLabelStyle: TextStyle(color: AppColors.primaryBlue, fontWeight: FontWeight.bold),
-        
-        // Nút HIỆN/ẨN
-        suffixIcon: Padding(
-          padding: const EdgeInsets.only(right: 8.0),
-          child: TextButton(
-            onPressed: onToggleVisibility,
-            style: TextButton.styleFrom(
-              minimumSize: Size.zero,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            child: Text(
-              isObscured ? 'HIỆN' : 'ẨN',
-              style: TextStyle(
-                color: AppColors.primaryBlue,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-              ),
-            ),
+          style: AppTypography.bodySmall.copyWith(
+            color: _passwordStrengthColor,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        
-        // Cấu hình Border Tròn
-        contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Colors.grey, width: 1),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: AppColors.primaryBlue, width: 1.5),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Colors.redAccent, width: 1),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
-        ),
-        filled: true,
-        fillColor: Colors.grey.shade50,
-      ),
+      ],
     );
   }
 }

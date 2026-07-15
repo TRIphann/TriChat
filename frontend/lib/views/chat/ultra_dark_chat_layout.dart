@@ -1,32 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:frontend/component/widgets.dart';
 import 'package:frontend/config/app_colors.dart';
-import 'package:frontend/component/dark_chat_widgets.dart';
+import 'package:frontend/config/app_spacing.dart';
+import 'package:frontend/config/app_typography.dart';
 import 'package:frontend/models/chat/conversation.dart';
 import 'package:frontend/models/chat/participant.dart';
 import 'package:frontend/providers/chat_provider.dart';
 import 'package:frontend/utils/app_localizations.dart';
 import 'package:frontend/views/chat/chat_screen.dart';
 
-/// Ultra-Dark "Premium Glass" 4-column dashboard layout — chuyên dùng cho
-/// màn hình chat khi user chọn tab "Tin nhắn" ở sidebar.
+/// Layout 4 cột minimalist black & white — dùng cho màn hình chat khi user
+/// chọn tab "Tin nhắn" ở sidebar trên màn hình rộng.
 ///
 /// Cấu trúc cột (trái → phải):
-///   1. Slim Sidebar       (60-72px, 3 chấm Mac, avatar cá nhân, icon nav)
-///   2. Message List       (300-360px, title + search + #PINNED + #ALL MSG)
-///   3. Main Chat          (Expanded, header + bubbles + input bar)
-///   4. Chat Details       (300-360px, header + Files/Links + Members + Media
-///      + File types)
+///   1. Slim Sidebar (60-72px, avatar cá nhân, icon nav)
+///   2. Message List (search + filter pills + conversation list)
+///   3. Main Chat (Expanded, header + bubbles + input bar)
+///   4. Chat Details (Members, File types — info panel)
 class UltraDarkChatLayout extends StatefulWidget {
   final AppLocalizations t;
-
-  /// Callback khi user chọn 1 icon trên slim sidebar.
-  /// index: 0 = Chat, 1 = Contacts, 2 = Newfeed, 3 = Profile, 4 = Settings
   final ValueChanged<int>? onNavTap;
-
-  /// Index hiện tại đang active trên sidebar (giúp highlight đúng icon
-  /// khi user ở tab khác).
   final int currentNavIndex;
 
   const UltraDarkChatLayout({
@@ -43,7 +38,7 @@ class UltraDarkChatLayout extends StatefulWidget {
 class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
   late final TextEditingController _searchController;
   String _searchQuery = '';
-  String _filterMode = 'all'; // 'all' | 'unread' | 'pinned'
+  String _filterMode = 'all';
   Conversation? _selectedConversation;
 
   @override
@@ -65,8 +60,10 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Container(
-      color: AppColors.darkPremiumBackground,
+      color: theme.scaffoldBackgroundColor,
       child: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -80,11 +77,9 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
             return Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildSlimSidebar(),
+                _buildSlimSidebar(isDark),
                 _buildMessageListColumn(width: listWidth),
-                Expanded(
-                  child: _buildMainChatColumn(),
-                ),
+                Expanded(child: _buildMainChatColumn()),
                 if (isWide) _buildDetailsColumn(width: detailsWidth),
               ],
             );
@@ -95,71 +90,67 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
   }
 
   // ════════════════════════════════════════════════════════════════
-  // CỘT 1 — SLIM SIDEBAR (60-72px)
+  // CỘT 1 — SLIM SIDEBAR
   // ════════════════════════════════════════════════════════════════
-  Widget _buildSlimSidebar() {
+  Widget _buildSlimSidebar(bool isDark) {
     return Container(
       width: 72,
-      decoration: const BoxDecoration(
-        color: AppColors.darkPremiumVoid,
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : AppColors.neutralBlack,
+        border: Border(
+          right: BorderSide(
+            color:
+                isDark ? AppColors.darkDivider : AppColors.neutralGray800,
+            width: 1,
+          ),
+        ),
       ),
       child: Column(
         children: [
-          const SizedBox(height: 14),
-          // 3 chấm Mac
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: const [
-                _MacDot(color: Color(0xFFFF5F57)),
-                SizedBox(width: 6),
-                _MacDot(color: Color(0xFFFEBB2E)),
-                SizedBox(width: 6),
-                _MacDot(color: Color(0xFF28C840)),
-              ],
-            ),
-          ),
-          const SizedBox(height: 18),
-          // Avatar cá nhân
+          const SizedBox(height: AppSpacing.lg),
           _buildSlimAvatar(),
-          const SizedBox(height: 28),
+          const SizedBox(height: AppSpacing.xl),
           _buildSlimIcon(
             icon: Icons.forum_outlined,
             activeIcon: Icons.forum_rounded,
             active: widget.currentNavIndex == 0,
             onTap: () => widget.onNavTap?.call(0),
+            tooltip: 'Tin nhắn',
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: AppSpacing.sm),
           _buildSlimIcon(
             icon: Icons.contacts_outlined,
             activeIcon: Icons.contacts_rounded,
             active: widget.currentNavIndex == 1,
             onTap: () => widget.onNavTap?.call(1),
+            tooltip: 'Bạn bè',
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: AppSpacing.sm),
           _buildSlimIcon(
             icon: Icons.auto_stories_outlined,
             activeIcon: Icons.auto_stories_rounded,
             active: widget.currentNavIndex == 2,
             onTap: () => widget.onNavTap?.call(2),
+            tooltip: 'Bảng tin',
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: AppSpacing.sm),
           _buildSlimIcon(
             icon: Icons.person_outline_rounded,
             activeIcon: Icons.person_rounded,
             active: widget.currentNavIndex == 3,
             onTap: () => widget.onNavTap?.call(3),
+            tooltip: 'Cá nhân',
           ),
           const Spacer(),
           _buildSlimIcon(
             icon: Icons.settings_outlined,
             activeIcon: Icons.settings_rounded,
             active: widget.currentNavIndex == 4,
-            size: 42,
+            size: 46,
             onTap: () => widget.onNavTap?.call(4),
+            tooltip: 'Cài đặt',
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: AppSpacing.lg),
         ],
       ),
     );
@@ -169,83 +160,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
     final user = FirebaseAuth.instance.currentUser;
     final name = user?.displayName ?? 'U';
     final photo = user?.photoURL ?? '';
-    final colorIdx =
-        name.isEmpty ? 0 : name.codeUnitAt(0) % AppColors.darkPremiumAvatarPalette.length;
-    return Container(
-      width: 42,
-      height: 42,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color:
-                AppColors.darkPremiumAvatarPalette[colorIdx].withValues(alpha: 0.4),
-            blurRadius: 12,
-            offset: const Offset(0, 0),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(14),
-        child: photo.isEmpty
-            ? Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.darkPremiumAvatarPalette[colorIdx],
-                      Color.lerp(
-                            AppColors.darkPremiumAvatarPalette[colorIdx],
-                            Colors.black,
-                            0.4,
-                          ) ??
-                          AppColors.darkPremiumAvatarPalette[colorIdx],
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  name.isEmpty ? '?' : name[0].toUpperCase(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              )
-            : Image.network(
-                photo,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        AppColors.darkPremiumAvatarPalette[colorIdx],
-                        Color.lerp(
-                              AppColors.darkPremiumAvatarPalette[colorIdx],
-                              Colors.black,
-                              0.4,
-                            ) ??
-                          AppColors.darkPremiumAvatarPalette[colorIdx],
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    name[0].toUpperCase(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-              ),
-      ),
-    );
+    return TriAvatar(imageUrl: photo, name: name, size: 44);
   }
 
   Widget _buildSlimIcon({
@@ -254,33 +169,30 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
     required bool active,
     double size = 46,
     VoidCallback? onTap,
+    String? tooltip,
   }) {
-    final iconWidget = active
-        ? Icon(activeIcon, color: AppColors.neonRoyal, size: 22)
-        : Icon(icon, size: 22, color: AppColors.darkPremiumTextSecondary);
-    final tap = onTap ?? () {};
-    if (active) {
-      return GestureDetector(
-        onTap: tap,
-        child: NeonActiveCircle(
-          size: size,
-          glowColor: AppColors.neonRoyal,
-          child: iconWidget,
+    final color =
+        active ? AppColors.neutralWhite : AppColors.neutralGray400;
+    final iconWidget = Icon(
+      active ? activeIcon : icon,
+      color: color,
+      size: 22,
+    );
+    final Widget tap = GestureDetector(
+      onTap: onTap ?? () {},
+      child: Container(
+        width: size,
+        height: size,
+        margin: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: active ? AppColors.neutralGray800 : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppRadius.md),
         ),
-      );
-    }
-    return SizedBox(
-      width: size,
-      height: size,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: tap,
-          child: Center(child: iconWidget),
-        ),
+        alignment: Alignment.center,
+        child: iconWidget,
       ),
     );
+    return tooltip != null ? Tooltip(message: tooltip, child: tap) : tap;
   }
 
   // ════════════════════════════════════════════════════════════════
@@ -295,7 +207,6 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
         final errorState = chat.conversationsState == ChatLoadingState.error &&
             conversations.isEmpty;
 
-        // Filter chính
         final filtered = _searchQuery.isEmpty
             ? conversations
             : conversations
@@ -308,34 +219,28 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
                         .contains(_searchQuery.toLowerCase()))
                 .toList();
 
-        final unread =
-            filtered.where((c) => c.unreadCount > 0).toList();
+        final unread = filtered.where((c) => c.unreadCount > 0).toList();
         final pinned =
             filtered.where((c) => c.isPinned == true).toList();
         final rest = filtered
             .where((c) => c.unreadCount == 0 && c.isPinned != true)
             .toList();
 
+        final theme = Theme.of(context);
         return Container(
           width: width,
-          decoration: const BoxDecoration(
-            color: AppColors.darkPremiumBackground,
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
             border: Border(
-              right: BorderSide(
-                color: AppColors.darkPremiumBorder,
-                width: 1,
-              ),
+              right: BorderSide(color: theme.dividerColor, width: 1),
             ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildListHeader(chat),
-              const SizedBox(height: 4),
               _buildSearchBar(),
-              const SizedBox(height: 10),
               _buildFilterTabs(unread.length),
-              const SizedBox(height: 4),
               Expanded(
                 child: loading
                     ? const _ListLoading()
@@ -344,13 +249,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
                             onRetry: () => chat.loadConversations(),
                           )
                         : filtered.isEmpty
-                            ? const DarkEmptyState(
-                                icon: Icons.forum_outlined,
-                                accentColor: AppColors.neonRoyal,
-                                title: 'Chưa có cuộc trò chuyện nào',
-                                subtitle:
-                                    'Hãy kết bạn để bắt đầu nhắn tin —\nmọi cuộc trò chuyện sẽ xuất hiện ở đây.',
-                              )
+                            ? _buildEmptyState(_filterMode == 'unread')
                             : _buildConversationsBody(
                                 pinned: pinned,
                                 unread: unread,
@@ -365,102 +264,89 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
   }
 
   Widget _buildListHeader(ChatProvider chat) {
+    final theme = Theme.of(context);
     final unreadCount = chat.conversations
         .where((c) => c.unreadCount > 0)
         .fold<int>(0, (s, c) => s + c.unreadCount);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(22, 24, 22, 8),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.xl,
+        AppSpacing.lg,
+        AppSpacing.sm,
+      ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const Text(
-            'Message',
-            style: TextStyle(
-              color: AppColors.darkPremiumTextPrimary,
+          Text(
+            'Tin nhắn',
+            style: AppTypography.headlineMedium.copyWith(
+              color: theme.colorScheme.onSurface,
               fontWeight: FontWeight.w800,
-              fontSize: 28,
               letterSpacing: -0.5,
-              height: 1.0,
             ),
           ),
-          const SizedBox(width: 8),
-          if (unreadCount > 0)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Text(
-                '($unreadCount)',
-                style: const TextStyle(
-                  color: AppColors.neonRoyal,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16,
-                ),
-              ),
-            ),
-          const Spacer(),
-          Icon(
-            Icons.tune_rounded,
-            color: AppColors.darkPremiumTextSecondary,
-            size: 18,
-          ),
+          if (unreadCount > 0) ...[
+            const SizedBox(width: AppSpacing.sm),
+            UnreadBadge(count: unreadCount),
+          ],
         ],
       ),
     );
   }
 
   Widget _buildSearchBar() {
+    final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
       child: Container(
-        height: 42,
+        height: 40,
         decoration: BoxDecoration(
-          color: AppColors.darkPremiumSurface,
-          borderRadius: BorderRadius.circular(21),
-          border: Border.all(
-            color: AppColors.darkPremiumBorder,
-            width: 1,
-          ),
+          color: theme.brightness == Brightness.dark
+              ? AppColors.darkCard
+              : AppColors.neutralGray100,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(color: theme.dividerColor, width: 1),
         ),
         child: Row(
           children: [
-            const SizedBox(width: 14),
+            const SizedBox(width: AppSpacing.md),
             Icon(
               Icons.search_rounded,
-              color: AppColors.darkPremiumTextSecondary,
+              color: theme.hintColor,
               size: 18,
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: TextField(
                 controller: _searchController,
-                style: const TextStyle(
-                  color: AppColors.darkPremiumTextPrimary,
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w500,
+                style: AppTypography.bodyMedium.copyWith(
+                  color: theme.colorScheme.onSurface,
                 ),
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   isCollapsed: true,
                   hintText: 'Tìm kiếm cuộc trò chuyện...',
-                  hintStyle: const TextStyle(
-                    color: AppColors.darkPremiumTextHint,
-                    fontSize: 13.5,
+                  hintStyle: AppTypography.bodyMedium.copyWith(
+                    color: theme.hintColor,
                   ),
                 ),
               ),
             ),
             if (_searchQuery.isNotEmpty)
               IconButton(
-                onPressed: () {
-                  _searchController.clear();
-                },
+                onPressed: () => _searchController.clear(),
                 icon: Icon(
                   Icons.close_rounded,
-                  color: AppColors.darkPremiumTextSecondary,
+                  color: theme.hintColor,
                   size: 16,
                 ),
                 visualDensity: VisualDensity.compact,
               ),
-            const SizedBox(width: 6),
+            const SizedBox(width: AppSpacing.xs),
           ],
         ),
       ),
@@ -468,21 +354,25 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
   }
 
   Widget _buildFilterTabs(int unreadCount) {
-    final allActive = _filterMode == 'all';
-    final unreadActive = _filterMode == 'unread';
+    final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 4, 18, 8),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.xs,
+        AppSpacing.md,
+        AppSpacing.sm,
+      ),
       child: Row(
         children: [
           _buildFilterPill(
             label: 'Tất cả',
-            active: allActive,
+            active: _filterMode == 'all',
             onTap: () => setState(() => _filterMode = 'all'),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           _buildFilterPill(
             label: unreadCount > 0 ? 'Chưa đọc ($unreadCount)' : 'Chưa đọc',
-            active: unreadActive,
+            active: _filterMode == 'unread',
             onTap: () => setState(() => _filterMode = 'unread'),
           ),
         ],
@@ -495,36 +385,90 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
     required bool active,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.xs),
         onTap: onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: 6,
+          ),
           decoration: BoxDecoration(
             color: active
-                ? AppColors.neonRoyal.withValues(alpha: 0.16)
+                ? theme.colorScheme.onSurface
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppRadius.xs),
             border: Border.all(
-              color: active
-                  ? AppColors.neonRoyal.withValues(alpha: 0.5)
-                  : AppColors.darkPremiumBorder,
+              color: active ? theme.colorScheme.onSurface : theme.dividerColor,
               width: 1,
             ),
           ),
           child: Text(
             label,
-            style: TextStyle(
+            style: AppTypography.labelMedium.copyWith(
               color: active
-                  ? AppColors.neonRoyal
-                  : AppColors.darkPremiumTextSecondary,
+                  ? theme.colorScheme.surface
+                  : theme.colorScheme.onSurface,
               fontWeight: FontWeight.w700,
-              fontSize: 12,
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(bool unreadMode) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: theme.brightness == Brightness.dark
+                    ? AppColors.darkCard
+                    : AppColors.neutralGray100,
+              ),
+              child: Icon(
+                unreadMode
+                    ? Icons.mark_chat_read_outlined
+                    : Icons.chat_bubble_outline_rounded,
+                size: 36,
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              unreadMode
+                  ? 'Không có tin nhắn chưa đọc'
+                  : 'Chưa có cuộc trò chuyện nào',
+              textAlign: TextAlign.center,
+              style: AppTypography.titleMedium.copyWith(
+                fontWeight: FontWeight.w700,
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              unreadMode
+                  ? 'Mọi tin nhắn của bạn đã được đọc.'
+                  : 'Hãy kết bạn để bắt đầu nhắn tin — cuộc trò chuyện sẽ xuất hiện ở đây.',
+              textAlign: TextAlign.center,
+              style: AppTypography.bodySmall.copyWith(
+                color: theme.hintColor,
+                height: 1.5,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -546,37 +490,22 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
 
     if (visible.isEmpty) {
       if (_filterMode == 'unread') {
-        return const DarkEmptyState(
-          icon: Icons.mark_chat_read_rounded,
-          accentColor: AppColors.neonOnline,
-          title: 'Không có tin nhắn chưa đọc',
-          subtitle: 'Mọi tin nhắn của bạn đã được đọc.',
-        );
+        return _buildEmptyState(true);
       }
       return const SizedBox.shrink();
     }
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 20),
+      padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
       children: [
         if (_filterMode != 'unread' && pinned.isNotEmpty) ...[
-          const Padding(
-            padding: EdgeInsets.fromLTRB(10, 6, 10, 4),
-            child: NeonLabelChip(text: '# PINNED'),
-          ),
-          ...pinned.map(
-            (c) => _buildConversationTile(c),
-          ),
-          const SizedBox(height: 12),
+          const _LabelRow(text: '# PINNED'),
+          ...pinned.map((c) => _buildConversationTile(c)),
+          const SizedBox(height: AppSpacing.sm),
         ],
         if (_filterMode != 'unread' && rest.isNotEmpty) ...[
-          const Padding(
-            padding: EdgeInsets.fromLTRB(10, 6, 10, 4),
-            child: NeonLabelChip(text: '# ALL MESSAGE'),
-          ),
-          ...rest.map(
-            (c) => _buildConversationTile(c),
-          ),
+          const _LabelRow(text: '# ALL MESSAGE'),
+          ...rest.map((c) => _buildConversationTile(c)),
         ],
         if (_filterMode == 'unread')
           ...visible.map((c) => _buildConversationTile(c)),
@@ -593,23 +522,43 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
         : Provider.of<ChatProvider>(context, listen: false)
             .isUserOnline(c.otherUserId ?? '');
 
+    final theme = Theme.of(context);
     final tile = Padding(
-      padding: const EdgeInsets.fromLTRB(8, 10, 8, 10),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.sm + 2,
+      ),
       child: Row(
         children: [
           Stack(
             clipBehavior: Clip.none,
             children: [
-              _buildTileAvatar(c),
+              TriAvatar(
+                imageUrl: c.displayAvatar,
+                name: c.displayName,
+                size: 44,
+                overlayCount: c.type == 'group' ? c.participants.length : null,
+              ),
               if (isOnline && c.type != 'group')
                 Positioned(
-                  right: 1,
-                  bottom: 1,
-                  child: const NeonOnlineDot(size: 11),
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    width: 11,
+                    height: 11,
+                    decoration: BoxDecoration(
+                      color: AppColors.success,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: theme.colorScheme.surface,
+                        width: 2,
+                      ),
+                    ),
+                  ),
                 ),
             ],
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -623,24 +572,24 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
                         c.displayName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: isSelected
-                              ? AppColors.darkPremiumTextPrimary
-                              : AppColors.darkPremiumTextPrimary,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
+                        style: AppTypography.bodyMedium.copyWith(
+                          fontWeight: c.unreadCount > 0
+                              ? FontWeight.w700
+                              : FontWeight.w600,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: AppSpacing.sm),
                     Text(
                       lastTime,
-                      style: TextStyle(
+                      style: AppTypography.timestamp.copyWith(
                         color: c.unreadCount > 0
-                            ? AppColors.neonRoyal
-                            : AppColors.darkPremiumTextHint,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 11,
+                            ? theme.colorScheme.onSurface
+                            : theme.hintColor,
+                        fontWeight: c.unreadCount > 0
+                            ? FontWeight.w700
+                            : FontWeight.w500,
                       ),
                     ),
                   ],
@@ -657,47 +606,19 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
                                 : lastMsg,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
+                        style: AppTypography.bodySmall.copyWith(
                           color: c.unreadCount > 0
-                              ? AppColors.darkPremiumTextBody
-                              : AppColors.darkPremiumTextSecondary,
-                          fontSize: 12.5,
+                              ? theme.colorScheme.onSurface
+                              : theme.hintColor,
                           fontWeight: c.unreadCount > 0
-                              ? FontWeight.w600
+                              ? FontWeight.w500
                               : FontWeight.w400,
                         ),
                       ),
                     ),
                     if (c.unreadCount > 0) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        margin: const EdgeInsets.only(left: 4),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.neonRoyal,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color:
-                                  AppColors.neonRoyal.withValues(alpha: 0.6),
-                              blurRadius: 6,
-                              spreadRadius: 0,
-                              offset: const Offset(0, 0),
-                            ),
-                          ],
-                        ),
-                        child: Text(
-                          c.unreadCount > 99 ? '99+' : '${c.unreadCount}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 10,
-                          ),
-                        ),
-                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      UnreadBadge(count: c.unreadCount),
                     ],
                   ],
                 ),
@@ -717,92 +638,22 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         child: tile,
       ),
     );
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: isSelected
-          ? DarkActiveConversationTile(child: inner)
-          : inner,
-    );
-  }
-
-  Widget _buildTileAvatar(Conversation c) {
-    final name = c.displayName;
-    final url = c.displayAvatar;
-    final colorIdx = name.isEmpty
-        ? 0
-        : name.codeUnitAt(0) % AppColors.darkPremiumAvatarPalette.length;
-    final color = c.type == 'group'
-        ? AppColors.neonPurple
-        : AppColors.darkPremiumAvatarPalette[colorIdx];
-
     return Container(
-      width: 44,
-      height: 44,
+      margin: const EdgeInsets.symmetric(vertical: 2),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.30),
-            blurRadius: 10,
-            offset: const Offset(0, 0),
-          ),
-        ],
+        color: isSelected
+            ? (theme.brightness == Brightness.dark
+                ? AppColors.darkCard
+                : AppColors.neutralGray100)
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(14),
-        child: url.isEmpty
-            ? Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      color,
-                      Color.lerp(color, Colors.black, 0.4) ?? color,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  _initials(name),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 14,
-                  ),
-                ),
-              )
-            : Image.network(
-                url,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        color,
-                        Color.lerp(color, Colors.black, 0.4) ?? color,
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    _initials(name),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ),
-      ),
+      child: inner,
     );
   }
 
@@ -845,44 +696,58 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
       return _buildWelcomeDark();
     }
     return Container(
-      color: AppColors.darkPremiumBackground,
+      color: Theme.of(context).scaffoldBackgroundColor,
       child: ChatScreen(conversation: _selectedConversation!),
     );
   }
 
   Widget _buildWelcomeDark() {
+    final theme = Theme.of(context);
     return Container(
-      color: AppColors.darkPremiumBackground,
+      color: theme.scaffoldBackgroundColor,
       child: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.huge,
+            vertical: AppSpacing.xl,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              NeonOutlineIcon(
-                icon: Icons.forum_outlined,
-                accent: AppColors.neonRoyal,
-                size: 110,
-                iconSize: 44,
-                glowStrength: 0.55,
-              ),
-              const SizedBox(height: 28),
-              const Text(
-                'Chọn một cuộc trò chuyện',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppColors.darkPremiumTextPrimary,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 22,
+              Container(
+                width: 110,
+                height: 110,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: theme.brightness == Brightness.dark
+                      ? AppColors.darkCard
+                      : AppColors.neutralGray100,
+                  border: Border.all(
+                    color: theme.dividerColor,
+                    width: 1,
+                  ),
+                ),
+                child: Icon(
+                  Icons.forum_outlined,
+                  size: 44,
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
-              const SizedBox(height: 8),
-              const Text(
+              const SizedBox(height: AppSpacing.xl),
+              Text(
+                'Chọn một cuộc trò chuyện',
+                textAlign: TextAlign.center,
+                style: AppTypography.headlineSmall.copyWith(
+                  color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
                 'Trò chuyện với bạn bè ngay bây giờ — chọn một hội thoại ở danh sách bên trái để bắt đầu.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppColors.darkPremiumTextSecondary,
-                  fontSize: 14,
+                style: AppTypography.bodyMedium.copyWith(
+                  color: theme.hintColor,
                   height: 1.6,
                 ),
               ),
@@ -900,38 +765,37 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
     final conv = _selectedConversation;
     final members = conv?.participants ?? <Participant>[];
     final memberCount = members.length;
+    final theme = Theme.of(context);
 
     return Container(
       width: width,
-      decoration: const BoxDecoration(
-        color: AppColors.darkPremiumSurface,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
         border: Border(
-          left: BorderSide(
-            color: AppColors.darkPremiumBorder,
-            width: 1,
-          ),
+          left: BorderSide(color: theme.dividerColor, width: 1),
         ),
       ),
       child: conv == null
-          ? const _DetailsIdleState()
+          ? _DetailsIdleState()
           : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildDetailsHeader(conv),
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.sm,
+                      AppSpacing.lg,
+                      AppSpacing.xl,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildDetailsBigAvatar(conv),
-                        const SizedBox(height: 18),
-                        _buildDetailsStats(conv),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: AppSpacing.lg),
                         _buildMembersSection(members, memberCount),
-                        const SizedBox(height: 24),
-                        _buildMediaSection(),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: AppSpacing.xl),
                         _buildFileTypeSection(),
                       ],
                     ),
@@ -943,24 +807,23 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
   }
 
   Widget _buildDetailsHeader(Conversation conv) {
+    final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(22, 24, 22, 12),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.xl,
+        AppSpacing.lg,
+        AppSpacing.md,
+      ),
       child: Row(
         children: [
-          const Text(
-            'Chat Details',
-            style: TextStyle(
-              color: AppColors.darkPremiumTextPrimary,
+          Text(
+            'Chi tiết',
+            style: AppTypography.titleLarge.copyWith(
+              color: theme.colorScheme.onSurface,
               fontWeight: FontWeight.w800,
-              fontSize: 22,
               letterSpacing: -0.3,
             ),
-          ),
-          const Spacer(),
-          Icon(
-            Icons.close_rounded,
-            color: AppColors.darkPremiumTextSecondary,
-            size: 20,
           ),
         ],
       ),
@@ -968,111 +831,46 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
   }
 
   Widget _buildDetailsBigAvatar(Conversation conv) {
-    final name = conv.displayName;
-    final url = conv.displayAvatar;
-    final colorIdx = name.isEmpty
-        ? 0
-        : name.codeUnitAt(0) % AppColors.darkPremiumAvatarPalette.length;
-    final color = conv.type == 'group'
-        ? AppColors.neonPurple
-        : AppColors.darkPremiumAvatarPalette[colorIdx];
-
+    final theme = Theme.of(context);
     return Center(
       child: Column(
         children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: color.withValues(alpha: 0.45),
-                  blurRadius: 30,
-                  spreadRadius: 0,
-                  offset: const Offset(0, 0),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: url.isEmpty
-                  ? Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            color,
-                            Color.lerp(color, Colors.black, 0.4) ?? color,
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        _initials(name),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 28,
-                        ),
-                      ),
-                    )
-                  : Image.network(
-                      url,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              color,
-                              Color.lerp(color, Colors.black, 0.4) ?? color,
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          _initials(name),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 28,
-                          ),
-                        ),
-                      ),
-                    ),
-            ),
+          TriAvatar(
+            imageUrl: conv.displayAvatar,
+            name: conv.displayName,
+            size: 80,
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: AppSpacing.md),
           Text(
-            name,
+            conv.displayName,
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: AppColors.darkPremiumTextPrimary,
+            style: AppTypography.titleMedium.copyWith(
+              color: theme.colorScheme.onSurface,
               fontWeight: FontWeight.w800,
-              fontSize: 16,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: AppSpacing.xs),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: 4,
+            ),
             decoration: BoxDecoration(
-              color: AppColors.darkPremiumElevated,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.darkPremiumBorder),
+              color: theme.brightness == Brightness.dark
+                  ? AppColors.darkCard
+                  : AppColors.neutralGray100,
+              borderRadius: BorderRadius.circular(AppRadius.xs),
+              border: Border.all(color: theme.dividerColor),
             ),
             child: Text(
               conv.type == 'group'
-                  ? 'Group · ${conv.participants.length} members'
-                  : 'Direct message',
-              style: const TextStyle(
-                color: AppColors.darkPremiumTextSecondary,
+                  ? 'Nhóm · ${conv.participants.length} thành viên'
+                  : 'Tin nhắn trực tiếp',
+              style: AppTypography.labelSmall.copyWith(
+                color: theme.hintColor,
                 fontWeight: FontWeight.w700,
-                fontSize: 11,
                 letterSpacing: 0.5,
               ),
             ),
@@ -1082,35 +880,9 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
     );
   }
 
-  Widget _buildDetailsStats(Conversation conv) {
-    // Các số liệu Files/Links hiện chưa có trong API Response — sử dụng
-    // các con số "dự kiến" để giữ bố cục dashboard nhất quán. Backend
-    // sẽ bổ sung trường này sau; lúc đó chỉ cần thay bằng dữ liệu thật.
-    return Row(
-      children: [
-        Expanded(
-          child: DarkStatTile(
-            icon: Icons.folder_outlined,
-            accentColor: AppColors.neonPink,
-            label: 'Files',
-            count: 0,
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: DarkStatTile(
-            icon: Icons.link_rounded,
-            accentColor: AppColors.neonYellow,
-            label: 'Links',
-            count: 0,
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildMembersSection(
       List<Participant> members, int memberCount) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1118,39 +890,36 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
           padding: const EdgeInsets.symmetric(horizontal: 4),
           child: Row(
             children: [
-              const Text(
-                'MEMBERS',
-                style: TextStyle(
-                  color: AppColors.darkPremiumTextSecondary,
+              Text(
+                'THÀNH VIÊN',
+                style: AppTypography.labelSmall.copyWith(
+                  color: theme.hintColor,
                   fontWeight: FontWeight.w800,
-                  fontSize: 11,
                   letterSpacing: 1.0,
                 ),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: AppSpacing.xs),
               Text(
                 '($memberCount)',
-                style: const TextStyle(
-                  color: AppColors.darkPremiumTextHint,
+                style: AppTypography.labelSmall.copyWith(
+                  color: theme.hintColor,
                   fontWeight: FontWeight.w700,
-                  fontSize: 11,
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: AppSpacing.sm),
         ...members.take(8).map((m) => _buildMemberRow(m)),
         if (members.length > 8) ...[
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
               '+ ${members.length - 8} thành viên khác',
-              style: const TextStyle(
-                color: AppColors.neonRoyal,
+              style: AppTypography.bodySmall.copyWith(
+                color: theme.colorScheme.onSurface,
                 fontWeight: FontWeight.w700,
-                fontSize: 12.5,
               ),
             ),
           ),
@@ -1160,79 +929,13 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
   }
 
   Widget _buildMemberRow(Participant m) {
-    final colorIdx = (m.userId.codeUnitAt(0)) %
-        AppColors.darkPremiumAvatarPalette.length;
-    final color = AppColors.darkPremiumAvatarPalette[colorIdx];
+    final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: color.withValues(alpha: 0.30),
-                  blurRadius: 8,
-                  offset: const Offset(0, 0),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: m.avatar.isEmpty
-                  ? Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            color,
-                            Color.lerp(color, Colors.black, 0.4) ?? color,
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        _initials(m.displayName),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 12,
-                        ),
-                      ),
-                    )
-                  : Image.network(
-                      m.avatar,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              color,
-                              Color.lerp(color, Colors.black, 0.4) ??
-                                  color,
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          _initials(m.displayName),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                    ),
-            ),
-          ),
-          const SizedBox(width: 12),
+          TriAvatar(imageUrl: m.avatar, name: m.displayName, size: 32),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1242,10 +945,9 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
                   m.displayName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.darkPremiumTextPrimary,
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: theme.colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
-                    fontSize: 13,
                   ),
                 ),
                 if (m.role.isNotEmpty)
@@ -1255,159 +957,68 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
                         : m.role == 'owner'
                             ? 'Trưởng nhóm'
                             : 'Thành viên',
-                    style: const TextStyle(
-                      color: AppColors.darkPremiumTextHint,
-                      fontSize: 11,
+                    style: AppTypography.labelSmall.copyWith(
+                      color: theme.hintColor,
                     ),
                   ),
               ],
             ),
           ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.call_outlined,
-              color: AppColors.darkPremiumTextSecondary,
-              size: 18,
-            ),
-            visualDensity: VisualDensity.compact,
+          Icon(
+            Icons.call_outlined,
+            color: theme.hintColor,
+            size: 18,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMediaSection() {
-    // Số lượng media hiển thị demo; backend sẽ cập nhật sau. Hiện tại dùng
-    // con số trình diễn để giữ cảm giác dashboard hoàn chỉnh.
-    const shownCount = 298;
+  Widget _buildFileTypeSection() {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: Row(
-            children: [
-              const Text(
-                'MEDIA',
-                style: TextStyle(
-                  color: AppColors.darkPremiumTextSecondary,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 11,
-                  letterSpacing: 1.0,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                '$shownCount items',
-                style: const TextStyle(
-                  color: AppColors.darkPremiumTextHint,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 10),
-        GridView.count(
-          crossAxisCount: 3,
-          crossAxisSpacing: 6,
-          mainAxisSpacing: 6,
-          childAspectRatio: 1.0,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          children: [
-            ...List.generate(8, (i) => _buildMediaTile(i)),
-            DarkMediaTile(
-              badge: '+$shownCount',
-              child: Container(
-                color: AppColors.darkPremiumElevated,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMediaTile(int i) {
-    final palette = AppColors.darkPremiumAvatarPalette;
-    final color = palette[i % palette.length];
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        gradient: LinearGradient(
-          colors: [
-            color.withValues(alpha: 0.55),
-            Color.lerp(color, Colors.black, 0.4) ?? color,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      alignment: Alignment.center,
-      child: Icon(
-        i.isEven ? Icons.image_outlined : Icons.play_circle_outline_rounded,
-        color: Colors.white,
-        size: 22,
-      ),
-    );
-  }
-
-  Widget _buildFileTypeSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 4),
           child: Text(
-            'FILE TYPE',
-            style: TextStyle(
-              color: AppColors.darkPremiumTextSecondary,
+            'LOẠI FILE',
+            style: AppTypography.labelSmall.copyWith(
+              color: theme.hintColor,
               fontWeight: FontWeight.w800,
-              fontSize: 11,
               letterSpacing: 1.0,
             ),
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: AppSpacing.sm),
         Row(
           children: [
-            Expanded(
-              child: DarkFileTypeTile(
-                icon: Icons.description_outlined,
-                accentColor: AppColors.neonRoyal,
-                label: 'Documents',
-                count: 6,
-              ),
+            _FileTypeTile(
+              icon: Icons.description_outlined,
+              label: 'Tài liệu',
+              count: 6,
+              theme: theme,
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: DarkFileTypeTile(
-                icon: Icons.photo_outlined,
-                accentColor: AppColors.neonRed,
-                label: 'Photos',
-                count: 28,
-              ),
+            const SizedBox(width: AppSpacing.sm),
+            _FileTypeTile(
+              icon: Icons.photo_outlined,
+              label: 'Ảnh',
+              count: 28,
+              theme: theme,
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: DarkFileTypeTile(
-                icon: Icons.movie_outlined,
-                accentColor: AppColors.neonOnline,
-                label: 'Movies',
-                count: 4,
-              ),
+            const SizedBox(width: AppSpacing.sm),
+            _FileTypeTile(
+              icon: Icons.movie_outlined,
+              label: 'Video',
+              count: 4,
+              theme: theme,
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: DarkFileTypeTile(
-                icon: Icons.audio_file_outlined,
-                accentColor: AppColors.neonPurple,
-                label: 'Audios',
-                count: 12,
-              ),
+            const SizedBox(width: AppSpacing.sm),
+            _FileTypeTile(
+              icon: Icons.audio_file_outlined,
+              label: 'Âm thanh',
+              count: 12,
+              theme: theme,
             ),
           ],
         ),
@@ -1416,19 +1027,80 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
   }
 }
 
-/// 3 chấm điều khiển của Mac — dùng ở đầu slim sidebar
-class _MacDot extends StatelessWidget {
-  final Color color;
-  const _MacDot({required this.color});
+/// Nhãn phân nhóm minimalist (ví dụ "# PINNED", "# ALL MESSAGE")
+class _LabelRow extends StatelessWidget {
+  final String text;
+  const _LabelRow({required this.text});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 10,
-      height: 10,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.sm,
+        AppSpacing.sm,
+        AppSpacing.sm,
+        AppSpacing.xs,
+      ),
+      child: Text(
+        text,
+        style: AppTypography.labelSmall.copyWith(
+          color: theme.hintColor,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 1.0,
+        ),
+      ),
+    );
+  }
+}
+
+class _FileTypeTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final int count;
+  final ThemeData theme;
+  const _FileTypeTile({
+    required this.icon,
+    required this.label,
+    required this.count,
+    required this.theme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          vertical: AppSpacing.md,
+          horizontal: AppSpacing.xs,
+        ),
+        decoration: BoxDecoration(
+          color: theme.brightness == Brightness.dark
+              ? AppColors.darkCard
+              : AppColors.neutralGray100,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(color: theme.dividerColor, width: 1),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: theme.colorScheme.onSurface, size: 18),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              '$count',
+              style: AppTypography.titleSmall.copyWith(
+                color: theme.colorScheme.onSurface,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            Text(
+              label,
+              style: AppTypography.labelSmall.copyWith(
+                color: theme.hintColor,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1439,24 +1111,20 @@ class _ListLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
-            width: 26,
-            height: 26,
-            child: CircularProgressIndicator(
-              strokeWidth: 2.5,
-              color: AppColors.neonRoyal,
-            ),
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(strokeWidth: 2.5),
           ),
-          const SizedBox(height: 14),
-          const Text(
+          SizedBox(height: AppSpacing.md),
+          Text(
             'Đang tải cuộc trò chuyện...',
             style: TextStyle(
-              color: AppColors.darkPremiumTextSecondary,
-              fontSize: 12.5,
+              fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -1472,43 +1140,76 @@ class _ListErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DarkEmptyState(
-      icon: Icons.cloud_off_outlined,
-      accentColor: AppColors.neonRed,
-      title: 'Chưa thể tải cuộc trò chuyện',
-      subtitle:
-          'Kết nối mạng có vấn đề, bạn vẫn có thể thử lại hoặc kết bạn để tạo cuộc trò chuyện mới.',
-      actionLabel: 'Thử lại',
-      actionIcon: Icons.refresh_rounded,
-      onAction: onRetry,
-      actionGradient: AppColors.neonButtonGradient,
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.errorLight,
+            ),
+            child: const Icon(
+              Icons.cloud_off_outlined,
+              size: 36,
+              color: AppColors.error,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Text(
+            'Chưa thể tải cuộc trò chuyện',
+            textAlign: TextAlign.center,
+            style: AppTypography.titleMedium.copyWith(
+              fontWeight: FontWeight.w700,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            'Kết nối mạng có vấn đề, bạn có thể thử lại hoặc kết bạn để tạo cuộc trò chuyện mới.',
+            textAlign: TextAlign.center,
+            style: AppTypography.bodySmall.copyWith(
+              color: theme.hintColor,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          PrimaryButton(
+            label: 'Thử lại',
+            icon: Icons.refresh_rounded,
+            onPressed: onRetry,
+          ),
+        ],
+      ),
     );
   }
 }
 
 class _DetailsIdleState extends StatelessWidget {
-  const _DetailsIdleState();
-
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    final theme = Theme.of(context);
+    return Center(
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 32),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.huge),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               Icons.info_outline_rounded,
-              color: AppColors.darkPremiumTextHint,
+              color: theme.hintColor,
               size: 36,
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             Text(
               'Chọn một cuộc trò chuyện để xem thông tin chi tiết.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppColors.darkPremiumTextSecondary,
-                fontSize: 13,
+              style: AppTypography.bodySmall.copyWith(
+                color: theme.hintColor,
                 height: 1.5,
               ),
             ),

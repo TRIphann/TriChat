@@ -11,7 +11,7 @@ import 'package:frontend/utils/app_localizations.dart';
 import 'package:frontend/utils/validator.dart';
 import 'package:go_router/go_router.dart';
 
-/// Màn hình đăng ký bước 1 — phong cách Glassmorphism
+/// Màn hình đăng ký bước 1 — phong cách Minimalist.
 class SignUpView extends StatefulWidget {
   final String? initialEmail;
   const SignUpView({super.key, this.initialEmail});
@@ -189,83 +189,110 @@ class _SignUpViewState extends State<SignUpView>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return ValueListenableBuilder(
       valueListenable: localeNotifier,
       builder: (context, locale, _) {
         final t = AppLocalizations(locale);
         return Scaffold(
-          backgroundColor: AppColors.creamBackground,
-          body: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: AppColors.creamBackgroundGradient,
-              ),
-            ),
-            child: SafeArea(
-              child: SlideTransition(
-                position: _shakeAnim,
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.fromLTRB(
-                            AppSpacing.xl,
-                            AppSpacing.md,
-                            AppSpacing.xl,
-                            AppSpacing.xl,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _buildBackRow(),
-                              const SizedBox(height: AppSpacing.lg),
-                              _buildHero(t),
-                              const SizedBox(height: AppSpacing.xxl),
-                              _buildEmailCard(),
-                              const SizedBox(height: AppSpacing.lg),
-                              _buildCheckbox(
-                                value: _agreeTerms,
-                                onChanged: _onAgreeTermsChanged,
-                                label: t.get('agreeTerms'),
-                                link: t.get('agreeTermsLink'),
-                              ),
-                              const SizedBox(height: AppSpacing.xs),
-                              _buildCheckbox(
-                                value: _agreeSocialPolicy,
-                                onChanged: _onAgreeSocialPolicyChanged,
-                                label: t.get('agreePolicy'),
-                                link: t.get('agreePolicyLink'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Padding(
+          backgroundColor: theme.scaffoldBackgroundColor,
+          body: SafeArea(
+            child: SlideTransition(
+              position: _shakeAnim,
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
                         padding: const EdgeInsets.fromLTRB(
                           AppSpacing.xl,
-                          0,
+                          AppSpacing.md,
                           AppSpacing.xl,
                           AppSpacing.xl,
                         ),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            PrimaryButton(
-                              label: t.get('continue_'),
-                              loading: _isLoading,
-                              onPressed:
-                                  _isButtonEnabled ? _handleRegister : null,
+                            _buildBackRow(theme),
+                            const SizedBox(height: AppSpacing.lg),
+                            _buildHero(t, theme),
+                            const SizedBox(height: AppSpacing.xxl),
+                            TriTextField(
+                              controller: _emailController,
+                              focusNode: _emailFocusNode,
+                              keyboardType: TextInputType.emailAddress,
+                              hintText: AppLocalizations(localeNotifier.value)
+                                  .get('emailHint'),
+                              prefixIcon: const Icon(
+                                Icons.alternate_email_rounded,
+                                size: 18,
+                              ),
+                              suffixIcon: _emailController.text.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(
+                                        Icons.cancel_rounded,
+                                        size: 18,
+                                      ),
+                                      onPressed: _clearEmail,
+                                    )
+                                  : null,
+                              validator: (value) {
+                                final t =
+                                    AppLocalizations(localeNotifier.value);
+                                return Validator.email(
+                                  value,
+                                  requiredMessage: t.get('validatorRequired'),
+                                  invalidMessage: t.get('validatorEmail'),
+                                );
+                              },
                             ),
-                            const SizedBox(height: AppSpacing.md),
-                            _buildLoginLink(t),
+                            if (_errorMessage != null) ...[
+                              const SizedBox(height: AppSpacing.sm),
+                              _buildErrorBanner(theme),
+                            ],
+                            const SizedBox(height: AppSpacing.lg),
+                            _buildCheckbox(
+                              value: _agreeTerms,
+                              onChanged: _onAgreeTermsChanged,
+                              label: t.get('agreeTerms'),
+                              link: t.get('agreeTermsLink'),
+                              theme: theme,
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            _buildCheckbox(
+                              value: _agreeSocialPolicy,
+                              onChanged: _onAgreeSocialPolicyChanged,
+                              label: t.get('agreePolicy'),
+                              link: t.get('agreePolicyLink'),
+                              theme: theme,
+                            ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.xl,
+                        0,
+                        AppSpacing.xl,
+                        AppSpacing.xl,
+                      ),
+                      child: Column(
+                        children: [
+                          PrimaryButton(
+                            label: t.get('continue_'),
+                            loading: _isLoading,
+                            onPressed: _isButtonEnabled
+                                ? _handleRegister
+                                : null,
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          _buildLoginLink(t, theme),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -275,30 +302,29 @@ class _SignUpViewState extends State<SignUpView>
     );
   }
 
-  Widget _buildBackRow() {
+  Widget _buildBackRow(ThemeData theme) {
     return Align(
       alignment: Alignment.centerLeft,
       child: Material(
-        color: Colors.white.withValues(alpha: 0.7),
+        color: theme.brightness == Brightness.dark
+            ? AppColors.darkSurface
+            : AppColors.neutralGray100,
         shape: const CircleBorder(),
         child: InkWell(
           onTap: _onBackPressed,
           customBorder: const CircleBorder(),
           child: Container(
-            width: 44,
-            height: 44,
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: 0.7),
-              border: Border.all(
-                color: AppColors.neutralGray300.withValues(alpha: 0.6),
-                width: 1,
-              ),
+              border: Border.all(color: theme.dividerColor, width: 1),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.arrow_back_rounded,
-              color: AppColors.accentBrown,
-              size: 22,
+              color: theme.colorScheme.onSurface,
+              size: 20,
             ),
           ),
         ),
@@ -306,39 +332,14 @@ class _SignUpViewState extends State<SignUpView>
     );
   }
 
-  Widget _buildHero(AppLocalizations t) {
+  Widget _buildHero(AppLocalizations t, ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: const LinearGradient(
-              colors: AppColors.primaryButtonGradient,
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primaryOrange.withValues(alpha: 0.3),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.person_add_alt_1_rounded,
-            color: Colors.white,
-            size: 30,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.md),
         Text(
           t.get('enterEmail'),
           style: AppTypography.headlineLarge.copyWith(
-            color: AppColors.neutralBlack,
+            color: theme.colorScheme.onSurface,
             fontWeight: FontWeight.w800,
             letterSpacing: -0.8,
           ),
@@ -347,80 +348,22 @@ class _SignUpViewState extends State<SignUpView>
         Text(
           'Nhập email để bắt đầu đăng ký tài khoản TriChat.',
           style: AppTypography.bodyMedium.copyWith(
-            color: AppColors.neutralGray700,
+            color: theme.hintColor,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildEmailCard() {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.9),
-          width: 1.2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.accentBrown.withValues(alpha: 0.10),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          TriTextField(
-            controller: _emailController,
-            focusNode: _emailFocusNode,
-            keyboardType: TextInputType.emailAddress,
-            hintText: AppLocalizations(localeNotifier.value).get('emailHint'),
-            prefixIcon: const Icon(
-              Icons.alternate_email_rounded,
-              size: 20,
-            ),
-            suffixIcon: _emailController.text.isNotEmpty
-                ? IconButton(
-                    icon: const Icon(
-                      Icons.cancel_rounded,
-                      size: 18,
-                    ),
-                    onPressed: _clearEmail,
-                  )
-                : null,
-            validator: (value) {
-              final t = AppLocalizations(localeNotifier.value);
-              return Validator.email(
-                value,
-                requiredMessage: t.get('validatorRequired'),
-                invalidMessage: t.get('validatorEmail'),
-              );
-            },
-          ),
-          if (_errorMessage != null) ...[
-            const SizedBox(height: AppSpacing.sm),
-            _buildErrorBanner(),
-          ],
-        ],
-      ),
-    );
-  }
-
-  // Email hint fallback (no global)
-
-  Widget _buildErrorBanner() {
+  Widget _buildErrorBanner(ThemeData theme) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.error.withValues(alpha: 0.08),
+        color: AppColors.errorLight,
         borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(
           color: AppColors.error.withValues(alpha: 0.3),
+          width: 1,
         ),
       ),
       child: Row(
@@ -448,6 +391,7 @@ class _SignUpViewState extends State<SignUpView>
     required Function(bool?) onChanged,
     required String label,
     required String link,
+    required ThemeData theme,
   }) {
     return InkWell(
       onTap: () => onChanged(!value),
@@ -476,7 +420,7 @@ class _SignUpViewState extends State<SignUpView>
                     Text(
                       label,
                       style: AppTypography.bodyMedium.copyWith(
-                        color: AppColors.neutralBlack,
+                        color: theme.colorScheme.onSurface,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -486,8 +430,9 @@ class _SignUpViewState extends State<SignUpView>
                         child: Text(
                           ' $link',
                           style: AppTypography.bodyMedium.copyWith(
-                            color: AppColors.primaryOrange,
+                            color: theme.colorScheme.onSurface,
                             fontWeight: FontWeight.w700,
+                            decoration: TextDecoration.underline,
                           ),
                         ),
                       ),
@@ -501,14 +446,14 @@ class _SignUpViewState extends State<SignUpView>
     );
   }
 
-  Widget _buildLoginLink(AppLocalizations t) {
+  Widget _buildLoginLink(AppLocalizations t, ThemeData theme) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
           t.get('noAccount'),
           style: AppTypography.bodyMedium.copyWith(
-            color: AppColors.neutralGray700,
+            color: theme.hintColor,
           ),
         ),
         const SizedBox(width: 4),

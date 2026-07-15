@@ -8,10 +8,9 @@ import '../../config/app_spacing.dart';
 import '../../config/app_typography.dart';
 import '../../config/tri_chat_logo.dart';
 
-/// Màn hình splash — phong cách Glassmorphism:
-/// - Nền kem (cream) với gradient nhẹ
-/// - Logo TriChat lớn
-/// - Hiệu ứng glow xung quanh
+/// Màn hình splash — phong cách Minimalist:
+/// - Nền trắng / đen
+/// - Logo TriChat lớn, không glow, không gradient
 /// - Tự động điều hướng sau khi load xong
 class LoadView extends StatefulWidget {
   const LoadView({super.key});
@@ -26,7 +25,6 @@ class _LoadViewState extends State<LoadView> with TickerProviderStateMixin {
   late final Animation<double> _logoScale;
   late final Animation<double> _titleFade;
   late final Animation<double> _taglineFade;
-  late final AnimationController _pulseCtrl;
 
   bool _navigated = false;
 
@@ -34,18 +32,22 @@ class _LoadViewState extends State<LoadView> with TickerProviderStateMixin {
   void initState() {
     super.initState();
 
+    final isDark = WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+        Brightness.dark;
     SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
+      SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-        systemNavigationBarColor: AppColors.creamBackground,
-        systemNavigationBarIconBrightness: Brightness.dark,
+        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        systemNavigationBarColor:
+            isDark ? AppColors.darkBackground : AppColors.creamBackground,
+        systemNavigationBarIconBrightness:
+            isDark ? Brightness.light : Brightness.dark,
       ),
     );
 
     _logoCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1400),
+      duration: const Duration(milliseconds: 1200),
     );
     _logoFade = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
@@ -53,10 +55,10 @@ class _LoadViewState extends State<LoadView> with TickerProviderStateMixin {
         curve: const Interval(0, 0.5, curve: Curves.easeOut),
       ),
     );
-    _logoScale = Tween<double>(begin: 0.6, end: 1).animate(
+    _logoScale = Tween<double>(begin: 0.7, end: 1).animate(
       CurvedAnimation(
         parent: _logoCtrl,
-        curve: const Interval(0, 0.8, curve: Curves.elasticOut),
+        curve: const Interval(0, 0.8, curve: Curves.easeOutCubic),
       ),
     );
     _titleFade = Tween<double>(begin: 0, end: 1).animate(
@@ -72,17 +74,12 @@ class _LoadViewState extends State<LoadView> with TickerProviderStateMixin {
       ),
     );
 
-    _pulseCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1600),
-    )..repeat(reverse: true);
-
     _logoCtrl.forward();
     _scheduleNavigation();
   }
 
   Future<void> _scheduleNavigation() async {
-    await Future.delayed(const Duration(milliseconds: 2200));
+    await Future.delayed(const Duration(milliseconds: 1800));
     if (!mounted || _navigated) return;
     _navigated = true;
     final user = FirebaseAuth.instance.currentUser;
@@ -93,150 +90,71 @@ class _LoadViewState extends State<LoadView> with TickerProviderStateMixin {
   @override
   void dispose() {
     _logoCtrl.dispose();
-    _pulseCtrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: Listenable.merge([_logoCtrl, _pulseCtrl]),
-      builder: (context, _) {
-        return Scaffold(
-          body: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: AppColors.creamBackgroundGradient,
-              ),
-            ),
-            child: SafeArea(
-              child: Stack(
+    final theme = Theme.of(context);
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: SafeArea(
+        child: AnimatedBuilder(
+          animation: _logoCtrl,
+          builder: (context, _) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Decorative glow — cam san hô
-                  Positioned(
-                    top: -120,
-                    right: -100,
-                    child: _PulseGlow(
-                      animation: _pulseCtrl,
-                      size: 360,
-                      color: AppColors.primaryOrangeLight,
+                  Opacity(
+                    opacity: _logoFade.value,
+                    child: Transform.scale(
+                      scale: _logoScale.value,
+                      child: const TriChatLogoLarge(size: 120),
                     ),
                   ),
-                  Positioned(
-                    bottom: -140,
-                    left: -110,
-                    child: _PulseGlow(
-                      animation: _pulseCtrl,
-                      size: 400,
-                      color: AppColors.accentBrownLight,
+                  const SizedBox(height: AppSpacing.xxl),
+                  Opacity(
+                    opacity: _titleFade.value,
+                    child: Text(
+                      'TriChat',
+                      style: AppTypography.displayLarge.copyWith(
+                        color: theme.colorScheme.onSurface,
+                        fontSize: 44,
+                        letterSpacing: -1.5,
+                      ),
                     ),
                   ),
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Opacity(
-                          opacity: _logoFade.value,
-                          child: Transform.scale(
-                            scale: _logoScale.value,
-                            child: const TriChatLogoLarge(size: 130),
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.xxl),
-                        Opacity(
-                          opacity: _titleFade.value,
-                          child: ShaderMask(
-                            shaderCallback: (rect) => const LinearGradient(
-                              colors: [
-                                AppColors.accentBrown,
-                                AppColors.primaryOrange,
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ).createShader(rect),
-                            child: const Text(
-                              'TriChat',
-                              style: TextStyle(
-                                fontSize: 48,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                                letterSpacing: -1.5,
-                                height: 1.0,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        Opacity(
-                          opacity: _taglineFade.value,
-                          child: Text(
-                            'Trò chuyện. Kết nối. Trên mọi thiết bị.',
-                            style: AppTypography.bodyMedium.copyWith(
-                              color: AppColors.neutralGray700,
-                              fontWeight: FontWeight.w500,
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.huge),
-                        Opacity(
-                          opacity: _taglineFade.value,
-                          child: SizedBox(
-                            width: 28,
-                            height: 28,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.2,
-                              valueColor: AlwaysStoppedAnimation(
-                                AppColors.primaryOrange.withValues(alpha: 0.85),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                  const SizedBox(height: AppSpacing.sm),
+                  Opacity(
+                    opacity: _taglineFade.value,
+                    child: Text(
+                      'Trò chuyện. Kết nối. Trên mọi thiết bị.',
+                      style: AppTypography.bodyMedium.copyWith(
+                        color: theme.hintColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.huge),
+                  Opacity(
+                    opacity: _taglineFade.value,
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.0,
+                        valueColor: AlwaysStoppedAnimation(
+                            theme.colorScheme.onSurface),
+                      ),
                     ),
                   ),
                 ],
               ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _PulseGlow extends StatelessWidget {
-  final Animation<double> animation;
-  final double size;
-  final Color color;
-
-  const _PulseGlow({
-    required this.animation,
-    required this.size,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: animation,
-      builder: (context, _) {
-        return Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: RadialGradient(
-              colors: [
-                color.withValues(alpha: 0.18 * (0.6 + animation.value * 0.4)),
-                color.withValues(alpha: 0.0),
-              ],
-            ),
-          ),
-        );
-      },
+            );
+          },
+        ),
+      ),
     );
   }
 }

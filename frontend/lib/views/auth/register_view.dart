@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:frontend/component/buttons.dart';
+import 'package:frontend/component/dialogs.dart';
+import 'package:frontend/component/inputs.dart';
 import 'package:frontend/config/app_colors.dart';
+import 'package:frontend/config/app_spacing.dart';
+import 'package:frontend/config/app_typography.dart';
 import 'package:frontend/services/auth_service.dart';
 import 'package:go_router/go_router.dart';
 
@@ -13,36 +18,30 @@ class RegisterView extends StatefulWidget {
 
 class _RegisterViewState extends State<RegisterView>
     with TickerProviderStateMixin {
-  // ── Form key ──
   final _formKey = GlobalKey<FormState>();
 
-  // ── Controllers ──
   final _firstNameCtrl = TextEditingController();
   final _lastNameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _confirmPasswordCtrl = TextEditingController();
 
-  // ── Focus nodes ──
   final _firstNameFocus = FocusNode();
   final _lastNameFocus = FocusNode();
   final _emailFocus = FocusNode();
   final _passwordFocus = FocusNode();
   final _confirmFocus = FocusNode();
 
-  // ── State ──
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
   String? _errorMessage;
   DateTime? _selectedDob;
 
-  // ── Password strength ──
   double _passwordStrength = 0;
   String _passwordStrengthLabel = '';
   Color _passwordStrengthColor = Colors.transparent;
 
-  // ── Animation ──
   late AnimationController _fadeCtrl;
   late Animation<double> _fadeAnim;
   late AnimationController _shakeCtrl;
@@ -68,7 +67,8 @@ class _RegisterViewState extends State<RegisterView>
         weight: 1,
       ),
       TweenSequenceItem(
-        tween: Tween(begin: const Offset(-0.02, 0), end: const Offset(0.02, 0)),
+        tween: Tween(
+            begin: const Offset(-0.02, 0), end: const Offset(0.02, 0)),
         weight: 2,
       ),
       TweenSequenceItem(
@@ -105,10 +105,6 @@ class _RegisterViewState extends State<RegisterView>
     super.dispose();
   }
 
-  // ════════════════════════════════════════════
-  //  Logic
-  // ════════════════════════════════════════════
-
   void _evaluatePasswordStrength() {
     final p = _passwordCtrl.text;
     int score = 0;
@@ -123,19 +119,16 @@ class _RegisterViewState extends State<RegisterView>
         case 0:
         case 1:
           _passwordStrengthLabel = 'Yếu';
-          _passwordStrengthColor = AppColors.accentRed;
+          _passwordStrengthColor = AppColors.error;
           break;
         case 2:
           _passwordStrengthLabel = 'Trung bình';
-          _passwordStrengthColor = const Color(0xFFFF8F00);
+          _passwordStrengthColor = AppColors.warning;
           break;
         case 3:
-          _passwordStrengthLabel = 'Mạnh';
-          _passwordStrengthColor = const Color(0xFF43A047);
-          break;
         case 4:
-          _passwordStrengthLabel = 'Rất mạnh';
-          _passwordStrengthColor = const Color(0xFF00897B);
+          _passwordStrengthLabel = score == 4 ? 'Rất mạnh' : 'Mạnh';
+          _passwordStrengthColor = AppColors.success;
           break;
       }
     });
@@ -143,22 +136,22 @@ class _RegisterViewState extends State<RegisterView>
 
   Future<void> _pickDob() async {
     final now = DateTime.now();
-    // Người dùng phải íd nhất 16 tuổi
     final maxDate = DateTime(now.year - 16, now.month, now.day);
     final picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDob ?? DateTime(now.year - 18, now.month, now.day),
+      initialDate:
+          _selectedDob ?? DateTime(now.year - 18, now.month, now.day),
       firstDate: DateTime(1920),
       lastDate: maxDate,
       helpText: 'Chọn ngày sinh',
       confirmText: 'Xác nhận',
       cancelText: 'Hủy',
       builder: (context, child) => Theme(
-          data: Theme.of(context).copyWith(
+        data: Theme.of(context).copyWith(
           colorScheme: ColorScheme.light(
-            primary: AppColors.primaryOrange,
+            primary: AppColors.neutralBlack,
             onPrimary: Colors.white,
-            onSurface: AppColors.neutralGray900,
+            onSurface: AppColors.neutralBlack,
           ),
         ),
         child: child!,
@@ -169,7 +162,6 @@ class _RegisterViewState extends State<RegisterView>
     }
   }
 
-  /// Tính tuổi dựa trên ngày sinh
   int _calculateAge(DateTime dob) {
     final now = DateTime.now();
     int age = now.year - dob.year;
@@ -193,8 +185,8 @@ class _RegisterViewState extends State<RegisterView>
     try {
       final dobStr = _selectedDob != null
           ? '${_selectedDob!.year.toString().padLeft(4, '0')}-'
-                '${_selectedDob!.month.toString().padLeft(2, '0')}-'
-                '${_selectedDob!.day.toString().padLeft(2, '0')}'
+              '${_selectedDob!.month.toString().padLeft(2, '0')}-'
+              '${_selectedDob!.day.toString().padLeft(2, '0')}'
           : null;
 
       await AuthService.register(
@@ -220,10 +212,8 @@ class _RegisterViewState extends State<RegisterView>
     }
   }
 
-  /// Chuyển đổi thông báo lỗi từ backend sang tiếng Việt thân thiện.
   String _mapBackendError(String message) {
     final lower = message.toLowerCase();
-    // Backend trả về lỗi mật khẩu phải đủ 8 ký tự
     if (lower.contains('password') &&
         (lower.contains('8') ||
             lower.contains('least') ||
@@ -232,7 +222,6 @@ class _RegisterViewState extends State<RegisterView>
             lower.contains('ký tự'))) {
       return 'Mật khẩu phải có ít nhất 8 ký tự.';
     }
-    // Backend trả về lỗi mật khẩu cần chữ hoa
     if (lower.contains('password') &&
         (lower.contains('uppercase') ||
             lower.contains('upper case') ||
@@ -240,7 +229,6 @@ class _RegisterViewState extends State<RegisterView>
             lower.contains('chữ hoa'))) {
       return 'Mật khẩu phải có ít nhất 1 chữ hoa (A-Z).';
     }
-    // Backend trả về lỗi mật khẩu cần chữ thường
     if (lower.contains('password') &&
         (lower.contains('lowercase') ||
             lower.contains('lower case') ||
@@ -262,65 +250,53 @@ class _RegisterViewState extends State<RegisterView>
       context: context,
       barrierDismissible: false,
       builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
         child: Padding(
-          padding: const EdgeInsets.all(28),
+          padding: const EdgeInsets.all(AppSpacing.xxl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
                 width: 72,
                 height: 72,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE8F5E9),
-                  borderRadius: BorderRadius.circular(36),
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.successLight,
                 ),
                 child: const Icon(
-                  Icons.check_circle_rounded,
-                  color: Color(0xFF43A047),
-                  size: 44,
+                  Icons.check_rounded,
+                  color: AppColors.success,
+                  size: 36,
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.lg),
               Text(
                 'Đăng ký thành công!',
-                style: TextStyle(
-                  fontSize: 18,
+                style: AppTypography.titleLarge.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.xs),
               Text(
                 'Tài khoản của bạn đã được tạo. Hãy đăng nhập để tiếp tục.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
+                style: AppTypography.bodySmall.copyWith(
+                  color: Theme.of(context).hintColor,
                   height: 1.5,
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xl),
               SizedBox(
                 width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
+                child: PrimaryButton(
+                  label: 'Đăng nhập ngay',
                   onPressed: () {
                     Navigator.of(context).pop();
                     context.go('/login');
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryBlue,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'Đăng nhập ngay',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                  ),
                 ),
               ),
             ],
@@ -330,28 +306,30 @@ class _RegisterViewState extends State<RegisterView>
     );
   }
 
-  // ════════════════════════════════════════════
-  //  Build
-  // ════════════════════════════════════════════
-
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        backgroundColor: AppColors.backgroundWhite,
+        backgroundColor: theme.scaffoldBackgroundColor,
         body: SafeArea(
           child: FadeTransition(
             opacity: _fadeAnim,
             child: Column(
               children: [
-                _buildHeader(),
+                _buildHeader(theme),
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.xl,
+                      0,
+                      AppSpacing.xl,
+                      AppSpacing.xl,
+                    ),
                     child: SlideTransition(
                       position: _shakeAnim,
                       child: Form(
@@ -359,30 +337,30 @@ class _RegisterViewState extends State<RegisterView>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            const SizedBox(height: 8),
-                            _buildSubtitle(),
-                            const SizedBox(height: 28),
+                            const SizedBox(height: AppSpacing.md),
+                            _buildSubtitle(theme),
+                            const SizedBox(height: AppSpacing.xxl),
                             _buildNameRow(),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: AppSpacing.md),
                             _buildEmailField(),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: AppSpacing.md),
                             _buildDobField(),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: AppSpacing.md),
                             _buildPasswordField(),
                             if (_passwordCtrl.text.isNotEmpty) ...[
-                              const SizedBox(height: 8),
-                              _buildPasswordStrengthBar(),
+                              const SizedBox(height: AppSpacing.sm),
+                              _buildPasswordStrengthBar(theme),
                             ],
-                            const SizedBox(height: 16),
+                            const SizedBox(height: AppSpacing.md),
                             _buildConfirmPasswordField(),
                             if (_errorMessage != null) ...[
-                              const SizedBox(height: 16),
+                              const SizedBox(height: AppSpacing.md),
                               _buildErrorBanner(),
                             ],
-                            const SizedBox(height: 28),
+                            const SizedBox(height: AppSpacing.xxl),
                             _buildRegisterButton(),
-                            const SizedBox(height: 20),
-                            _buildLoginRow(),
+                            const SizedBox(height: AppSpacing.lg),
+                            _buildLoginRow(theme),
                           ],
                         ),
                       ),
@@ -397,59 +375,32 @@ class _RegisterViewState extends State<RegisterView>
     );
   }
 
-  // ── Header ──────────────────────────────────
-
-  Widget _buildHeader() {
+  Widget _buildHeader(ThemeData theme) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(4, 8, 16, 16),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.xs,
+        AppSpacing.sm,
+        AppSpacing.lg,
+        AppSpacing.lg,
+      ),
       child: Row(
         children: [
           IconButton(
             onPressed: () => context.go('/login'),
             icon: Icon(
-              Icons.arrow_back_ios_new_rounded,
+              Icons.arrow_back_rounded,
               size: 20,
-              color: AppColors.textPrimary,
+              color: theme.colorScheme.onSurface,
             ),
           ),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Logo + tên app
-                Row(
-                  children: [
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryBlue,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'Z',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      'TriChat',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.primaryBlue,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+            child: Text(
+              'TriChat',
+              style: AppTypography.titleLarge.copyWith(
+                color: theme.colorScheme.onSurface,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+              ),
             ),
           ),
         ],
@@ -457,34 +408,30 @@ class _RegisterViewState extends State<RegisterView>
     );
   }
 
-  Widget _buildSubtitle() {
+  Widget _buildSubtitle(ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Tạo tài khoản',
-          style: TextStyle(
-            fontSize: 26,
+          style: AppTypography.headlineLarge.copyWith(
             fontWeight: FontWeight.w800,
-            color: AppColors.textPrimary,
+            color: theme.colorScheme.onSurface,
             letterSpacing: -0.5,
             height: 1.2,
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: AppSpacing.xs),
         Text(
           'Điền thông tin để bắt đầu kết nối',
-          style: TextStyle(
-            fontSize: 14,
-            color: AppColors.textSecondary.withValues(alpha: 0.8),
+          style: AppTypography.bodyMedium.copyWith(
+            color: theme.hintColor,
             height: 1.4,
           ),
         ),
       ],
     );
   }
-
-  // ── Name row ────────────────────────────────
 
   Widget _buildNameRow() {
     return Row(
@@ -503,7 +450,7 @@ class _RegisterViewState extends State<RegisterView>
             },
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: AppSpacing.md),
         Expanded(
           child: _buildField(
             controller: _lastNameCtrl,
@@ -521,8 +468,6 @@ class _RegisterViewState extends State<RegisterView>
       ],
     );
   }
-
-  // ── Email ────────────────────────────────────
 
   Widget _buildEmailField() {
     return _buildField(
@@ -542,96 +487,82 @@ class _RegisterViewState extends State<RegisterView>
     );
   }
 
-  // ── Date of birth ────────────────────────────
-
   Widget _buildDobField() {
     final dobText = _selectedDob != null
         ? '${_selectedDob!.day.toString().padLeft(2, '0')}/'
-              '${_selectedDob!.month.toString().padLeft(2, '0')}/'
-              '${_selectedDob!.year}'
+            '${_selectedDob!.month.toString().padLeft(2, '0')}/'
+            '${_selectedDob!.year}'
         : null;
 
     return GestureDetector(
       onTap: _pickDob,
       child: AbsorbPointer(
-        child: TextFormField(
-          readOnly: true,
-          decoration: _fieldDecoration(
-            label: 'Ngày sinh',
-            hint: 'DD/MM/YYYY',
-            prefixIcon: Icons.cake_outlined,
-            suffixIcon: Icons.calendar_today_outlined,
-          ),
-          controller: TextEditingController(text: dobText ?? ''),
-          validator: (_) {
-            if (_selectedDob == null) return 'Vui lòng nhập ngày sinh';
-            if (_calculateAge(_selectedDob!) < 16) {
-              return 'Bạn phải đủ 16 tuổi để đăng ký';
-            }
-            return null;
-          },
+        child: TriTextField(
+          hintText: 'Ngày sinh',
+          controller: dobText != null
+              ? TextEditingController(text: dobText)
+              : null,
+          prefixIcon: const Icon(Icons.cake_outlined, size: 18),
+          suffixIcon: const Icon(Icons.calendar_today_outlined, size: 16),
         ),
       ),
     );
   }
 
-  // ── Password ─────────────────────────────────
-
   Widget _buildPasswordField() {
-    return TextFormField(
+    return TriTextField(
       controller: _passwordCtrl,
       focusNode: _passwordFocus,
       obscureText: _obscurePassword,
-      onFieldSubmitted: (_) => _confirmFocus.requestFocus(),
+      onSubmitted: () => _confirmFocus.requestFocus(),
+      hintText: 'Mật khẩu',
+      prefixIcon: const Icon(Icons.lock_outline_rounded, size: 18),
+      suffixIcon: IconButton(
+        icon: Icon(
+          _obscurePassword
+              ? Icons.visibility_off_outlined
+              : Icons.visibility_outlined,
+          size: 20,
+        ),
+        onPressed: () =>
+            setState(() => _obscurePassword = !_obscurePassword),
+      ),
       validator: (v) {
         if (v == null || v.isEmpty) return 'Vui lòng nhập mật khẩu';
         if (v.length < 8) return 'Mật khẩu phải có ít nhất 8 ký tự';
-        if (!RegExp(r'[a-z]').hasMatch(v)) return 'Mật khẩu phải có ít nhất 1 chữ thường';
-        if (!RegExp(r'[A-Z]').hasMatch(v)) return 'Mật khẩu phải có ít nhất 1 chữ hoa';
-        if (!RegExp(r'[0-9]').hasMatch(v)) return 'Mật khẩu phải có ít nhất 1 chữ số (0-9)';
+        if (!RegExp(r'[a-z]').hasMatch(v)) {
+          return 'Mật khẩu phải có ít nhất 1 chữ thường';
+        }
+        if (!RegExp(r'[A-Z]').hasMatch(v)) {
+          return 'Mật khẩu phải có ít nhất 1 chữ hoa';
+        }
+        if (!RegExp(r'[0-9]').hasMatch(v)) {
+          return 'Mật khẩu phải có ít nhất 1 chữ số (0-9)';
+        }
         return null;
       },
-      decoration:
-          _fieldDecoration(
-            label: 'Mật khẩu',
-            hint: '••••••••',
-            prefixIcon: Icons.lock_outline_rounded,
-          ).copyWith(
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscurePassword
-                    ? Icons.visibility_off_outlined
-                    : Icons.visibility_outlined,
-                color: AppColors.textHint,
-                size: 20,
-              ),
-              onPressed: () =>
-                  setState(() => _obscurePassword = !_obscurePassword),
-            ),
-          ),
     );
   }
 
-  Widget _buildPasswordStrengthBar() {
+  Widget _buildPasswordStrengthBar(ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ClipRRect(
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
           child: LinearProgressIndicator(
             value: _passwordStrength,
             minHeight: 4,
-            backgroundColor: AppColors.borderGray,
+            backgroundColor: theme.dividerColor,
             valueColor: AlwaysStoppedAnimation<Color>(_passwordStrengthColor),
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppSpacing.xs),
         Text(
           'Độ mạnh: $_passwordStrengthLabel',
-          style: TextStyle(
-            fontSize: 12,
+          style: AppTypography.bodySmall.copyWith(
             color: _passwordStrengthColor,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ],
@@ -639,62 +570,55 @@ class _RegisterViewState extends State<RegisterView>
   }
 
   Widget _buildConfirmPasswordField() {
-    return TextFormField(
+    return TriTextField(
       controller: _confirmPasswordCtrl,
       focusNode: _confirmFocus,
       obscureText: _obscureConfirm,
       textInputAction: TextInputAction.done,
-      onFieldSubmitted: (_) => _handleRegister(),
+      onSubmitted: () => _handleRegister(),
+      hintText: 'Xác nhận mật khẩu',
+      prefixIcon: const Icon(Icons.lock_outline_rounded, size: 18),
+      suffixIcon: IconButton(
+        icon: Icon(
+          _obscureConfirm
+              ? Icons.visibility_off_outlined
+              : Icons.visibility_outlined,
+          size: 20,
+        ),
+        onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+      ),
       validator: (v) {
         if (v == null || v.isEmpty) return 'Vui lòng xác nhận mật khẩu';
         if (v != _passwordCtrl.text) return 'Mật khẩu không khớp';
         return null;
       },
-      decoration:
-          _fieldDecoration(
-            label: 'Xác nhận mật khẩu',
-            hint: '••••••••',
-            prefixIcon: Icons.lock_outline_rounded,
-          ).copyWith(
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscureConfirm
-                    ? Icons.visibility_off_outlined
-                    : Icons.visibility_outlined,
-                color: AppColors.textHint,
-                size: 20,
-              ),
-              onPressed: () =>
-                  setState(() => _obscureConfirm = !_obscureConfirm),
-            ),
-          ),
     );
   }
 
-  // ── Error banner ─────────────────────────────
-
   Widget _buildErrorBanner() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFEBEE),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFEF9A9A)),
+        color: AppColors.errorLight,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(
+          color: AppColors.error.withValues(alpha: 0.3),
+          width: 1,
+        ),
       ),
       child: Row(
         children: [
-          Icon(
+          const Icon(
             Icons.error_outline_rounded,
-            color: AppColors.accentRed,
+            color: AppColors.error,
             size: 18,
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
               _errorMessage!,
-              style: const TextStyle(
-                fontSize: 13,
-                color: Color(0xFFB71C1C),
+              style: AppTypography.bodySmall.copyWith(
+                color: AppColors.error,
                 height: 1.4,
               ),
             ),
@@ -704,79 +628,33 @@ class _RegisterViewState extends State<RegisterView>
     );
   }
 
-  // ── Register button ──────────────────────────
-
   Widget _buildRegisterButton() {
-    return SizedBox(
-      height: 52,
-      child: ElevatedButton(
-        onPressed: _isLoading ? null : _handleRegister,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryBlue,
-          foregroundColor: Colors.white,
-          disabledBackgroundColor: AppColors.primaryBlue.withValues(alpha: 0.5),
-          elevation: 0,
-          shadowColor: AppColors.primaryBlue.withValues(alpha: 0.4),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(26),
-          ),
-        ),
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
-          child: _isLoading
-              ? const SizedBox(
-                  key: ValueKey('loader'),
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 2.5,
-                  ),
-                )
-              : const Text(
-                  key: ValueKey('label'),
-                  'Đăng ký',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.3,
-                  ),
-                ),
-        ),
-      ),
+    return PrimaryButton(
+      label: 'Đăng ký',
+      loading: _isLoading,
+      onPressed: _isLoading ? null : _handleRegister,
     );
   }
 
-  // ── Login row ────────────────────────────────
-
-  Widget _buildLoginRow() {
+  Widget _buildLoginRow(ThemeData theme) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
           'Đã có tài khoản? ',
-          style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
-        ),
-        GestureDetector(
-          onTap: () => context.go('/login'),
-          child: Text(
-            'Đăng nhập',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: AppColors.primaryBlue,
-            ),
+          style: AppTypography.bodyMedium.copyWith(
+            color: theme.hintColor,
           ),
+        ),
+        TextLinkButton(
+          label: 'Đăng nhập',
+          fontWeight: FontWeight.w700,
+          onPressed: () => context.go('/login'),
         ),
       ],
     );
   }
 
-  // ════════════════════════════════════════════
-  //  Helpers
-  // ════════════════════════════════════════════
-
-  /// Generic text field builder
   Widget _buildField({
     required TextEditingController controller,
     required FocusNode focusNode,
@@ -787,64 +665,16 @@ class _RegisterViewState extends State<RegisterView>
     TextInputType keyboardType = TextInputType.text,
     String? Function(String?)? validator,
   }) {
-    return TextFormField(
+    return TriTextField(
       controller: controller,
       focusNode: focusNode,
       keyboardType: keyboardType,
-      textInputAction: nextFocus != null
-          ? TextInputAction.next
-          : TextInputAction.done,
-      onFieldSubmitted: (_) {
-        if (nextFocus != null) {
-          nextFocus.requestFocus();
-        }
-      },
-      validator: validator,
-      decoration: _fieldDecoration(label: label, hint: hint, prefixIcon: icon),
-    );
-  }
-
-  InputDecoration _fieldDecoration({
-    required String label,
-    required String hint,
-    IconData? prefixIcon,
-    IconData? suffixIcon,
-  }) {
-    return InputDecoration(
-      labelText: label,
+      textInputAction:
+          nextFocus != null ? TextInputAction.next : TextInputAction.done,
+      onSubmitted: nextFocus != null ? () => nextFocus.requestFocus() : null,
       hintText: hint,
-      hintStyle: TextStyle(color: AppColors.textHint, fontSize: 14),
-      labelStyle: TextStyle(color: AppColors.textSecondary, fontSize: 14),
-      prefixIcon: prefixIcon != null
-          ? Icon(prefixIcon, color: AppColors.textHint, size: 20)
-          : null,
-      suffixIcon: suffixIcon != null
-          ? Icon(suffixIcon, color: AppColors.textHint, size: 18)
-          : null,
-      filled: true,
-      fillColor: AppColors.backgroundGray,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide.none,
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: AppColors.borderGray, width: 1),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: AppColors.primaryBlue, width: 1.5),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: AppColors.accentRed, width: 1),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: AppColors.accentRed, width: 1.5),
-      ),
-      errorStyle: TextStyle(fontSize: 12, color: AppColors.accentRed),
+      prefixIcon: icon != null ? Icon(icon, size: 18) : null,
+      validator: validator,
     );
   }
 }

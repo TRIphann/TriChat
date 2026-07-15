@@ -32,90 +32,85 @@ class AppSpacing {
 }
 
 /// ════════════════════════════════════════════════════════════════
-/// RADIUS TOKENS — Bo góc chuẩn
+/// RADIUS TOKENS — Bo góc chuẩn (minimalist: nhỏ, sắc nét)
 /// ════════════════════════════════════════════════════════════════
 class AppRadius {
   AppRadius._();
 
-  /// 4 — góc vuông vừa (chip nhỏ)
-  static const double xs = 4;
-  /// 8 — input field
-  static const double sm = 8;
-  /// 12 — card, button nhỏ
-  static const double md = 12;
-  /// 16 — modal, sheet
-  static const double lg = 16;
-  /// 20 — button lớn, message bubble
-  static const double xl = 20;
-  /// 25 — pill button (default Zalo-style)
-  static const double pill = 25;
-  /// 28 — card lớn
-  static const double xxl = 28;
+  /// 2 — góc vuông gần như sắc (chip nhỏ)
+  static const double xs = 2;
+  /// 4 — input field (minimalist)
+  static const double sm = 4;
+  /// 6 — card, button nhỏ
+  static const double md = 6;
+  /// 8 — modal, sheet
+  static const double lg = 8;
+  /// 10 — button lớn, message bubble
+  static const double xl = 10;
+  /// 999 — pill (chỉ dùng cho avatar / tag tròn)
+  static const double pill = 999;
+  /// 12 — card lớn
+  static const double xxl = 12;
   /// full — tròn (avatar, dot)
   static const double full = 999;
 }
 
 /// ════════════════════════════════════════════════════════════════
-/// SHADOWS — Soft elevation chuẩn
+/// SHADOWS — Hairline elevation (gần như không có)
 /// ════════════════════════════════════════════════════════════════
 class AppShadows {
   AppShadows._();
 
-  /// Shadow siêu nhẹ cho border/subtle separation
+  /// Shadow siêu nhẹ — border subtle separation
   static const List<BoxShadow> xs = [
     BoxShadow(
-      color: Color(0x14000000),
+      color: Color(0x08000000),
+      blurRadius: 2,
+      offset: Offset(0, 1),
+    ),
+  ];
+
+  /// Shadow nhỏ — input focus
+  static const List<BoxShadow> sm = [
+    BoxShadow(
+      color: Color(0x0A000000),
       blurRadius: 4,
       offset: Offset(0, 1),
     ),
   ];
 
-  /// Shadow nhỏ cho card/input
-  static const List<BoxShadow> sm = [
+  /// Shadow vừa — modal
+  static const List<BoxShadow> md = [
     BoxShadow(
-      color: Color(0x1A000000),
+      color: Color(0x0F000000),
       blurRadius: 8,
       offset: Offset(0, 2),
     ),
   ];
 
-  /// Shadow vừa cho modal/button hover
-  static const List<BoxShadow> md = [
+  /// Shadow card — equivalent to md (alias)
+  static const List<BoxShadow> card = [
     BoxShadow(
-      color: Color(0x1F000000),
+      color: Color(0x0A000000),
+      blurRadius: 8,
+      offset: Offset(0, 2),
+    ),
+  ];
+
+  /// Shadow lớn — popup/floating
+  static const List<BoxShadow> lg = [
+    BoxShadow(
+      color: Color(0x14000000),
       blurRadius: 16,
       offset: Offset(0, 4),
     ),
   ];
 
-  /// Shadow vừa cho card — equivalent to md (alias)
-  static const List<BoxShadow> card = [
-    BoxShadow(
-      color: Color(0x14000000),
-      blurRadius: 16,
-      offset: Offset(0, 6),
-    ),
-  ];
-
-  /// Shadow lớn cho popup/floating
-  static const List<BoxShadow> lg = [
-    BoxShadow(
-      color: Color(0x29000000),
-      blurRadius: 24,
-      offset: Offset(0, 8),
-    ),
-  ];
-
-  /// Shadow cam — dùng cho button primary nổi bật
+  /// Shadow primary — dùng cho button chính (đen)
   static List<BoxShadow> primaryGlow = [
     BoxShadow(
-      color: const Color(0xFFE25822).withValues(alpha: 0.30),
-      blurRadius: 14,
-      offset: const Offset(0, 4),
-    ),
-    BoxShadow(
-      color: const Color(0x14000000),
-      blurRadius: 6,
+      color: const Color(0xFF0F0F0F).withValues(alpha: 0.10),
+      blurRadius: 8,
       offset: const Offset(0, 2),
     ),
   ];

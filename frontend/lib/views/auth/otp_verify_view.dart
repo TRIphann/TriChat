@@ -10,7 +10,7 @@ import 'package:frontend/services/auth_service.dart';
 import 'package:frontend/utils/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
-/// Màn hình nhập mã OTP — phong cách Glassmorphism
+/// Màn hình nhập mã OTP — phong cách Minimalist.
 class OtpVerifyView extends StatefulWidget {
   final String email;
 
@@ -117,67 +117,50 @@ class _OtpVerifyViewState extends State<OtpVerifyView> {
 
   void _showSuccessDialog() {
     final t = AppLocalizations(localeNotifier.value);
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (_) => Dialog(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        child: Container(
+        backgroundColor: theme.colorScheme.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
+        child: Padding(
           padding: const EdgeInsets.all(AppSpacing.xxl),
-          decoration: BoxDecoration(
-            color: AppColors.creamWhite,
-            borderRadius: BorderRadius.circular(AppRadius.xl),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.9),
-              width: 1.2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.accentBrown.withValues(alpha: 0.18),
-                blurRadius: 32,
-                offset: const Offset(0, 12),
-              ),
-            ],
-          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 88,
-                height: 88,
+                width: 72,
+                height: 72,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.success.withValues(alpha: 0.18),
-                      AppColors.success.withValues(alpha: 0.04),
-                    ],
-                  ),
+                  color: AppColors.successLight,
                 ),
                 child: const Icon(
-                  Icons.check_circle_rounded,
+                  Icons.check_rounded,
                   color: AppColors.success,
-                  size: 52,
+                  size: 36,
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
-              Text(t.get('otpSuccess'), style: AppTypography.titleLarge),
+              Text(
+                t.get('otpSuccess'),
+                style: AppTypography.titleLarge.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
               const SizedBox(height: AppSpacing.xl),
               SizedBox(
                 width: double.infinity,
-                child: FilledButton(
+                child: PrimaryButton(
+                  label: t.get('continue_'),
                   onPressed: () {
                     Navigator.pop(context);
-                    context.pushReplacement('/set-password', extra: widget.email);
+                    context.pushReplacement('/set-password',
+                        extra: widget.email);
                   },
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size.fromHeight(48),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.pill),
-                    ),
-                  ),
-                  child: Text(t.get('continue_')),
                 ),
               ),
             ],
@@ -188,55 +171,45 @@ class _OtpVerifyViewState extends State<OtpVerifyView> {
   }
 
   void _showErrorDialog(String message) {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        child: Container(
+        backgroundColor: theme.colorScheme.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
+        child: Padding(
           padding: const EdgeInsets.all(AppSpacing.xxl),
-          decoration: BoxDecoration(
-            color: AppColors.creamWhite,
-            borderRadius: BorderRadius.circular(AppRadius.xl),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.9),
-              width: 1.2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.accentBrown.withValues(alpha: 0.18),
-                blurRadius: 32,
-                offset: const Offset(0, 12),
-              ),
-            ],
-          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 88,
-                height: 88,
+                width: 72,
+                height: 72,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.error.withValues(alpha: 0.12),
+                  color: AppColors.errorLight,
                 ),
                 child: const Icon(
                   Icons.error_outline_rounded,
                   color: AppColors.error,
-                  size: 52,
+                  size: 36,
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
               Text(
                 'Mã xác thực không đúng',
-                style: AppTypography.titleLarge,
+                style: AppTypography.titleLarge.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               if (message.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   message,
                   style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.neutralGray700,
+                    color: theme.hintColor,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -244,16 +217,9 @@ class _OtpVerifyViewState extends State<OtpVerifyView> {
               const SizedBox(height: AppSpacing.xl),
               SizedBox(
                 width: double.infinity,
-                child: FilledButton(
+                child: PrimaryButton(
+                  label: 'Thử lại',
                   onPressed: () => Navigator.pop(ctx),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primaryOrange,
-                    minimumSize: const Size.fromHeight(48),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.pill),
-                    ),
-                  ),
-                  child: const Text('Thử lại'),
                 ),
               ),
             ],
@@ -271,107 +237,74 @@ class _OtpVerifyViewState extends State<OtpVerifyView> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: AppColors.creamBackground,
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: AppColors.creamBackgroundGradient,
-          ),
-        ),
-        child: SafeArea(
-          child: ValueListenableBuilder(
-            valueListenable: localeNotifier,
-            builder: (context, locale, _) {
-              final t = AppLocalizations(locale);
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(AppSpacing.xl),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildBackRow(),
-                    const SizedBox(height: AppSpacing.lg),
-                    _buildHero(t),
-                    const SizedBox(height: AppSpacing.huge),
-                    Container(
-                      padding: const EdgeInsets.all(AppSpacing.xl),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(AppRadius.xxl),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.9),
-                          width: 1.2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.accentBrown.withValues(alpha: 0.10),
-                            blurRadius: 24,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          TriOtpInput(
-                            length: 6,
-                            onChanged: (otp) {
-                              setState(() {
-                                _otp = otp;
-                                _isButtonEnabled = otp.length == 6;
-                              });
-                            },
-                            onCompleted: _onContinue,
-                          ),
-                          const SizedBox(height: AppSpacing.xl),
-                          PrimaryButton(
-                            label: t.get('continue_'),
-                            loading: _isLoading,
-                            onPressed: _isButtonEnabled
-                                ? () => _onContinue(_otp)
-                                : null,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    _buildResendRow(t),
-                  ],
-                ),
-              );
-            },
-          ),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: SafeArea(
+        child: ValueListenableBuilder(
+          valueListenable: localeNotifier,
+          builder: (context, locale, _) {
+            final t = AppLocalizations(locale);
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildBackRow(theme),
+                  const SizedBox(height: AppSpacing.lg),
+                  _buildHero(t, theme),
+                  const SizedBox(height: AppSpacing.huge),
+                  TriOtpInput(
+                    length: 6,
+                    onChanged: (otp) {
+                      setState(() {
+                        _otp = otp;
+                        _isButtonEnabled = otp.length == 6;
+                      });
+                    },
+                    onCompleted: _onContinue,
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                  PrimaryButton(
+                    label: t.get('continue_'),
+                    loading: _isLoading,
+                    onPressed:
+                        _isButtonEnabled ? () => _onContinue(_otp) : null,
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  _buildResendRow(t, theme),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildBackRow() {
+  Widget _buildBackRow(ThemeData theme) {
     return Align(
       alignment: Alignment.centerLeft,
       child: Material(
-        color: Colors.white.withValues(alpha: 0.7),
+        color: theme.brightness == Brightness.dark
+            ? AppColors.darkSurface
+            : AppColors.neutralGray100,
         shape: const CircleBorder(),
         child: InkWell(
           onTap: () => context.pop(),
           customBorder: const CircleBorder(),
           child: Container(
-            width: 44,
-            height: 44,
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: 0.7),
-              border: Border.all(
-                color: AppColors.neutralGray300.withValues(alpha: 0.6),
-                width: 1,
-              ),
+              border: Border.all(color: theme.dividerColor, width: 1),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.arrow_back_rounded,
-              color: AppColors.accentBrown,
-              size: 22,
+              color: theme.colorScheme.onSurface,
+              size: 20,
             ),
           ),
         ),
@@ -379,39 +312,14 @@ class _OtpVerifyViewState extends State<OtpVerifyView> {
     );
   }
 
-  Widget _buildHero(AppLocalizations t) {
+  Widget _buildHero(AppLocalizations t, ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: const LinearGradient(
-              colors: AppColors.primaryButtonGradient,
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primaryOrange.withValues(alpha: 0.3),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.mark_email_read_rounded,
-            color: Colors.white,
-            size: 30,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
         Text(
           t.get('otpTitle'),
           style: AppTypography.headlineLarge.copyWith(
-            color: AppColors.neutralBlack,
+            color: theme.colorScheme.onSurface,
             fontWeight: FontWeight.w800,
             letterSpacing: -0.8,
           ),
@@ -420,7 +328,7 @@ class _OtpVerifyViewState extends State<OtpVerifyView> {
         RichText(
           text: TextSpan(
             style: AppTypography.bodyMedium.copyWith(
-              color: AppColors.neutralGray700,
+              color: theme.hintColor,
               height: 1.5,
             ),
             children: [
@@ -429,7 +337,7 @@ class _OtpVerifyViewState extends State<OtpVerifyView> {
                 text: widget.email,
                 style: AppTypography.bodyMedium.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: AppColors.neutralBlack,
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
             ],
@@ -439,14 +347,14 @@ class _OtpVerifyViewState extends State<OtpVerifyView> {
     );
   }
 
-  Widget _buildResendRow(AppLocalizations t) {
+  Widget _buildResendRow(AppLocalizations t, ThemeData theme) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
           t.get('otpNotReceived'),
           style: AppTypography.bodyMedium.copyWith(
-            color: AppColors.neutralGray700,
+            color: theme.hintColor,
           ),
         ),
         const SizedBox(width: 4),
@@ -456,9 +364,12 @@ class _OtpVerifyViewState extends State<OtpVerifyView> {
             duration: const Duration(milliseconds: 200),
             style: AppTypography.labelMedium.copyWith(
               color: _canResend
-                  ? AppColors.primaryOrange
+                  ? AppColors.neutralBlack
                   : AppColors.neutralGray500,
               fontWeight: FontWeight.w700,
+              decoration: _canResend
+                  ? TextDecoration.underline
+                  : TextDecoration.none,
             ),
             child: Text(
               _canResend

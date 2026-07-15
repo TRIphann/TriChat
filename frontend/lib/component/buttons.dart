@@ -5,11 +5,15 @@ import '../config/app_spacing.dart';
 import '../config/app_typography.dart';
 
 /// ════════════════════════════════════════════════════════════════
-/// BUTTONS — Bộ nút bấm thống nhất cho toàn app
+/// BUTTONS — Bộ nút bấm thống nhất cho toàn app (Minimalist)
 /// ════════════════════════════════════════════════════════════════
 ///
-/// Thay thế các nút ElevatedButton/OutlinedButton/TextButton rải rác
-/// để giữ phong cách đồng nhất.
+/// Phong cách:
+/// - Đen / trắng, không gradient
+/// - Bo góc nhỏ (6px) thay cho pill
+/// - Không shadow nặng
+/// - CTA chính: đen, chữ trắng
+/// - CTA phụ: trắng viền đen, chữ đen
 class PrimaryButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
@@ -29,13 +33,22 @@ class PrimaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final disabled = onPressed == null || loading;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final Color bg = disabled
+        ? (isDark ? AppColors.neutralGray800 : AppColors.neutralGray200)
+        : AppColors.neutralBlack;
+    final Color fg = disabled
+        ? AppColors.neutralGray500
+        : AppColors.neutralWhite;
+
     final child = loading
-        ? const SizedBox(
-            width: 22,
-            height: 22,
+        ? SizedBox(
+            width: 20,
+            height: 20,
             child: CircularProgressIndicator(
-              color: Colors.white,
-              strokeWidth: 2.4,
+              color: fg,
+              strokeWidth: 2.2,
             ),
           )
         : Row(
@@ -43,44 +56,27 @@ class PrimaryButton extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (icon != null) ...[
-                Icon(icon, size: 18, color: Colors.white),
+                Icon(icon, size: 18, color: fg),
                 const SizedBox(width: AppSpacing.sm),
               ],
               Text(
                 label,
-                style: AppTypography.labelLarge.copyWith(color: Colors.white),
+                style: AppTypography.labelLarge.copyWith(color: fg),
               ),
             ],
           );
 
-    final btn = Container(
-      height: 52,
-      decoration: BoxDecoration(
-        gradient: disabled
-            ? null
-            : const LinearGradient(
-                colors: AppColors.chatBubbleMineGradient,
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-        color: disabled ? AppColors.neutralGray300 : null,
-        borderRadius: BorderRadius.circular(AppRadius.pill),
-        boxShadow: disabled
-            ? null
-            : [
-                BoxShadow(
-                  color: AppColors.primaryOrange.withValues(alpha: 0.30),
-                  blurRadius: 14,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: disabled ? null : onPressed,
-          borderRadius: BorderRadius.circular(AppRadius.pill),
-          child: Center(child: child),
+    final btn = Material(
+      color: bg,
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: InkWell(
+        onTap: disabled ? null : onPressed,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        child: Container(
+          height: 48,
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+          child: child,
         ),
       ),
     );
@@ -106,46 +102,41 @@ class SecondaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final fg = theme.colorScheme.onSurface;
+    final borderColor =
+        isDark ? AppColors.neutralGray700 : AppColors.neutralBlack;
+
     final child = Row(
       mainAxisSize: expanded ? MainAxisSize.max : MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         if (icon != null) ...[
-          Icon(icon, size: 18, color: theme.colorScheme.onSurface),
+          Icon(icon, size: 18, color: fg),
           const SizedBox(width: AppSpacing.sm),
         ],
         Text(
           label,
-          style: AppTypography.labelLarge.copyWith(
-            color: theme.colorScheme.onSurface,
-          ),
+          style: AppTypography.labelLarge.copyWith(color: fg),
         ),
       ],
     );
 
-    final btn = Container(
-      height: 52,
-      decoration: BoxDecoration(
-        color: AppColors.creamWhite,
-        border: Border.all(
-          color: AppColors.neutralGray300,
-          width: 1.2,
-        ),
-        borderRadius: BorderRadius.circular(AppRadius.pill),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.accentBrown.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+    final btn = Material(
+      color: theme.colorScheme.surface,
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        child: Container(
+          height: 48,
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            border: Border.all(color: borderColor, width: 1.2),
           ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(AppRadius.pill),
-          child: Center(child: child),
+          child: child,
         ),
       ),
     );
@@ -170,7 +161,7 @@ class TextLinkButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = color ?? AppColors.primaryOrange;
+    final c = color ?? AppColors.neutralBlack;
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
@@ -194,7 +185,6 @@ class IconCircleButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final Color? color;
   final Color? background;
-  final Gradient? gradient;
   final double size;
   final double iconSize;
 
@@ -204,7 +194,6 @@ class IconCircleButton extends StatelessWidget {
     this.onPressed,
     this.color,
     this.background,
-    this.gradient,
     this.size = 40,
     this.iconSize = 22,
   });
@@ -212,23 +201,13 @@ class IconCircleButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fg = color ?? Theme.of(context).iconTheme.color;
-    final hasGradient = gradient != null;
+    final bg = background ?? Colors.transparent;
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: hasGradient ? null : (background ?? Colors.transparent),
-        gradient: gradient,
-        boxShadow: hasGradient
-            ? [
-                BoxShadow(
-                  color: AppColors.primaryOrange.withValues(alpha: 0.30),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ]
-            : null,
+        color: bg,
       ),
       child: Material(
         color: Colors.transparent,

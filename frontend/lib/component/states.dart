@@ -5,7 +5,7 @@ import '../config/app_spacing.dart';
 import '../config/app_typography.dart';
 
 /// ════════════════════════════════════════════════════════════════
-/// STATES — Empty / Error / Loading chuẩn
+/// STATES — Empty / Error / Loading chuẩn (Minimalist)
 /// ════════════════════════════════════════════════════════════════
 
 class EmptyState extends StatelessWidget {
@@ -28,6 +28,10 @@ class EmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final text = subtitle ?? message;
+    final isDark = theme.brightness == Brightness.dark;
+    final iconBg =
+        isDark ? AppColors.neutralGray800 : AppColors.neutralGray100;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xxl),
@@ -35,23 +39,16 @@ class EmptyState extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 88,
-              height: 88,
+              width: 80,
+              height: 80,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.primaryOrange.withValues(alpha: 0.12),
-                    AppColors.accentRed.withValues(alpha: 0.08),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                color: iconBg,
               ),
               child: Icon(
                 icon,
-                size: 40,
-                color: AppColors.primaryOrange,
+                size: 36,
+                color: theme.colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -59,6 +56,7 @@ class EmptyState extends StatelessWidget {
               title,
               style: AppTypography.titleMedium.copyWith(
                 color: theme.colorScheme.onSurface,
+                fontWeight: FontWeight.w700,
               ),
               textAlign: TextAlign.center,
             ),
@@ -112,15 +110,15 @@ class ErrorStateView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 88,
-              height: 88,
+              width: 80,
+              height: 80,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.error.withValues(alpha: 0.12),
+                color: AppColors.errorLight,
               ),
               child: Icon(
                 icon ?? Icons.error_outline_rounded,
-                size: 42,
+                size: 38,
                 color: AppColors.error,
               ),
             ),
@@ -129,6 +127,7 @@ class ErrorStateView extends StatelessWidget {
               title ?? 'Đã có lỗi xảy ra',
               style: AppTypography.titleMedium.copyWith(
                 color: theme.colorScheme.onSurface,
+                fontWeight: FontWeight.w700,
               ),
               textAlign: TextAlign.center,
             ),
@@ -137,51 +136,23 @@ class ErrorStateView extends StatelessWidget {
               Text(
                 bodyText,
                 style: AppTypography.bodyMedium.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
                 ),
                 textAlign: TextAlign.center,
               ),
             ],
             if (onRetry != null) ...[
               const SizedBox(height: AppSpacing.lg),
-              Container(
+              SizedBox(
                 height: 44,
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: AppColors.primaryButtonGradient,
-                  ),
-                  borderRadius: BorderRadius.circular(AppRadius.pill),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primaryOrange.withValues(alpha: 0.30),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(AppRadius.pill),
-                    onTap: onRetry,
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.refresh_rounded,
-                          size: 18,
-                          color: Colors.white,
-                        ),
-                        SizedBox(width: AppSpacing.sm),
-                        Text(
-                          'Thử lại',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
+                child: OutlinedButton.icon(
+                  onPressed: onRetry,
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  label: const Text('Thử lại'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                   ),
                 ),
@@ -198,24 +169,26 @@ class LoadingView extends StatelessWidget {
   final String? message;
   final IconData? icon;
   final double size;
-  const LoadingView({super.key, this.message, this.icon, this.size = 36});
+  const LoadingView({super.key, this.message, this.icon, this.size = 28});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: size, color: AppColors.primaryOrange),
+            Icon(icon, size: size, color: theme.colorScheme.onSurface),
             const SizedBox(height: AppSpacing.md),
           ] else ...[
             SizedBox(
               width: size,
               height: size,
-              child: const CircularProgressIndicator(
-                strokeWidth: 2.6,
-                valueColor: AlwaysStoppedAnimation(AppColors.primaryOrange),
+              child: CircularProgressIndicator(
+                strokeWidth: 2.2,
+                valueColor: AlwaysStoppedAnimation(
+                    theme.colorScheme.onSurface),
               ),
             ),
           ],
@@ -274,7 +247,7 @@ class SectionHeader extends StatelessWidget {
   }
 }
 
-/// Card surface có shadow mềm + bo góc — dùng cho mọi card trong app.
+/// Card surface có border hairline + bo góc nhỏ — minimalist style.
 class SoftCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
@@ -295,16 +268,14 @@ class SoftCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final bg = background ?? theme.colorScheme.surface;
-    final card = AnimatedContainer(
-      duration: const Duration(milliseconds: 150),
+    final card = Container(
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(radius),
         border: Border.all(
-          color: theme.dividerColor.withValues(alpha: 0.6),
-          width: 0.6,
+          color: theme.dividerColor,
+          width: 1,
         ),
-        boxShadow: AppShadows.xs,
       ),
       child: Padding(padding: padding, child: child),
     );

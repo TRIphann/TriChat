@@ -4,6 +4,11 @@
 .env.*
 *.env
 
+# Agent skills (coding agent configuration)
+.agents/
+skills-lock.json
+agent-transcripts/
+
 # Firebase credentials
 backend/config/
 backend/FirebaseCredentials/

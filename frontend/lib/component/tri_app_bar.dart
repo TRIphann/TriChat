@@ -3,11 +3,7 @@ import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../config/app_spacing.dart';
 
-/// AppBar tuỳ biến theo brand TriChat — gradient cam cháy nhẹ,
-/// bo tròn góc dưới, shadow mềm, có hỗ trợ leading/title/actions.
-///
-/// Thay thế cho ZaloAppBar (cũ - màu xanh cứng) và các AppBar ad-hoc
-/// rải rác trong app.
+/// AppBar tuỳ biến theo brand TriChat — Minimalist (trắng / đen, không gradient).
 class TriAppBar extends StatelessWidget implements PreferredSizeWidget {
   /// Tiêu đề hiển thị ở giữa/trái.
   final String title;
@@ -30,13 +26,13 @@ class TriAppBar extends StatelessWidget implements PreferredSizeWidget {
   /// Danh sách action ở bên phải.
   final List<Widget> actions;
 
-  /// Màu nền gradient — mặc định dùng [AppColors.appBarGradient].
-  final List<Color>? gradientColors;
+  /// Màu nền — mặc định trắng.
+  final Color? backgroundColor;
 
-  /// Màu chữ/Icon — mặc định trắng.
-  final Color foregroundColor;
+  /// Màu chữ/Icon — mặc định đen.
+  final Color? foregroundColor;
 
-  /// Có bo cong góc dưới hay không (mặc định true).
+  /// Có bo cong góc dưới hay không (mặc định false).
   final bool roundedBottom;
 
   /// Padding ngang custom cho title.
@@ -51,19 +47,23 @@ class TriAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.onBack,
     this.showBackButton = false,
     this.actions = const [],
-    this.gradientColors,
-    this.foregroundColor = Colors.white,
-    this.roundedBottom = true,
+    this.backgroundColor,
+    this.foregroundColor,
+    this.roundedBottom = false,
     this.titleSpacing = 0,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colors = gradientColors ?? AppColors.appBarGradient;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final bg = backgroundColor ??
+        (isDark ? AppColors.darkSurface : AppColors.neutralWhite);
+    final fg = foregroundColor ?? theme.colorScheme.onSurface;
     final Widget leadingWidget = leading ??
         (showBackButton
             ? IconButton(
-                icon: Icon(backIcon, color: foregroundColor, size: 22),
+                icon: Icon(backIcon, color: fg, size: 22),
                 splashRadius: 22,
                 onPressed: onBack ?? () => Navigator.of(context).maybePop(),
               )
@@ -72,12 +72,9 @@ class TriAppBar extends StatelessWidget implements PreferredSizeWidget {
     final Widget titleContent = titleWidget ??
         Text(
           title,
-          style: TextStyle(
-            fontFamily: 'Roboto',
-            color: foregroundColor,
-            fontSize: 17,
+          style: theme.textTheme.titleLarge?.copyWith(
+            color: fg,
             fontWeight: FontWeight.w700,
-            letterSpacing: -0.2,
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -85,23 +82,18 @@ class TriAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: colors,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: bg,
         borderRadius: roundedBottom
             ? const BorderRadius.vertical(
                 bottom: Radius.circular(AppRadius.lg),
               )
             : null,
-        boxShadow: [
-          BoxShadow(
-            color: colors.first.withValues(alpha: 0.25),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+        border: Border(
+          bottom: BorderSide(
+            color: isDark ? AppColors.darkDivider : AppColors.neutralGray200,
+            width: 1,
           ),
-        ],
+        ),
       ),
       child: SafeArea(
         bottom: false,
@@ -109,7 +101,6 @@ class TriAppBar extends StatelessWidget implements PreferredSizeWidget {
           height: kToolbarHeight,
           child: Row(
             children: [
-              SizedBox(width: leadingWidget is SizedBox ? 0 : 0),
               leadingWidget,
               if (titleSpacing > 0) SizedBox(width: titleSpacing),
               Expanded(child: titleContent),
@@ -130,8 +121,7 @@ class TriAppBar extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
-/// AppBar kiểu tối giản dùng cho các màn hình có nền trắng (auth, settings).
-/// Không gradient, không shadow — để nội dung bên dưới nổi bật.
+/// AppBar kiểu tối giản — nền trắng / đen, border hairline bên dưới.
 class TriLightAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final Widget? leading;
@@ -153,6 +143,7 @@ class TriLightAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final fg = theme.colorScheme.onSurface;
     final Widget leadingWidget = leading ??
         (showBackButton
@@ -165,20 +156,13 @@ class TriLightAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.creamWhite,
+        color: isDark ? AppColors.darkSurface : AppColors.neutralWhite,
         border: Border(
           bottom: BorderSide(
-            color: AppColors.neutralGray300.withValues(alpha: 0.6),
-            width: 0.6,
+            color: isDark ? AppColors.darkDivider : AppColors.neutralGray200,
+            width: 1,
           ),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.accentBrown.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: SafeArea(
         bottom: false,
@@ -190,7 +174,9 @@ class TriLightAppBar extends StatelessWidget implements PreferredSizeWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: theme.textTheme.titleLarge,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),

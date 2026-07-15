@@ -1,115 +1,114 @@
 import 'package:flutter/material.dart';
 
 /// ════════════════════════════════════════════════════════════════
-/// BẢNG MÀU TRICHAT — Phong cách "Giao Diện Thấu Kính"
+/// BẢNG MÀU TRICHAT — Minimalist Black & White
 /// ════════════════════════════════════════════════════════════════
 ///
-/// Triết lý thiết kế mới:
-/// - Nền chính: be cực nhạt / trắng kem (cream)
-/// - Accent: cam san hô + nâu socola sữa
-/// - Glass effect: trắng trong suốt + blur + shadow nhẹ
-/// - Text: xám đậm (title), xám nhạt (desc), đen (body)
+/// Triết lý thiết kế:
+/// - Bảng màu đơn sắc đen / trắng / xám — không gradient, không glassmorphism
+/// - Accent duy nhất: cam san hô (chỉ dùng cho CTA chính, badge quan trọng)
+/// - Text: charcoal (#0F0F0F) — không dùng pure black
+/// - Border: hairline 1px (#E5E5E5)
+/// - Surface: pure white hoặc off-white tinh tế
+/// - Không shadow nặng — chỉ shadow mỏng 1-2px hoặc không dùng
 ///
 /// **QUY TẮC SỬ DỤNG**:
 /// - Tất cả màu trong app PHẢI lấy từ class này. KHÔNG hardcode màu.
 /// - Đổi màu toàn bộ app: chỉ cần sửa các const Color bên dưới.
 class AppColors {
   // ════════════════════════════════════════════════════════════════
-  //  PRIMARY — Cam san hô (Coral) — màu chủ đạo, dịu & hiện đại
+  //  ACCENT — Cam san hô (chỉ dùng cho CTA chính, dot, badge)
   // ════════════════════════════════════════════════════════════════
-  /// Cam san hô đậm — button chính, AppBar, tab active, link
-  static const Color primaryOrange = Color(0xFFFF7F5C);
-  /// Cam san hô vừa — gradient và highlight
-  static const Color primaryOrangeLight = Color(0xFFFFA689);
-  /// Cam san hô nhạt — tint, hover background
-  static const Color primaryOrangePale = Color(0xFFFFE3D6);
+  /// Cam san hô đậm — button chính, link quan trọng
+  static const Color primaryOrange = Color(0xFFE85D2F);
+  /// Cam san hô nhạt — tint nhẹ, hover background
+  static const Color primaryOrangeLight = Color(0xFFFEF1EA);
+  /// Cam san hô đậm hơn — pressed state
+  static const Color primaryOrangeDark = Color(0xFFC84A21);
 
   // ════════════════════════════════════════════════════════════════
-  //  SECONDARY — Đỏ san hô ấm — nhấn mạnh
+  //  SECONDARY — Đỏ tối giản (chỉ dùng cho error / danger)
   // ════════════════════════════════════════════════════════════════
-  /// Đỏ ấm — notification, like, badge quan trọng
-  static const Color accentRed = Color(0xFFE85A6A);
-  /// Đỏ đậm hơn — danger, error
-  static const Color accentRedDark = Color(0xFFC73E55);
+  /// Đỏ tối giản — error, danger
+  static const Color accentRed = Color(0xFFB42318);
+  /// Đỏ nhạt — error tint
+  static const Color accentRedLight = Color(0xFFFEF3F2);
 
   // ════════════════════════════════════════════════════════════════
-  //  TERTIARY — Nâu socola sữa (Milk Chocolate) — text & depth
+  //  TERTIARY — Neutral (text & depth)
   // ════════════════════════════════════════════════════════════════
-  /// Nâu socola đậm — heading, icon chính
-  static const Color accentBrown = Color(0xFF7B4F35);
-  /// Nâu vừa — secondary text
-  static const Color accentBrownLight = Color(0xFFA87657);
+  /// Charcoal — heading, icon chính, text đậm
+  static const Color accentBrown = Color(0xFF0F0F0F);
+  /// Xám đậm — secondary heading
+  static const Color accentBrownLight = Color(0xFF404040);
 
   // ════════════════════════════════════════════════════════════════
-  //  NEUTRAL — Be cực nhạt & đen ấm (Cream & warm black)
+  //  NEUTRAL — đơn sắc đen / trắng / xám
   // ════════════════════════════════════════════════════════════════
-  /// Đen ấm — text chính
-  static const Color neutralBlack = Color(0xFF2A1F1A);
-  /// Xám rất đậm — text on dark bg
-  static const Color neutralGray900 = Color(0xFF3D2F28);
-  /// Xám đậm — secondary text
-  static const Color neutralGray800 = Color(0xFF564539);
-  /// Xám vừa — placeholder
-  static const Color neutralGray700 = Color(0xFF8A7565);
-  /// Xám nhạt — hint
-  static const Color neutralGray500 = Color(0xFFB5A698);
-  /// Xám rất nhạt — border
-  static const Color neutralGray300 = Color(0xFFE8DED2);
-  /// Be rất nhạt — nền phụ
-  static const Color neutralGray100 = Color(0xFFFAF4EC);
-  /// Trắng kem — surface/card (ấm hơn #FFFFFF)
-  static const Color neutralWhite = Color(0xFFFFFCF6);
+  /// Charcoal đậm — text chính (không dùng pure black)
+  static const Color neutralBlack = Color(0xFF0F0F0F);
+  /// Xám rất đậm — text đậm phụ
+  static const Color neutralGray900 = Color(0xFF171717);
+  /// Xám đậm — text phụ
+  static const Color neutralGray800 = Color(0xFF262626);
+  /// Xám vừa — secondary text
+  static const Color neutralGray700 = Color(0xFF404040);
+  /// Xám trung bình — placeholder
+  static const Color neutralGray500 = Color(0xFF737373);
+  /// Xám nhạt — hint, meta
+  static const Color neutralGray400 = Color(0xFFA3A3A3);
+  /// Xám rất nhạt — divider mỏng
+  static const Color neutralGray300 = Color(0xFFD4D4D4);
+  /// Xám cực nhạt — border
+  static const Color neutralGray200 = Color(0xFFE5E5E5);
+  /// Xám gần trắng — hover background
+  static const Color neutralGray100 = Color(0xFFF5F5F5);
+  /// Off-white — nền phụ
+  static const Color neutralGray50 = Color(0xFFFAFAFA);
+  /// Trắng tinh — surface / card
+  static const Color neutralWhite = Color(0xFFFFFFFF);
 
   // ════════════════════════════════════════════════════════════════
-  //  BACKGROUND GRADIENT — Cream tones
+  //  BACKGROUND — nền tối giản
   // ════════════════════════════════════════════════════════════════
-  /// Nền cream chính — dùng cho scaffold
-  static const Color creamBackground = Color(0xFFFAF4EC);
-  /// Nền cream nhạt hơn
-  static const Color creamLight = Color(0xFFFFF8EC);
-  /// Nền kem trắng
-  static const Color creamWhite = Color(0xFFFFFCF6);
-
-  // ════════════════════════════════════════════════════════════════
-  //  GLASS EFFECT — Trắng trong suốt cho backdrop-filter
-  // ════════════════════════════════════════════════════════════════
-  /// Glass trắng — sidebar, header, modal
-  static const Color glassWhite = Color(0xCCFFFFFF);
-  /// Glass trắng nhẹ — list items, chips
-  static const Color glassWhiteSoft = Color(0x99FFFFFF);
-  /// Glass nâu — sidebar nâu socola
-  static const Color glassBrown = Color(0xE67B4F35);
-  /// Glass nâu đậm — sidebar overlay
-  static const Color glassBrownDeep = Color(0xFF5A3825);
+  /// Nền chính — off-white tinh tế
+  static const Color creamBackground = Color(0xFFFAFAFA);
+  /// Nền phụ — pure white
+  static const Color creamLight = Color(0xFFFFFFFF);
+  /// Nền card / surface
+  static const Color creamWhite = Color(0xFFFFFFFF);
 
   // ════════════════════════════════════════════════════════════════
   //  CHAT SURFACES — token chuyên dụng cho màn hình chat
   // ════════════════════════════════════════════════════════════════
-  /// Nền khu vực chat — cream tone
-  static const Color chatBackground = Color(0xFFF7EFE3);
-  /// Bong bóng tin nhắn của mình
-  static const Color chatBubbleMine = primaryOrange;
-  /// Bong bóng tin nhắn của người khác (trắng kem)
-  static const Color chatBubbleTheirs = Color(0xFFFFFFFF);
-  /// Viền bong bóng người khác
-  static const Color chatBubbleBorder = Color(0xFFEFE5D6);
+  /// Nền khu vực chat — trắng tinh
+  static const Color chatBackground = Color(0xFFFFFFFF);
+  /// Bong bóng tin nhắn của mình — đen
+  static const Color chatBubbleMine = neutralBlack;
+  /// Bong bóng tin nhắn của người khác — xám rất nhạt
+  static const Color chatBubbleTheirs = Color(0xFFF5F5F5);
+  /// Viền bong bóng người khác — không dùng, dùng nền nhạt
+  static const Color chatBubbleBorder = Color(0xFFFAFAFA);
   /// Bong bóng người khác trong dark mode
-  static const Color darkChatBubbleTheirs = Color(0xFF3D2B1F);
+  static const Color darkChatBubbleTheirs = Color(0xFF1F1F1F);
   /// Nền chat trong dark mode
-  static const Color darkChatBackground = Color(0xFF1F1612);
+  static const Color darkChatBackground = Color(0xFF0A0A0A);
 
   // ════════════════════════════════════════════════════════════════
   //  STATE — Trạng thái (success/warning/error/info)
   // ════════════════════════════════════════════════════════════════
-  /// Xanh lá trầm — online, success
-  static const Color success = Color(0xFF4FA876);
-  static const Color successLight = Color(0xFF7BC79E);
-  /// Vàng cam — warning
-  static const Color warning = Color(0xFFE8A040);
+  /// Xanh lá tối giản — online, success
+  static const Color success = Color(0xFF067647);
+  static const Color successLight = Color(0xFFECFDF3);
+  /// Vàng tối giản — warning
+  static const Color warning = Color(0xFFB54708);
+  static const Color warningLight = Color(0xFFFFFAEB);
   /// Đỏ — error/danger
-  static const Color error = Color(0xFFD64545);
-  /// Xanh dương đậm — info
-  static const Color info = Color(0xFF3D7A99);
+  static const Color error = Color(0xFFB42318);
+  static const Color errorLight = Color(0xFFFEF3F2);
+  /// Xanh dương tối giản — info
+  static const Color info = Color(0xFF1849A9);
+  static const Color infoLight = Color(0xFFEFF8FF);
 
   // ════════════════════════════════════════════════════════════════
   //  ALIAS GIỮ TƯƠNG THÍCH (legacy) — giữ để code cũ không lỗi
@@ -124,151 +123,149 @@ class AppColors {
   static final Color textHint = neutralGray500;
   static final Color textWhite = Colors.white;
   static final Color textBlue = primaryOrange;
-  static final Color borderGray = neutralGray300;
-  static final Color divider = neutralGray300;
+  static final Color borderGray = neutralGray200;
+  static final Color divider = neutralGray200;
   static final Color callRed = accentRed;
   static final Color callGreen = success;
   static final Color callBackground = neutralBlack;
   static final Color whiteOpacity = Colors.white24;
 
   // ════════════════════════════════════════════════════════════════
-  //  DARK MODE
+  //  DARK MODE — đơn sắc đen tối giản
   // ════════════════════════════════════════════════════════════════
-  static const Color darkBackground = Color(0xFF1F1612);
-  static const Color darkSurface = Color(0xFF2A1F1A);
-  static const Color darkCard = Color(0xFF3D2B1F);
-  static final Color sidebarDark = accentBrown;
-  static final Color sidebarLight = primaryOrange;
-  static const Color darkTextPrimary = Color(0xFFF5EFE7);
-  static const Color darkTextSecondary = Color(0xFFB5A698);
-  static const Color darkDivider = Color(0xFF3D2B1F);
+  /// Nền tối — charcoal đậm
+  static const Color darkBackground = Color(0xFF0A0A0A);
+  /// Surface — đen nhạt hơn một chút
+  static const Color darkSurface = Color(0xFF171717);
+  /// Card — đen nâng cao
+  static const Color darkCard = Color(0xFF1F1F1F);
+  static final Color sidebarDark = neutralBlack;
+  static final Color sidebarLight = neutralWhite;
+  /// Text chính trong dark mode — trắng off
+  static const Color darkTextPrimary = Color(0xFFF5F5F5);
+  /// Text phụ trong dark mode — xám nhạt
+  static const Color darkTextSecondary = Color(0xFFA3A3A3);
+  /// Divider trong dark mode
+  static const Color darkDivider = Color(0xFF262626);
 
   // ════════════════════════════════════════════════════════════════
-  //  GRADIENTS — dùng chung cho tất cả giao diện tương tự
+  //  GRADIENTS — chỉ dùng tối giản, đơn sắc
   // ════════════════════════════════════════════════════════════════
-  /// Gradient brand — cam san hô → đỏ ấm → nâu socola
-  /// Dùng cho: AppBar newfeed, splash, header profile, header chat list
+  /// Gradient brand đơn sắc — chỉ dùng khi thật cần
+  /// (logo wordmark, splash nền)
   static const List<Color> brandGradient = [
-    Color(0xFFFFA689), // cam san hô sáng
-    Color(0xFFFF7F5C), // cam san hô
-    Color(0xFFE85A6A), // đỏ ấm
-    Color(0xFF7B4F35), // nâu socola
+    Color(0xFF0F0F0F),
+    Color(0xFF262626),
   ];
 
   /// Gradient header dark mode
   static const List<Color> darkBrandGradient = [
-    Color(0xFF3D2B1F),
-    Color(0xFF2A1F1A),
-    Color(0xFF1F1612),
+    Color(0xFF0A0A0A),
+    Color(0xFF171717),
   ];
 
-  /// Gradient header newfeed (cam san hô → nâu)
+  /// Gradient header newfeed — đơn sắc trắng → xám nhạt
   static const List<Color> headerGradient = [
-    Color(0xFFFFA689),
-    Color(0xFFFF7F5C),
-    Color(0xFF7B4F35),
+    Color(0xFFFFFFFF),
+    Color(0xFFFAFAFA),
   ];
 
   /// Gradient header dark mode
   static const List<Color> darkHeaderGradient = [
-    Color(0xFF3D2B1F),
-    Color(0xFF1F1612),
-    Color(0xFF0F0807),
+    Color(0xFF0A0A0A),
+    Color(0xFF171717),
   ];
 
-  /// Gradient app bar nhẹ nhàng (cam san hô → cam đậm)
+  /// Gradient app bar nhẹ nhàng — đơn sắc trắng
   static const List<Color> appBarGradient = [
-    Color(0xFFFFA689),
-    Color(0xFFFF7F5C),
+    Color(0xFFFFFFFF),
+    Color(0xFFFAFAFA),
   ];
 
-  /// Gradient story chưa xem — cam san hô → đỏ
+  /// Gradient story chưa xem — đen đậm → đen nhạt
   static const List<Color> storyUnseenGradient = [
-    Color(0xFFFFA689),
-    Color(0xFFFF7F5C),
-    Color(0xFFE85A6A),
+    Color(0xFF262626),
+    Color(0xFF0F0F0F),
   ];
 
-  /// Gradient nút "Tạo bài viết"
+  /// Gradient nút "Tạo bài viết" — đen đơn sắc
   static const List<Color> createPostGradient = [
-    Color(0xFFFFA689),
-    Color(0xFFFF7F5C),
+    Color(0xFF171717),
+    Color(0xFF0F0F0F),
   ];
 
-  /// Gradient cover profile — cam san hô → đỏ → nâu
+  /// Gradient cover profile — đơn sắc đen
   static const List<Color> profileCoverGradient = [
-    Color(0xFFFFA689),
-    Color(0xFFFF7F5C),
-    Color(0xFFE85A6A),
-    Color(0xFF7B4F35),
+    Color(0xFF262626),
+    Color(0xFF0F0F0F),
   ];
 
-  /// Gradient CTA chính (Kết bạn, Đăng bài)
+  /// Gradient CTA chính — đen đơn sắc (thay cam san hô)
   static const List<Color> primaryButtonGradient = [
-    Color(0xFFFFA689),
-    Color(0xFFFF7F5C),
+    Color(0xFF0F0F0F),
+    Color(0xFF171717),
   ];
 
-  /// Gradient CTA phụ (Đã kết nối)
+  /// Gradient CTA phụ (Đã kết nối) — đơn sắc xám
   static const List<Color> successButtonGradient = [
-    Color(0xFF7BC79E),
-    Color(0xFF4FA876),
+    Color(0xFF404040),
+    Color(0xFF262626),
   ];
 
   /// Gradient CTA cảnh báo
   static const List<Color> warningButtonGradient = [
-    Color(0xFFFFA689),
-    Color(0xFFE85A40),
+    Color(0xFFE85D2F),
+    Color(0xFFC84A21),
   ];
 
   /// Gradient CTA phản hồi
   static const List<Color> respondButtonGradient = [
-    Color(0xFFFFA689),
-    Color(0xFFFF7F5C),
+    Color(0xFF0F0F0F),
+    Color(0xFF171717),
   ];
 
   /// Gradient CTA nguy hiểm
   static const List<Color> dangerButtonGradient = [
-    Color(0xFFD64545),
-    Color(0xFFA02828),
+    Color(0xFFB42318),
+    Color(0xFF8A1A12),
   ];
 
-  /// Gradient bong bóng tin nhắn của tôi — cam sáng → cam đậm
+  /// Gradient bong bóng tin nhắn của tôi — đen đơn sắc
   static const List<Color> chatBubbleMineGradient = [
-    Color(0xFFFFA689),
-    Color(0xFFFF7F5C),
+    Color(0xFF0F0F0F),
+    Color(0xFF262626),
   ];
 
-  /// Gradient glass nâu cho sidebar — nâu socola sữa
+  /// Gradient sidebar — đen đơn sắc
   static const List<Color> sidebarBrownGradient = [
-    Color(0xFFA87657),
-    Color(0xFF7B4F35),
-    Color(0xFF5A3825),
+    Color(0xFF171717),
+    Color(0xFF0F0F0F),
+    Color(0xFF0A0A0A),
   ];
 
-  /// Gradient glass cream cho background — kem → trắng kem
+  /// Gradient cream background — trắng / off-white
   static const List<Color> creamBackgroundGradient = [
-    Color(0xFFFFF8EC),
-    Color(0xFFFFFCF6),
-    Color(0xFFFAF4EC),
-  ];
-
-  /// Gradient glass trắng cho header cột 2 — chuyển từ trắng → cream
-  static const List<Color> glassWhiteGradient = [
-    Color(0xFFFFFCF6),
+    Color(0xFFFFFFFF),
+    Color(0xFFFAFAFA),
     Color(0xFFFFFFFF),
   ];
 
+  /// Gradient glass trắng — đơn sắc trắng
+  static const List<Color> glassWhiteGradient = [
+    Color(0xFFFFFFFF),
+    Color(0xFFFAFAFA),
+  ];
+
   // ════════════════════════════════════════════════════════════════
-  //  PALETTE AVATAR — 6 màu ấm cho avatar tự sinh theo tên
+  //  PALETTE AVATAR — đơn sắc đen / trắng / xám
   // ════════════════════════════════════════════════════════════════
   static const List<Color> avatarPalette = [
-    Color(0xFFFF7F5C), // cam san hô
-    Color(0xFFE85A6A), // đỏ ấm
-    Color(0xFFD4805A), // cam đất
-    Color(0xFF7B4F35), // nâu socola
-    Color(0xFF4FA876), // xanh lá trầm
-    Color(0xFFA87657), // nâu sữa
+    Color(0xFF0F0F0F),
+    Color(0xFF262626),
+    Color(0xFF404040),
+    Color(0xFF737373),
+    Color(0xFFA3A3A3),
+    Color(0xFFE5E5E5),
   ];
 
   // ════════════════════════════════════════════════════════════════
@@ -283,150 +280,117 @@ class AppColors {
       isDark ? darkTextPrimary : neutralBlack;
   static Color getTextSecondary(bool isDark) =>
       isDark ? darkTextSecondary : neutralGray700;
-  static Color getDivider(bool isDark) => isDark ? darkDivider : neutralGray300;
+  static Color getDivider(bool isDark) => isDark ? darkDivider : neutralGray200;
 
-  /// Màu avatar sinh theo tên user (hash đơn giản)
+  /// Màu avatar sinh theo tên user (hash đơn giản — đơn sắc)
   static Color avatarColorFor(String name) {
     if (name.isEmpty) return avatarPalette.first;
     return avatarPalette[name.codeUnitAt(0) % avatarPalette.length];
   }
 
   // ════════════════════════════════════════════════════════════════
-  //  DARK PREMIUM DESIGN — Ultra-Dark "Premium Glass" Dashboard
-  //  Phong cách: Glassmorphism + Neumorphism tối giản trên nền đen
-  //  Triết lý:
-  //    - Nền chính: #000000 / #0D0E12 (đen tuyệt đối / xám siêu tối)
-  //    - Surface card: #16171D (xám đậm pha xanh đen)
-  //    - Border: rgba(255,255,255,0.06) (viền mờ)
-  //    - Accent: Royal Blue / Neon Pink / Neon Orange / Online Green
-  //    - Border radius rất lớn (16-24px)
-  //    - Glow neon tinh tế phía sau các icon Active
-  //  **Quy tắc**: Các widget mới dùng cho màn hình chat ưu tiên
-  //  nhóm Dark Premium. Màn hình khác vẫn giữ cream/orange cũ.
+  //  DARK PREMIUM — Dark mode tối giản (tương thích code cũ)
   // ════════════════════════════════════════════════════════════════
 
   // ── Nền (Backgrounds) ──
-  /// Đen tuyệt đối — nền app-wide cho dark design
   static const Color darkPremiumVoid = Color(0xFF000000);
-  /// Xám siêu tối (chính của dark) — nền scaffold dark
-  static const Color darkPremiumBackground = Color(0xFF0D0E12);
-  /// Surface — phân vùng thẻ nội dung
-  static const Color darkPremiumSurface = Color(0xFF16171D);
-  /// Surface nâng — popup, bottom sheet, dialog
-  static const Color darkPremiumElevated = Color(0xFF1E2028);
-  /// Viền mờ (tách vùng nội dung)
-  static const Color darkPremiumBorder = Color(0x14FFFFFF); // white 8%
-  /// Divider mỏng hơn
-  static const Color darkPremiumDivider = Color(0x0AFFFFFF);
-  /// Hover overlay
-  static const Color darkPremiumHover = Color(0x1FFFFFFF);
-  /// Selected overlay (item active)
-  static const Color darkPremiumSelected = Color(0x14FFFFFF);
+  static const Color darkPremiumBackground = Color(0xFF0A0A0A);
+  static const Color darkPremiumSurface = Color(0xFF171717);
+  static const Color darkPremiumElevated = Color(0xFF1F1F1F);
+  static const Color darkPremiumBorder = Color(0xFF262626);
+  static const Color darkPremiumDivider = Color(0xFF1F1F1F);
+  static const Color darkPremiumHover = Color(0xFF262626);
+  static const Color darkPremiumSelected = Color(0xFF1F1F1F);
 
-  // ── Text (Dark Premium) ──
-  /// Trắng — heading
-  static const Color darkPremiumTextPrimary = Color(0xFFFFFFFF);
-  /// Trắng mờ ~ 75% — body chính
-  static const Color darkPremiumTextBody = Color(0xBFFFFFFF);
-  /// Xám nhạt — secondary text
-  static const Color darkPremiumTextSecondary = Color(0x80FFFFFF);
-  /// Xám mịn — hint, error text
-  static const Color darkPremiumTextHint = Color(0x5FFFFFFF);
+  // ── Text (Dark) ──
+  static const Color darkPremiumTextPrimary = Color(0xFFF5F5F5);
+  static const Color darkPremiumTextBody = Color(0xFFD4D4D4);
+  static const Color darkPremiumTextSecondary = Color(0xFFA3A3A3);
+  static const Color darkPremiumTextHint = Color(0xFF737373);
 
-  // ── Neon Accents ──
-  /// Royal Blue — accent chính (active tab, badge, link)
-  static const Color neonRoyal = Color(0xFF4F8CFF);
-  /// Royal Blue glow nhạt — outer shadow
-  static const Color neonRoyalGlow = Color(0xFF6FA4FF);
-  /// Hồng neon — accent thứ cấp (file icon, media badge)
-  static const Color neonPink = Color(0xFFFF4D8D);
-  /// Cam rực — highlight, nút gửi
-  static const Color neonOrange = Color(0xFFFF7A2E);
-  /// Xanh lá neon — trạng thái online
-  static const Color neonOnline = Color(0xFF25E08A);
-  /// Vàng neon — link / warning icon
-  static const Color neonYellow = Color(0xFFFFC93C);
-  /// Tím neon — file type icon (video/photo)
-  static const Color neonPurple = Color(0xFFB07BFF);
-  /// Đỏ neon — error / call end
-  static const Color neonRed = Color(0xFFFF4D6D);
+  // ── Accents (chỉ dùng cho dot/badge, không gradient) ──
+  static const Color neonRoyal = Color(0xFFE85D2F);
+  static const Color neonRoyalGlow = Color(0xFFE85D2F);
+  static const Color neonPink = Color(0xFFE85D2F);
+  static const Color neonOrange = Color(0xFFE85D2F);
+  static const Color neonOnline = Color(0xFF067647);
+  static const Color neonYellow = Color(0xFFB54708);
+  static const Color neonPurple = Color(0xFF404040);
+  static const Color neonRed = Color(0xFFB42318);
 
-  // ── Gradient: my message (Royal → Light Blue) ──
+  // ── Gradient: my message (đen đơn sắc) ──
   static const List<Color> darkBubbleMineGradient = [
-    Color(0xFF4F8CFF),
-    Color(0xFF6FB1FF),
+    Color(0xFF0F0F0F),
+    Color(0xFF262626),
   ];
 
   // ── Gradient: header dark ──
   static const List<Color> darkPremiumHeaderGradient = [
-    Color(0xFF0D0E12),
-    Color(0xFF16171D),
+    Color(0xFF0A0A0A),
+    Color(0xFF171717),
   ];
 
-  // ── Gradient: button primary (neon) ──
+  // ── Gradient: button primary ──
   static const List<Color> neonButtonGradient = [
-    Color(0xFF4F8CFF),
-    Color(0xFF6FA4FF),
+    Color(0xFF0F0F0F),
+    Color(0xFF262626),
   ];
 
-  // ── Gradient: button pink (Try/Friend) ──
+  // ── Gradient: button pink ──
   static const List<Color> neonPinkGradient = [
-    Color(0xFFFF4D8D),
-    Color(0xFFFF7AA8),
+    Color(0xFF0F0F0F),
+    Color(0xFF262626),
   ];
 
   // ── Gradient: button orange ──
   static const List<Color> neonOrangeGradient = [
-    Color(0xFFFF7A2E),
-    Color(0xFFFFA866),
+    Color(0xFFE85D2F),
+    Color(0xFFC84A21),
   ];
 
-  // ── Glow shadow color (icon active) ──
-  /// Royal blue shadow — used on active sidebar item
-  static const Color neonRoyalShadow = Color(0x664F8CFF);
+  // ── Glow shadow color ──
+  static const Color neonRoyalShadow = Color(0x00000000);
 
-  // ── Dark bubble (theirs) — gray glass ──
-  /// Bubble của đối phương — xám mờ
-  static const Color darkPremiumBubbleTheirs = Color(0xFF1E2028);
-  /// Border bubble theirs
-  static const Color darkPremiumBubbleTheirsBorder = Color(0x26FFFFFF);
+  // ── Dark bubble (theirs) ──
+  static const Color darkPremiumBubbleTheirs = Color(0xFF1F1F1F);
+  static const Color darkPremiumBubbleTheirsBorder = Color(0xFF262626);
 
-  // ── Dark chat background (slight gradient base) ──
+  // ── Dark chat background ──
   static const List<Color> darkChatSurfaceGradient = [
-    Color(0xFF0D0E12),
-    Color(0xFF16171D),
+    Color(0xFF0A0A0A),
+    Color(0xFF171717),
   ];
 
-  // ── Slim sidebar selected gradient (Royal Blue glow) ──
+  // ── Slim sidebar selected gradient ──
   static const List<Color> darkSlimSidebarItemActive = [
-    Color(0xFF4F8CFF),
-    Color(0xFF6FB1FF),
+    Color(0xFFE5E5E5),
+    Color(0xFFF5F5F5),
   ];
 
-  // ── Pinned/all message label color (#) ──
-  static const Color darkPremiumPinnedLabel = Color(0xFF6FA4FF);
+  // ── Pinned/all message label color ──
+  static const Color darkPremiumPinnedLabel = Color(0xFFE85D2F);
 
-  // ── Dark avatar palette (neon-on-dark) ──
+  // ── Dark avatar palette ──
   static const List<Color> darkPremiumAvatarPalette = [
-    Color(0xFF4F8CFF), // royal blue
-    Color(0xFFFF4D8D), // pink
-    Color(0xFFFF7A2E), // orange
-    Color(0xFF25E08A), // online green
-    Color(0xFFFFC93C), // yellow
-    Color(0xFFB07BFF), // purple
+    Color(0xFFF5F5F5),
+    Color(0xFFD4D4D4),
+    Color(0xFFA3A3A3),
+    Color(0xFF737373),
+    Color(0xFF404040),
+    Color(0xFF262626),
   ];
 
-  /// Theme dark chuyên dùng cho giao diện chat Premium
+  /// Theme dark chuyên dùng cho giao diện chat
   static ThemeData buildDarkPremiumTheme() {
     final base = ThemeData.dark(useMaterial3: true);
     return base.copyWith(
       scaffoldBackgroundColor: darkPremiumBackground,
       colorScheme: const ColorScheme.dark(
-        primary: neonRoyal,
-        onPrimary: Colors.white,
+        primary: neutralWhite,
+        onPrimary: neutralBlack,
         surface: darkPremiumSurface,
         onSurface: darkPremiumTextPrimary,
-        secondary: neonOrange,
+        secondary: primaryOrange,
       ),
       textTheme: base.textTheme.apply(
         bodyColor: darkPremiumTextPrimary,

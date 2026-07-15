@@ -6,7 +6,7 @@ import '../config/app_spacing.dart';
 import '../config/app_typography.dart';
 
 /// ════════════════════════════════════════════════════════════════
-/// INPUTS — Bộ ô nhập liệu thống nhất cho TriChat
+/// INPUTS — Bộ ô nhập liệu thống nhất cho TriChat (Minimalist)
 /// ════════════════════════════════════════════════════════════════
 
 /// Ô nhập liệu outline style — dùng cho form auth/profile.
@@ -90,7 +90,7 @@ class TriTextField extends StatelessWidget {
   }
 }
 
-/// Ô tìm kiếm dạng pill — dùng cho header chat list, friend search.
+/// Ô tìm kiếm dạng input — dùng cho header chat list, friend search.
 class TriSearchField extends StatelessWidget {
   final String? hintText;
   final TextEditingController? controller;
@@ -123,8 +123,8 @@ class TriSearchField extends StatelessWidget {
         background ??
         filledBackground ??
         (isDark
-            ? Colors.black.withValues(alpha: 0.35)
-            : Colors.white.withValues(alpha: 0.92));
+            ? AppColors.darkSurface
+            : AppColors.neutralGray100);
 
     final field = TextField(
       controller: controller,
@@ -138,7 +138,7 @@ class TriSearchField extends StatelessWidget {
         hintText: hintText,
         hintStyle: AppTypography.bodyMedium.copyWith(color: theme.hintColor),
         prefixIcon: leadingIcon ??
-            Icon(Icons.search_rounded, color: theme.hintColor, size: 20),
+            Icon(Icons.search_rounded, color: theme.hintColor, size: 18),
         suffixIcon: trailing,
         border: InputBorder.none,
         enabledBorder: InputBorder.none,
@@ -154,20 +154,16 @@ class TriSearchField extends StatelessWidget {
     );
 
     return Container(
-      height: 42,
+      height: 40,
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(AppRadius.pill),
-        border: Border.all(
-          color: theme.dividerColor.withValues(alpha: 0.4),
-          width: 0.6,
-        ),
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: readOnly ? onTap : null,
-          borderRadius: BorderRadius.circular(AppRadius.pill),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           child: field,
         ),
       ),
@@ -175,7 +171,7 @@ class TriSearchField extends StatelessWidget {
   }
 }
 
-/// OTP input grid - 6 ô nhập mã OTP dạng pill, auto-advance.
+/// OTP input grid - 6 ô nhập mã OTP, auto-advance.
 class TriOtpInput extends StatefulWidget {
   final int length;
   final ValueChanged<String> onCompleted;
@@ -216,7 +212,6 @@ class _TriOtpInputState extends State<TriOtpInput> {
 
   void _handleChange(int index, String value) {
     if (value.length > 1) {
-      // Paste support
       final clean = value.replaceAll(RegExp(r'[^0-9]'), '');
       final limit = clean.length > widget.length ? widget.length : clean.length;
       for (int i = 0; i < limit; i++) {
@@ -252,6 +247,11 @@ class _TriOtpInputState extends State<TriOtpInput> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final focusedBorderColor = theme.colorScheme.onSurface;
+    final unfocusedBorderColor =
+        isDark ? AppColors.neutralGray700 : AppColors.neutralGray300;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: List.generate(widget.length, (index) {
@@ -266,9 +266,9 @@ class _TriOtpInputState extends State<TriOtpInput> {
               borderRadius: BorderRadius.circular(AppRadius.md),
               border: Border.all(
                 color: _focusNodes[index].hasFocus
-                    ? AppColors.primaryOrange
-                    : theme.dividerColor,
-                width: _focusNodes[index].hasFocus ? 1.6 : 1,
+                    ? focusedBorderColor
+                    : unfocusedBorderColor,
+                width: _focusNodes[index].hasFocus ? 1.4 : 1,
               ),
             ),
             child: TextFormField(
