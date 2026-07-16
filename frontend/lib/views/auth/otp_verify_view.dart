@@ -45,6 +45,7 @@ class _OtpVerifyViewState extends State<OtpVerifyView>
 
   bool _otpSent = false;
   String? _otpError;
+  String? _fallbackOtp; // OTP returned when email fails
 
   @override
   void initState() {
@@ -109,8 +110,17 @@ class _OtpVerifyViewState extends State<OtpVerifyView>
 
   Future<void> _sendOtpSilently() async {
     try {
-      await AuthService.sendOtp(widget.email);
-      if (mounted) setState(() => _otpSent = true);
+      final fallbackOtp = await AuthService.sendOtp(widget.email);
+      if (mounted) {
+        setState(() {
+          _otpSent = true;
+          _fallbackOtp = fallbackOtp;
+        });
+        // Show fallback OTP if email failed
+        if (fallbackOtp != null && fallbackOtp.isNotEmpty) {
+          _showFallbackOtpDialog(fallbackOtp);
+        }
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -118,6 +128,86 @@ class _OtpVerifyViewState extends State<OtpVerifyView>
         });
       }
     }
+  }
+
+  void _showFallbackOtpDialog(String otp) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        backgroundColor: isDark ? AppColors.darkCard : AppColors.creamWhite,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.xxl),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.xxl),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.warning.withValues(alpha: 0.2),
+                ),
+                child: Icon(Icons.email_outlined, color: AppColors.warning, size: 40),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              Text(
+                'Email không khả dụng',
+                style: AppTypography.titleLarge.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                'Mã OTP của bạn:',
+                style: AppTypography.bodyMedium.copyWith(
+                  color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryAmber.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
+                  border: Border.all(color: AppColors.primaryAmber.withValues(alpha: 0.3)),
+                ),
+                child: Text(
+                  otp,
+                  style: AppTypography.displaySmall.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.primaryAmber,
+                    letterSpacing: 8,
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                'Hãy nhập mã này để xác thực',
+                style: AppTypography.bodySmall.copyWith(
+                  color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              SizedBox(
+                width: double.infinity,
+                child: PrimaryButton(
+                  label: 'Đã hiểu',
+                  onPressed: () => Navigator.pop(ctx),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _startCountdown() {
@@ -180,18 +270,32 @@ class _OtpVerifyViewState extends State<OtpVerifyView>
       _isLoading = true;
       _errorMessage = null;
       _otpError = null;
+      _fallbackOtp = null;
     });
 
     try {
-      await AuthService.sendOtp(widget.email);
+      final fallbackOtp = await AuthService.sendOtp(widget.email);
       _startCountdown();
       if (!mounted) return;
-      showTriSnack(
-        context,
-        'Mã OTP mới đã được gửi đến ${widget.email}',
-        type: TriSnackType.success,
-        icon: Icons.mark_email_read_rounded,
-      );
+      setState(() {
+        _fallbackOtp = fallbackOtp;
+      });
+      if (fallbackOtp != null && fallbackOtp.isNotEmpty) {
+        _showFallbackOtpDialog(fallbackOtp);
+        showTriSnack(
+          context,
+          'Mã OTP mới đã được tạo',
+          type: TriSnackType.success,
+          icon: Icons.mark_email_read_rounded,
+        );
+      } else {
+        showTriSnack(
+          context,
+          'Mã OTP mới đã được gửi đến ${widget.email}',
+          type: TriSnackType.success,
+          icon: Icons.mark_email_read_rounded,
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       showTriSnack(

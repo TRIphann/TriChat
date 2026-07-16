@@ -15,25 +15,25 @@ class FriendRequestScreen extends StatelessWidget {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        backgroundColor: Colors.grey[50],
+        backgroundColor: AppColors.darkBackground,
         appBar: AppBar(
-          backgroundColor: AppColors.primaryBlue,
+          backgroundColor: AppColors.darkSurface,
           elevation: 0,
           leadingWidth: 50,
           leading: IconButton(
             padding: EdgeInsets.zero,
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            icon: const Icon(Icons.arrow_back, color: AppColors.darkTextPrimary),
             onPressed: () => Navigator.pop(context),
           ),
           titleSpacing: 8,
           title: const Text(
             'Lời mời kết bạn',
-            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
+            style: TextStyle(color: AppColors.darkTextPrimary, fontSize: 18, fontWeight: FontWeight.w600),
           ),
           centerTitle: false,
           actions: [
             IconButton(
-              icon: const Icon(Icons.settings, color: Colors.white),
+              icon: const Icon(Icons.settings, color: AppColors.darkTextPrimary),
               onPressed: () {},
             ),
           ],
@@ -41,10 +41,10 @@ class FriendRequestScreen extends StatelessWidget {
             preferredSize: const Size.fromHeight(48),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.darkSurface,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
+                    color: Colors.black.withValues(alpha: 0.3),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -52,12 +52,12 @@ class FriendRequestScreen extends StatelessWidget {
               ),
               child: TabBar(
                 indicator: UnderlineTabIndicator(
-                  borderSide: BorderSide(color: AppColors.primaryBlue, width: 3.5),
+                  borderSide: BorderSide(color: AppColors.primaryOrange, width: 3.5),
                   insets: EdgeInsets.symmetric(horizontal: 16),
                 ),
                 indicatorSize: TabBarIndicatorSize.label,
-                labelColor: AppColors.primaryBlue,
-                unselectedLabelColor: Colors.grey,
+                labelColor: AppColors.primaryOrange,
+                unselectedLabelColor: AppColors.darkTextSecondary,
                 labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                 unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15),
                 tabs: [
@@ -71,9 +71,9 @@ class FriendRequestScreen extends StatelessWidget {
                           Badge(
                             label: Text(
                               '${provider.pendingReceived.length}',
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                              style: const TextStyle(color: AppColors.textWhite, fontWeight: FontWeight.bold, fontSize: 11),
                             ),
-                            backgroundColor: Colors.redAccent,
+                            backgroundColor: AppColors.error,
                             padding: const EdgeInsets.symmetric(horizontal: 6),
                           ),
                       ],
@@ -89,9 +89,9 @@ class FriendRequestScreen extends StatelessWidget {
                           Badge(
                             label: Text(
                               '${provider.pendingSent.length}',
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                              style: const TextStyle(color: AppColors.textWhite, fontWeight: FontWeight.bold, fontSize: 11),
                             ),
-                            backgroundColor: Colors.grey,
+                            backgroundColor: AppColors.darkTextSecondary,
                             padding: const EdgeInsets.symmetric(horizontal: 6),
                           ),
                       ],

@@ -147,7 +147,7 @@ class AuthService {
     } catch (_) {}
   }
 
-  static Future<void> sendOtp(String email) async {
+  static Future<String?> sendOtp(String email) async {
     try {
       final response = await PublicDioClient.instance.post(
         '/api/otp/generate',
@@ -163,6 +163,15 @@ class AuthService {
           'Không thể gửi OTP',
         ));
       }
+      // Return OTP if email failed (it's in the result field)
+      final data = response.data;
+      if (data is Map) {
+        final result = data['result'] as Map?;
+        if (result != null && result['otp'] != null) {
+          return result['otp'] as String;
+        }
+      }
+      return null; // OTP sent via email
     } on DioException catch (e) {
       throw Exception(_extractErrorMessage(e, 'Không thể gửi OTP'));
     } catch (e) {

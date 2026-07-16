@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:frontend/config/app_colors.dart';
 import 'package:frontend/features/friends/friends.dart';
 import 'package:frontend/providers/chat_provider.dart';
 import 'package:frontend/services/chat/chat_service.dart';
@@ -32,16 +33,18 @@ class _ReceivedRequestsTabState extends State<ReceivedRequestsTab> {
     final requests = provider.pendingReceived;
 
     if (provider.requestsState == LoadingState.loading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(child: CircularProgressIndicator(color: AppColors.primaryOrange));
     }
 
     if (provider.requestsState == LoadingState.error) {
-      return Center(child: Text(provider.errorMessage ?? 'Có lỗi xảy ra'));
+      return Center(child: Text(provider.errorMessage ?? 'Có lỗi xảy ra', 
+          style: TextStyle(color: AppColors.darkTextPrimary)));
     }
 
     if (requests.isEmpty) {
-      return const Center(
-        child: Text('Không có lời mời kết bạn', style: TextStyle(fontSize: 16)),
+      return Center(
+        child: Text('Không có lời mời kết bạn', 
+            style: TextStyle(fontSize: 16, color: AppColors.darkTextSecondary)),
       );
     }
 
@@ -51,13 +54,13 @@ class _ReceivedRequestsTabState extends State<ReceivedRequestsTab> {
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-          color: const Color(0xFFF4F5F7),
+          color: AppColors.darkSurface,
           child: Text(
             'Lời mời (${requests.length})',
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 13,
-              color: Colors.black54,
+              color: AppColors.darkTextSecondary,
             ),
           ),
         ),
@@ -95,13 +98,14 @@ class _ReceivedRequestsTabState extends State<ReceivedRequestsTab> {
         if (_visibleCount < requests.length)
           InkWell(
             onTap: () => setState(() => _visibleCount += 10),
-            child: const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('XEM THÊM ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                  Icon(Icons.keyboard_arrow_down, size: 20),
+                  Text('XEM THÊM ', style: TextStyle(fontWeight: FontWeight.bold, 
+                      fontSize: 14, color: AppColors.primaryOrange)),
+                  Icon(Icons.keyboard_arrow_down, size: 20, color: AppColors.primaryOrange),
                 ],
               ),
             ),

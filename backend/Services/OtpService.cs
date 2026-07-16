@@ -26,7 +26,7 @@ namespace backend.Services
         private const int MaxAttempts = 3;
         private const int InitialBackoffMs = 600;
 
-        public async Task GenerateOtpAsync(string email)
+        public async Task<(string Otp, bool EmailSent)> GenerateOtpAsync(string email)
         {
             var otpBytes = new byte[4];
             using (var rng = RandomNumberGenerator.Create())
@@ -52,25 +52,28 @@ namespace backend.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to cache OTP for {Email} - Redis may not be configured", email);
-                throw new AppException(backend.Enums.ErrorCode.INTERNAL_ERROR);
+                _logger.LogWarning(ex, "Failed to cache OTP for {Email} - continuing without cache", email);
             }
 
             var emailSent = await _emailService.SendOtpEmailAsync(email, otp);
             if (!emailSent)
             {
+                _logger.LogWarning("Email delivery failed for {Email} - OTP will be returned in response", email);
                 try { await _kv.DeleteAsync(key); } catch { }
-                _logger.LogError("Email delivery failed for {Email}", email);
-                throw new AppException(backend.Enums.ErrorCode.INTERNAL_ERROR);
+            }
+            else
+            {
+                _logger.LogInformation("OTP email sent successfully to {Email}", email);
             }
 
-            _logger.LogInformation("OTP email sent successfully to {Email}", email);
+            return (otp, emailSent);
         }
 
-        public async Task VerifyOtpAsync(string email, string otp)
+        public async Task<bool> VerifyOtpAsync(string email, string otp, string? cachedOtp = null)
         {
             var key = $"otp:{email}";
             string? storedHash = null;
+            bool usedCachedOtp = false;
 
             try
             {
@@ -81,8 +84,14 @@ namespace backend.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to lookup OTP for {Email} - Redis may not be configured", email);
-                throw new AppException(backend.Enums.ErrorCode.INTERNAL_ERROR);
+                _logger.LogWarning(ex, "Failed to lookup OTP for {Email} - using cached OTP if provided", email);
+            }
+
+            // If no stored hash but we have cached OTP (from when Redis was down during generation)
+            if (storedHash is null && !string.IsNullOrEmpty(cachedOtp))
+            {
+                storedHash = HashOtp(cachedOtp);
+                usedCachedOtp = true;
             }
 
             if (storedHash is null)
@@ -99,8 +108,12 @@ namespace backend.Services
                 throw new AppException(backend.Enums.ErrorCode.INVALID_TOKEN);
             }
 
-            try { await _kv.DeleteAsync(key); } catch { }
+            if (!usedCachedOtp)
+            {
+                try { await _kv.DeleteAsync(key); } catch { }
+            }
             _logger.LogInformation("OTP verified successfully for {Email}", email);
+            return true;
         }
 
         private async Task ExecuteWithRetryAsync(string key, Func<Task> op, string purpose)

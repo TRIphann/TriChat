@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/config/app_colors.dart';
 import 'package:frontend/features/friends/friends.dart';
 import 'package:provider/provider.dart';
 
@@ -31,22 +32,23 @@ class _SentRequestsTabState extends State<SentRequestsTab> {
 
     // Loading
     if (provider.requestsState == LoadingState.loading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(child: CircularProgressIndicator(color: AppColors.primaryOrange));
     }
 
     // Error
     if (provider.requestsState == LoadingState.error) {
       return Center(
-        child: Text(provider.errorMessage ?? 'Có lỗi xảy ra'),
+        child: Text(provider.errorMessage ?? 'Có lỗi xảy ra',
+            style: TextStyle(color: AppColors.darkTextPrimary)),
       );
     }
 
     // Empty
     if (requests.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
           'Không có lời mời đã gửi',
-          style: TextStyle(fontSize: 16),
+          style: TextStyle(fontSize: 16, color: AppColors.darkTextSecondary),
         ),
       );
     }
@@ -61,13 +63,13 @@ class _SentRequestsTabState extends State<SentRequestsTab> {
             horizontal: 18,
             vertical: 8,
           ),
-          color: const Color(0xFFF4F5F7),
+          color: AppColors.darkSurface,
           child: Text(
             'Đã gửi (${requests.length})',
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 13,
-              color: Colors.black54,
+              color: AppColors.darkTextSecondary,
             ),
           ),
         ),
@@ -81,7 +83,7 @@ class _SentRequestsTabState extends State<SentRequestsTab> {
             message: 'Đã gửi lời mời kết bạn',
             avatar: '',
             isReceived: false,
-            isRecalled: false, // 🔥 không fake state nữa
+            isRecalled: false,
 
             // THU HỒI
             onRecall: isLoading
@@ -123,8 +125,8 @@ class _SentRequestsTabState extends State<SentRequestsTab> {
                 _visibleCount += 10;
               });
             },
-            child: const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -133,9 +135,10 @@ class _SentRequestsTabState extends State<SentRequestsTab> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
+                      color: AppColors.primaryOrange,
                     ),
                   ),
-                  Icon(Icons.keyboard_arrow_down, size: 20),
+                  Icon(Icons.keyboard_arrow_down, size: 20, color: AppColors.primaryOrange),
                 ],
               ),
             ),

@@ -35,8 +35,52 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     _selectedBytes = widget.preSelectedBytes;
     _selectedPath = widget.preSelectedPath;
     if (_selectedBytes == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _pickFromCamera());
+      WidgetsBinding.instance.addPostFrameCallback((_) => _showImageSourceDialog());
     }
+  }
+
+  void _showImageSourceDialog() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.darkSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.darkTextSecondary.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: Icon(Icons.camera_alt, color: AppColors.primaryOrange),
+              title: Text('Chụp ảnh', style: TextStyle(color: AppColors.darkTextPrimary)),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickFromCamera();
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.photo_library, color: AppColors.primaryOrange),
+              title: Text('Thư viện ảnh', style: TextStyle(color: AppColors.darkTextPrimary)),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickFromGallery();
+              },
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _pickFromCamera() async {
@@ -71,13 +115,14 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           if (mounted) setState(() => _selectedPath = image.path);
         }
       } else {
-        if (mounted && _selectedBytes == null && _selectedPath == null) {
-          context.pop();
-        }
+        // Camera returned null - show option to choose from gallery
+        if (mounted) _showImageSourceDialog();
       }
     } catch (e) {
       if (mounted) {
         setState(() => _errorMessage = 'Không thể chụp ảnh: $e');
+        // Try gallery as fallback
+        _pickFromGallery();
       }
     }
   }

@@ -1870,8 +1870,28 @@ class _PostsTabState extends State<_PostsTab> {
           );
         }
 
-        // Nếu KHÔNG có data → hiển thị lưới mock posts cá nhân
-        return _buildMockGrid();
+        // Nếu KHÔNG có data → hiển thị empty state
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.camera_alt_outlined,
+                size: 64,
+                color: AppColors.darkTextSecondary.withValues(alpha: 0.5),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Chưa có bài viết nào',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.darkTextSecondary,
+                ),
+              ),
+            ],
+          ),
+        );
       },
     );
   }

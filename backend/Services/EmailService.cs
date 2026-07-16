@@ -42,24 +42,54 @@ namespace backend.Services
         {
             _logger.LogInformation("Preparing to send OTP email to {Email}", toEmail);
             
-            if (string.IsNullOrWhiteSpace(_settings.ApiKey) ||
-                string.IsNullOrWhiteSpace(_settings.From))
+            // Check config - use sandbox email if no verified domain
+            var apiKey = _settings.ApiKey;
+            var fromEmail = string.IsNullOrWhiteSpace(_settings.From) 
+                ? "onboarding@resend.dev" 
+                : _settings.From;
+            
+            _logger.LogInformation(
+                "Email config - ApiKey set: {HasKey}, From: {From}, To: {To}",
+                !string.IsNullOrWhiteSpace(apiKey),
+                fromEmail,
+                toEmail);
+
+            if (string.IsNullOrWhiteSpace(apiKey))
             {
-                _logger.LogError(
-                    "Resend config missing — ApiKey: {HasKey}, From: {From}",
-                    !string.IsNullOrWhiteSpace(_settings.ApiKey),
-                    _settings.From);
+                _logger.LogError("Resend ApiKey is not configured!");
                 return false;
             }
 
             var body = new ResendEmailRequest
             {
-                From = $"{_settings.FromName} <{_settings.From}>",
+                From = $"{_settings.FromName} <{fromEmail}>",
                 To = new[] { toEmail },
                 Subject = "Your TriChat OTP Code",
+                Html = $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <style>
+        body {{ font-family: Arial, sans-serif; background-color: #1a1a2e; color: #ffffff; margin: 0; padding: 20px; }}
+        .container {{ max-width: 500px; margin: 0 auto; background: #16213e; border-radius: 16px; padding: 30px; text-align: center; }}
+        .otp {{ font-size: 36px; font-weight: bold; color: #e94560; letter-spacing: 8px; margin: 20px 0; }}
+        .warning {{ color: #ffd700; font-size: 12px; margin-top: 20px; }}
+        .brand {{ color: #e94560; font-weight: bold; }}
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <h2>Your <span class='brand'>TriChat</span> OTP Code</h2>
+        <div class='otp'>{otp}</div>
+        <p>This code expires in <strong>60 seconds</strong>.</p>
+        <p class='warning'>Do not share this code with anyone!</p>
+    </div>
+</body>
+</html>",
                 Text = $"""
                     Your TriChat OTP code is: {otp}
-
+                    
                     This code will expire in 60 seconds.
                     Do not share this code with anyone.
                     """,
@@ -77,7 +107,7 @@ namespace backend.Services
                         Content = JsonContent.Create(body),
                     };
                     req.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
-                        "Bearer", _settings.ApiKey);
+                        "Bearer", apiKey);
 
                     using var resp = await http.SendAsync(req);
                     var responseBody = await resp.Content.ReadAsStringAsync();
@@ -137,6 +167,9 @@ namespace backend.Services
 
             [JsonPropertyName("subject")]
             public string Subject { get; set; } = string.Empty;
+
+            [JsonPropertyName("html")]
+            public string Html { get; set; } = string.Empty;
 
             [JsonPropertyName("text")]
             public string Text { get; set; } = string.Empty;
