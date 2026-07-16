@@ -46,10 +46,20 @@ builder.Host.UseSerilog((ctx, config) => config
 builder.Services.Configure<UpstashRedisSettings>(
     builder.Configuration.GetSection("Redis"));
 
+// Log Redis config at startup for debugging
+var redisSection = builder.Configuration.GetSection("Redis");
+Console.WriteLine($"[CONFIG] Redis.RestUrl: '{redisSection["RestUrl"]}'");
+Console.WriteLine($"[CONFIG] Redis.RestToken: '{(string.IsNullOrEmpty(redisSection["RestToken"]) ? "NOT SET" : "***" + redisSection["RestToken"]?.TakeLast(4).ToString())}'");
+
 builder.Services.AddHttpClient<IKeyValueStore, UpstashRedisService>();
 
 builder.Services.Configure<ResendSettings>(
     builder.Configuration.GetSection("Resend"));
+
+// Log Resend config at startup for debugging
+var resendSection = builder.Configuration.GetSection("Resend");
+Console.WriteLine($"[CONFIG] Resend.ApiKey: '{(string.IsNullOrEmpty(resendSection["ApiKey"]) ? "NOT SET" : "***" + resendSection["ApiKey"]?.TakeLast(8).ToString())}'");
+Console.WriteLine($"[CONFIG] Resend.From: '{resendSection["From"]}'");
 
 builder.Services.AddHttpClient("resend", client =>
 {

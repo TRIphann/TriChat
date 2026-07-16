@@ -41,7 +41,7 @@ class FeedService {
               safeName.contains('/') ||
               safeName.contains('\\') ||
               !safeName.contains('.')) {
-            safeName = 'image_$i.jpg';
+            safeName = 'image_${DateTime.now().millisecondsSinceEpoch}_$i.jpg';
           }
           fileList.add(MultipartFile.fromBytes(
             await img.readAsBytes(),
@@ -54,6 +54,7 @@ class FeedService {
         'Type': 'post',
         'Privacy': visibility,
         'Content.Caption': content,
+        'Content.Text': content,
         if (allowedUserIds != null && allowedUserIds.isNotEmpty)
           'AllowedUserIds': allowedUserIds,
         for (final file in fileList)
@@ -62,15 +63,19 @@ class FeedService {
 
       final response = await _dio.post('/api/feed', data: formData);
 
+      // Accept both 200 and 201 status codes
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = response.data as Map<String, dynamic>;
-        final result = data['result'] as Map<String, dynamic>?;
-        if (result == null) throw Exception('Invalid response');
-        return PostModel.fromJson(result);
+        final data = response.data;
+        // Handle nested 'result' field
+        dynamic result = data is Map ? data['result'] ?? data : data;
+        if (result == null) throw Exception('Invalid response from server');
+        return PostModel.fromJson(result is Map ? result.cast<String, dynamic>() : {});
       }
-      throw Exception('Failed to create post');
+      throw Exception('Failed to create post: ${response.statusCode}');
     } on DioException catch (e) {
       throw Exception(_handleError(e));
+    } catch (e) {
+      throw Exception('Lỗi tạo bài viết: $e');
     }
   }
 

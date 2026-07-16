@@ -73,7 +73,7 @@ class StoryService {
           safeFilename.contains('/') || 
           safeFilename.contains('\\') || 
           !safeFilename.contains('.')) {
-        safeFilename = 'story_image.jpg';
+        safeFilename = 'story_${DateTime.now().millisecondsSinceEpoch}.jpg';
       }
 
       final bytes = await imageFile.readAsBytes();
@@ -81,20 +81,25 @@ class StoryService {
         'Type': 'story',
         'Privacy': 'public',
         'Content.Caption': '',
+        'Content.Text': '',
         'files': MultipartFile.fromBytes(bytes, filename: safeFilename),
       });
 
       final response = await _dio.post('/api/feed', data: formData);
 
+      // Accept both 200 and 201 status codes
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = response.data as Map<String, dynamic>;
-        final result = data['result'] as Map<String, dynamic>?;
-        if (result == null) throw Exception('Invalid response');
-        return StoryModel.fromJson(result);
+        final data = response.data;
+        // Handle nested 'result' field
+        dynamic result = data is Map ? data['result'] ?? data : data;
+        if (result == null) throw Exception('Invalid response from server');
+        return StoryModel.fromJson(result is Map ? result.cast<String, dynamic>() : {});
       }
-      throw Exception('Failed to create story');
+      throw Exception('Failed to create story: ${response.statusCode}');
     } on DioException catch (e) {
       throw Exception(_handleError(e));
+    } catch (e) {
+      throw Exception('Lỗi tạo story: $e');
     }
   }
 

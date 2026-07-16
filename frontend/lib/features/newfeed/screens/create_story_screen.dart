@@ -43,6 +43,18 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     if (_isLoading) return;
     setState(() => _errorMessage = '');
 
+    // Camera is not supported on web - use gallery as fallback
+    if (kIsWeb) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Camera không khả dụng trên web. Đang mở thư viện ảnh...'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      await _pickFromGallery();
+      return;
+    }
+
     try {
       final XFile? image = await _picker.pickImage(
         source: ImageSource.camera,
@@ -308,6 +320,36 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   }
 
   Widget _buildBottomActions() {
+    // Camera is not supported on web - show only gallery button
+    if (kIsWeb) {
+      return Container(
+        padding: EdgeInsets.only(
+          left: AppSpacing.lg,
+          right: AppSpacing.lg,
+          top: AppSpacing.md,
+          bottom: MediaQuery.of(context).padding.bottom + AppSpacing.md,
+        ),
+        decoration: const BoxDecoration(
+          color: AppColors.darkPremiumSurface,
+          border: Border(
+            top: BorderSide(color: AppColors.darkPremiumBorder, width: 1),
+          ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: _buildActionButton(
+                icon: Icons.photo_library_rounded,
+                label: 'Thư viện',
+                color: AppColors.neonOnline,
+                onTap: _isLoading ? null : _pickFromGallery,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       padding: EdgeInsets.only(
         left: AppSpacing.lg,

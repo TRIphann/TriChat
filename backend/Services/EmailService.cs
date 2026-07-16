@@ -40,11 +40,15 @@ namespace backend.Services
 
         public async Task<bool> SendOtpEmailAsync(string toEmail, string otp)
         {
+            _logger.LogInformation("Preparing to send OTP email to {Email}", toEmail);
+            
             if (string.IsNullOrWhiteSpace(_settings.ApiKey) ||
                 string.IsNullOrWhiteSpace(_settings.From))
             {
                 _logger.LogError(
-                    "Resend config missing — check Resend__ApiKey / Resend__From env vars.");
+                    "Resend config missing — ApiKey: {HasKey}, From: {From}",
+                    !string.IsNullOrWhiteSpace(_settings.ApiKey),
+                    _settings.From);
                 return false;
             }
 
@@ -61,6 +65,8 @@ namespace backend.Services
                     """,
             };
 
+            _logger.LogInformation("Sending email via Resend API. From: {From}, To: {To}", body.From, toEmail);
+
             for (var attempt = 1; attempt <= MaxAttempts; attempt++)
             {
                 try
@@ -74,6 +80,11 @@ namespace backend.Services
                         "Bearer", _settings.ApiKey);
 
                     using var resp = await http.SendAsync(req);
+                    var responseBody = await resp.Content.ReadAsStringAsync();
+                    
+                    _logger.LogInformation(
+                        "Resend API response for {Email}: Status={Status}, Body={Body}",
+                        toEmail, (int)resp.StatusCode, responseBody);
 
                     if (resp.IsSuccessStatusCode)
                     {
@@ -83,18 +94,17 @@ namespace backend.Services
                         return true;
                     }
 
-                    var errBody = await resp.Content.ReadAsStringAsync();
                     // 4xx -> do not retry (config / auth / validation problem).
                     if ((int)resp.StatusCode >= 400 && (int)resp.StatusCode < 500)
                     {
                         _logger.LogError(
                             "Resend rejected request for {Email} with {Status}: {Body}",
-                            toEmail, (int)resp.StatusCode, errBody);
+                            toEmail, (int)resp.StatusCode, responseBody);
                         return false;
                     }
 
                     throw new HttpRequestException(
-                        $"Resend {(int)resp.StatusCode}: {errBody}");
+                        $"Resend {(int)resp.StatusCode}: {responseBody}");
                 }
                 catch (Exception ex) when (attempt < MaxAttempts)
                 {

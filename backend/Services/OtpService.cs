@@ -42,10 +42,19 @@ namespace backend.Services
             var hashedOtp = HashOtp(otp);
             var key = $"otp:{email}";
 
-            await ExecuteWithRetryAsync(
-                key,
-                async () => await _kv.SetAsync(key, hashedOtp, TimeSpan.FromSeconds(60)),
-                "OTP cache");
+            try
+            {
+                await ExecuteWithRetryAsync(
+                    key,
+                    async () => await _kv.SetAsync(key, hashedOtp, TimeSpan.FromSeconds(60)),
+                    "OTP cache");
+                _logger.LogInformation("OTP cached successfully for {Email}", email);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to cache OTP for {Email} - Redis may not be configured", email);
+                throw new AppException(backend.Enums.ErrorCode.INTERNAL_ERROR, "Hệ thống cache chưa được cấu hình. Vui lòng thử lại sau.");
+            }
 
             var emailSent = await _emailService.SendOtpEmailAsync(email, otp);
             if (!emailSent)
@@ -63,10 +72,18 @@ namespace backend.Services
             var key = $"otp:{email}";
             string? storedHash = null;
 
-            await ExecuteWithRetryAsync(
-                key,
-                async () => { storedHash = await _kv.GetAsync(key); },
-                "OTP lookup");
+            try
+            {
+                await ExecuteWithRetryAsync(
+                    key,
+                    async () => { storedHash = await _kv.GetAsync(key); },
+                    "OTP lookup");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to lookup OTP for {Email} - Redis may not be configured", email);
+                throw new AppException(backend.Enums.ErrorCode.INTERNAL_ERROR, "Hệ thống cache chưa được cấu hình. Vui lòng thử lại sau.");
+            }
 
             if (storedHash is null)
             {
@@ -115,7 +132,7 @@ namespace backend.Services
             _logger.LogError(last,
                 "KeyValueStore {Purpose} permanently failed for {Key} after {Max} attempts",
                 purpose, key, MaxAttempts);
-            throw new AppException(backend.Enums.ErrorCode.INTERNAL_ERROR);
+            throw last ?? new Exception($"KeyValueStore {purpose} failed");
         }
 
         private string HashOtp(string otp)

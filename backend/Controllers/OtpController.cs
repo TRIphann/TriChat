@@ -42,10 +42,15 @@ namespace backend.Controllers
                     Email = request.Email
                 }));
             }
+            catch (AppException ex)
+            {
+                _logger.LogWarning(ex, "OTP generate FAILED for email: {Email} with AppException", request.Email);
+                return StatusCode(422, ApiResponse<object>.ErrorResponse(ex.Message, ex.ErrorCode));
+            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "OTP generate FAILED for email: {Email}", request.Email);
-                throw;
+                _logger.LogError(ex, "OTP generate FAILED for email: {Email} with unexpected error", request.Email);
+                return StatusCode(500, ApiResponse<object>.ErrorResponse("Lỗi hệ thống: " + ex.Message));
             }
         }
 
@@ -67,8 +72,23 @@ namespace backend.Controllers
         [ProducesResponseType(typeof(ApiResponse<ErrorDetail>), StatusCodes.Status422UnprocessableEntity)]
         public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest request)
         {
-            await otpService.VerifyOtpAsync(request.Email, request.Otp);
-            return Ok(ApiResponse<object>.SuccessResponse(true, "OTP verified successfully"));
+            _logger.LogInformation("OTP verify request received for email: {Email}", request.Email);
+            try
+            {
+                await otpService.VerifyOtpAsync(request.Email, request.Otp);
+                _logger.LogInformation("OTP verify SUCCESS for email: {Email}", request.Email);
+                return Ok(ApiResponse<object>.SuccessResponse(true, "OTP verified successfully"));
+            }
+            catch (AppException ex)
+            {
+                _logger.LogWarning(ex, "OTP verify FAILED for email: {Email} with AppException", request.Email);
+                return StatusCode(401, ApiResponse<object>.ErrorResponse(ex.Message, ex.ErrorCode));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "OTP verify FAILED for email: {Email} with unexpected error", request.Email);
+                return StatusCode(500, ApiResponse<object>.ErrorResponse("Lỗi hệ thống: " + ex.Message));
+            }
         }
     }
 }
