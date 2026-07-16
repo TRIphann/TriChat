@@ -118,8 +118,6 @@ var allowedOrigins = builder.Environment.IsDevelopment()
         "http://127.0.0.1:5000", "http://127.0.0.1:5244"
       }
     : new List<string> {
-        "https://trichatt.netlify.app",
-        "https://www.trichatt.netlify.app",
         "https://trichat.onrender.com",
         "http://trichat.onrender.com"
       };

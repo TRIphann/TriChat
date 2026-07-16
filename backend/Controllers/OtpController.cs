@@ -13,8 +13,9 @@ namespace backend.Controllers
     /// </summary>
     [Route("api/otp")]
     [ApiController]
-    public class OtpController(OtpService otpService) : ControllerBase
+    public class OtpController(OtpService otpService, ILogger<OtpController> logger) : ControllerBase
     {
+        private readonly ILogger<OtpController> _logger = logger;
         /// <summary>
         /// Tạo mã OTP mới và gửi qua email đăng ký.
         /// </summary>
@@ -31,12 +32,21 @@ namespace backend.Controllers
         [ProducesResponseType(typeof(ApiResponse<ErrorDetail>), StatusCodes.Status422UnprocessableEntity)]
         public async Task<IActionResult> GenerateOtp([FromBody] GenerateOtpRequest request)
         {
-            await otpService.GenerateOtpAsync(request.Email);
-
-            return Ok(ApiResponse<OtpResponse>.SuccessResponse(new OtpResponse
+            _logger.LogInformation("OTP generate request received for email: {Email}", request.Email);
+            try
             {
-                Email = request.Email
-            }));
+                await otpService.GenerateOtpAsync(request.Email);
+                _logger.LogInformation("OTP generate SUCCESS for email: {Email}", request.Email);
+                return Ok(ApiResponse<OtpResponse>.SuccessResponse(new OtpResponse
+                {
+                    Email = request.Email
+                }));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "OTP generate FAILED for email: {Email}", request.Email);
+                throw;
+            }
         }
 
         /// <summary>

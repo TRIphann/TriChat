@@ -5,6 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:frontend/config/app_colors.dart';
+import 'package:frontend/config/app_spacing.dart';
+import 'package:frontend/config/app_typography.dart';
+import 'package:frontend/config/dark_mode_config.dart';
 import 'package:frontend/services/geolocator.dart';
 import 'package:frontend/services/permission_handler.dart';
 import 'package:frontend/services/record.dart';
@@ -238,6 +242,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     _isTyping = chat.isOtherTyping;
     _typingUserId = chat.typingUserId;
     _isLoading = chat.messagesState == ChatLoadingState.loading;
+    final isDarkMode = isDarkModeNotifier.value;
 
     if (!_historyLoaded && chat.messagesState == ChatLoadingState.success) {
       _historyIds.addAll(_messages.map((m) => m.id));
@@ -280,78 +285,101 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         }
       },
       child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: isDarkMode
+            ? AppColors.darkPremiumBackground
+            : Theme.of(context).scaffoldBackgroundColor,
         resizeToAvoidBottomInset: true,
         appBar: _buildAppBar(),
-        body: Column(
-          children: [
-            if ((chat.activeConversation ?? widget.conversation)
-                    .pinnedMessageId !=
-                null)
-              _buildPinnedMessage(
-                chat.activeConversation ?? widget.conversation,
-              ),
-            Expanded(
-              child: Stack(
-                children: [
-                  _isLoading
-                      ? const LoadingView()
-                      : _buildMessageList(),
-                  AnimatedPositioned(
-                    duration: const Duration(milliseconds: 220),
-                    curve: Curves.easeOut,
-                    right: 16,
-                    bottom: _showScrollToBottom ? 12 : -56,
-                    child: AnimatedOpacity(
-                      duration: const Duration(milliseconds: 220),
-                      opacity: _showScrollToBottom ? 1.0 : 0.0,
-                      child: GestureDetector(
-                        onTap: _scrollToBottom,
-                        child: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surface,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Theme.of(context).dividerColor,
-                              width: 1,
+        body: ValueListenableBuilder<bool>(
+          valueListenable: isDarkModeNotifier,
+          builder: (context, isDark, _) {
+            return Column(
+              children: [
+                if ((chat.activeConversation ?? widget.conversation)
+                        .pinnedMessageId !=
+                    null)
+                  _buildPinnedMessage(
+                    chat.activeConversation ?? widget.conversation,
+                  ),
+                Expanded(
+                  child: Stack(
+                    children: [
+                      _isLoading
+                          ? const LoadingView()
+                          : _buildMessageList(),
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeOut,
+                        right: 16,
+                        bottom: _showScrollToBottom ? 12 : -56,
+                        child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 220),
+                          opacity: _showScrollToBottom ? 1.0 : 0.0,
+                          child: GestureDetector(
+                            onTap: _scrollToBottom,
+                            child: Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? AppColors.darkPremiumSurface
+                                    : Theme.of(context).colorScheme.surface,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: isDark
+                                      ? AppColors.darkPremiumBorder
+                                      : Theme.of(context).dividerColor,
+                                  width: 1,
+                                ),
+                                boxShadow: AppShadows.xs,
+                              ),
+                              child: Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                color: isDark
+                                    ? AppColors.darkPremiumTextPrimary
+                                    : Theme.of(context).colorScheme.onSurface,
+                                size: 26,
+                              ),
                             ),
-                            boxShadow: AppShadows.xs,
-                          ),
-                          child: Icon(
-                            Icons.keyboard_arrow_down_rounded,
-                            color: Theme.of(context).colorScheme.onSurface,
-                            size: 26,
                           ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-            if (_replyToMessage != null) _buildReplyPreview(),
-            _buildInputArea(),
-            if (_showEmojiKeyboard)
-              EmojiPickerWidget(onEmojiSelected: _insertEmoji),
-          ],
+                ),
+                if (_replyToMessage != null) _buildReplyPreview(),
+                _buildInputArea(isDark),
+                if (_showEmojiKeyboard)
+                  EmojiPickerWidget(onEmojiSelected: _insertEmoji),
+              ],
+            );
+          },
         ),
       ),
     );
   }
 
   PreferredSizeWidget _buildAppBar() {
-    final theme = Theme.of(context);
-    return PreferredSize(
-      preferredSize: const Size.fromHeight(64),
-      child: Container(
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          border: Border(
-            bottom: BorderSide(color: theme.dividerColor, width: 1),
-          ),
-        ),
+    return ValueListenableBuilder<bool>(
+      valueListenable: isDarkModeNotifier,
+      builder: (context, isDark, _) {
+        final theme = Theme.of(context);
+        return PreferredSize(
+          preferredSize: const Size.fromHeight(64),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDark
+                  ? AppColors.darkPremiumSurface
+                  : theme.colorScheme.surface,
+              border: Border(
+                bottom: BorderSide(
+                  color: isDark
+                      ? AppColors.darkPremiumBorder
+                      : theme.dividerColor,
+                  width: 1,
+                ),
+              ),
+            ),
         child: SafeArea(
           bottom: false,
           child: Padding(
@@ -393,7 +421,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                 Text(
                                   widget.conversation.displayName,
                                   style: AppTypography.bodyLarge.copyWith(
-                                    color: theme.colorScheme.onSurface,
+                                    color: isDark
+                                        ? AppColors.darkPremiumTextPrimary
+                                        : theme.colorScheme.onSurface,
                                     fontWeight: FontWeight.w700,
                                     letterSpacing: -0.2,
                                   ),
@@ -404,12 +434,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                 Text(
                                   isOnline
                                       ? 'Đang hoạt động'
-                                      : widget
-                                          .conversation.displayStatus,
+                                      : widget.conversation.displayStatus,
                                   style: AppTypography.labelSmall.copyWith(
                                     color: isOnline
-                                        ? AppColors.success
-                                        : theme.hintColor,
+                                        ? AppColors.neonOnline
+                                        : (isDark
+                                            ? AppColors.darkPremiumTextSecondary
+                                            : theme.hintColor),
                                     fontWeight: FontWeight.w500,
                                   ),
                                   maxLines: 1,
@@ -429,25 +460,27 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 _buildAppBarIcon(
                   Icons.call_outlined,
                   onTap: _startVoiceCall,
+                  isDark: isDark,
                 ),
                 _buildAppBarIcon(
                   Icons.videocam_outlined,
                   onTap: _startVideoCall,
+                  isDark: isDark,
                 ),
                 _buildAppBarIcon(
                   Icons.info_outline_rounded,
                   onTap: _openConversationInfo,
+                  isDark: isDark,
                 ),
               ],
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildAppBarIcon(IconData icon, {required VoidCallback onTap}) {
-    final theme = Theme.of(context);
+  Widget _buildAppBarIcon(IconData icon, {required VoidCallback onTap, bool isDark = false}) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -459,7 +492,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           alignment: Alignment.center,
           child: Icon(
             icon,
-            color: theme.colorScheme.onSurface,
+            color: isDark
+                ? AppColors.darkPremiumTextPrimary
+                : Theme.of(context).colorScheme.onSurface,
             size: 18,
           ),
         ),
@@ -794,22 +829,24 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildInputArea() {
+  Widget _buildInputArea(bool isDark) {
     if (_isRecording) {
       return _buildRecordingInputArea();
     }
     final hasText = _messageController.text.trim().isNotEmpty;
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     Widget iconBtn(IconData icon, VoidCallback onTap, {double size = 22}) =>
-        _buildDarkIconButton(icon, onTap, size: size);
+        _buildDarkIconButton(icon, onTap, size: size, isDark: isDark);
 
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: isDark ? AppColors.darkPremiumSurface : theme.colorScheme.surface,
         border: Border(
-          top: BorderSide(color: theme.dividerColor, width: 1),
+          top: BorderSide(
+            color: isDark ? AppColors.darkPremiumBorder : theme.dividerColor,
+            width: 1,
+          ),
         ),
       ),
       child: SafeArea(
@@ -837,10 +874,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     maxHeight: 120,
                   ),
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkCard : AppColors.neutralGray100,
+                    color: isDark
+                        ? AppColors.darkPremiumElevated
+                        : AppColors.neutralGray100,
                     borderRadius: BorderRadius.circular(AppRadius.xl),
                     border: Border.all(
-                      color: theme.dividerColor,
+                      color: isDark
+                          ? AppColors.darkPremiumBorder
+                          : theme.dividerColor,
                       width: 1,
                     ),
                   ),
@@ -858,7 +899,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           decoration: InputDecoration(
                             hintText: 'Aa',
                             hintStyle: TextStyle(
-                              color: theme.hintColor,
+                              color: isDark
+                                  ? AppColors.darkPremiumTextHint
+                                  : theme.hintColor,
                               fontSize: 15,
                             ),
                             border: InputBorder.none,
@@ -871,7 +914,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             isDense: true,
                           ),
                           style: TextStyle(
-                            color: theme.colorScheme.onSurface,
+                            color: isDark
+                                ? AppColors.darkPremiumTextPrimary
+                                : theme.colorScheme.onSurface,
                             fontSize: 15,
                           ),
                           maxLines: null,
@@ -889,7 +934,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             height: 34,
                             child: Icon(
                               Icons.emoji_emotions_outlined,
-                              color: theme.hintColor,
+                              color: isDark
+                                  ? AppColors.darkPremiumTextSecondary
+                                  : theme.hintColor,
                               size: 21,
                             ),
                           ),
@@ -901,7 +948,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               ),
               const SizedBox(width: AppSpacing.xs),
               if (hasText)
-                _buildDarkSendButton(_sendMessage)
+                _buildDarkSendButton(_sendMessage, isDark: isDark)
               else ...[
                 iconBtn(Icons.image_outlined, _pickImageFromGallery, size: 22),
                 iconBtn(Icons.mic_none_rounded, _recordAudio, size: 22),
@@ -917,8 +964,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     IconData icon,
     VoidCallback onTap, {
     double size = 22,
+    bool isDark = false,
   }) {
-    final theme = Theme.of(context);
     return Material(
       color: Colors.transparent,
       shape: const CircleBorder(),
@@ -932,15 +979,16 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           child: Icon(
             icon,
             size: size,
-            color: theme.colorScheme.onSurface,
+            color: isDark
+                ? AppColors.darkPremiumTextSecondary
+                : Theme.of(context).colorScheme.onSurface,
           ),
         ),
       ),
     );
   }
 
-  Widget _buildDarkSendButton(VoidCallback onTap) {
-    final theme = Theme.of(context);
+  Widget _buildDarkSendButton(VoidCallback onTap, {bool isDark = false}) {
     return Material(
       color: Colors.transparent,
       shape: const CircleBorder(),
@@ -951,8 +999,17 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: theme.colorScheme.onSurface,
+            color: isDark ? AppColors.neonRoyal : Theme.of(context).colorScheme.onSurface,
             shape: BoxShape.circle,
+            boxShadow: isDark
+                ? [
+                    BoxShadow(
+                      color: AppColors.neonRoyal.withValues(alpha: 0.35),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ]
+                : null,
           ),
           alignment: Alignment.center,
           child: Icon(

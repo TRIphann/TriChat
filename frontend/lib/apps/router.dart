@@ -4,6 +4,7 @@ import 'package:frontend/features/friends/friends.dart';
 import 'package:frontend/features/friends/widgets/demo_bio.dart';
 import 'package:frontend/features/friends/widgets/my_profile.dart';
 import 'package:frontend/features/newfeed/screens/newfeed_screen.dart';
+import 'package:frontend/features/newfeed/screens/create_story_screen.dart';
 import 'package:frontend/features/newfeed/screens/story_viewer_screen.dart';
 import 'package:frontend/features/profile/screens/profile_screen.dart';
 import 'package:frontend/views/auth/set_password_view.dart';
@@ -124,6 +125,16 @@ GoRouter createRouter() {
       GoRoute(
         path: '/chat-list',
         builder: (context, state) => const ChatListView(),
+      ),
+      GoRoute(
+        path: '/create-story',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return CreateStoryScreen(
+            preSelectedBytes: extra?['bytes'] as Uint8List?,
+            preSelectedPath: extra?['path'] as String?,
+          );
+        },
       ),
       GoRoute(
         path: '/demo-profile',

@@ -376,7 +376,7 @@ class ChatListViewState extends State<ChatListView>
   // ════════════════════════════════════════════════════════════════
   Widget _buildSidebar(ThemeData theme) {
     final isDark = theme.brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.darkSurface : AppColors.textPrimary;
+    final bgColor = isDark ? AppColors.darkPremiumSurface : AppColors.textPrimary;
 
     return Container(
       width: 80,
@@ -475,8 +475,8 @@ class ChatListViewState extends State<ChatListView>
     String? tooltip,
   }) {
     final isSelected = _selectedNavIndex == index;
-    final activeColor = isDark ? AppColors.darkTextPrimary : AppColors.textWhite;
-    final inactiveColor = isDark ? AppColors.darkTextSecondary : AppColors.textTertiary;
+    final activeColor = isDark ? AppColors.neonRoyal : AppColors.primaryOrange;
+    final inactiveColor = isDark ? AppColors.darkPremiumTextSecondary : AppColors.textTertiary;
 
     Widget item = Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -485,13 +485,13 @@ class ChatListViewState extends State<ChatListView>
         margin: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
           color: isSelected
-              ? (isDark ? AppColors.darkElevated : AppColors.primaryAmberLight)
+              ? (isDark ? AppColors.neonRoyal.withValues(alpha: 0.15) : AppColors.primaryOrangeLight)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
         child: Stack(
           children: [
-            if (isSelected)
+                    if (isSelected)
               Positioned(
                 left: 0,
                 top: 10,
@@ -500,7 +500,7 @@ class ChatListViewState extends State<ChatListView>
                   duration: AppCurves.durationNormal,
                   width: 3,
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.primaryAmber : AppColors.primaryAmber,
+                    color: isDark ? AppColors.neonRoyal : AppColors.primaryOrange,
                     borderRadius: BorderRadius.circular(1.5),
                   ),
                 ),
@@ -558,10 +558,10 @@ class ChatListViewState extends State<ChatListView>
           AppSpacing.md,
         ),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.darkCard : AppColors.creamWhite,
+          color: isDark ? AppColors.darkPremiumSurface : AppColors.creamWhite,
           border: Border(
             bottom: BorderSide(
-              color: isDark ? AppColors.darkBorder : AppColors.borderDefault,
+              color: isDark ? AppColors.darkPremiumBorder : AppColors.borderDefault,
               width: 1,
             ),
           ),
@@ -866,13 +866,13 @@ class ChatListViewState extends State<ChatListView>
         duration: AppCurves.durationNormal,
         decoration: BoxDecoration(
           color: isSelected
-              ? (isDark ? AppColors.darkElevated : AppColors.primaryAmberLight.withValues(alpha: 0.3))
-              : (isDark ? AppColors.darkCard : AppColors.creamWhite),
+              ? (isDark ? AppColors.neonRoyal.withValues(alpha: 0.15) : AppColors.primaryOrangeLight.withValues(alpha: 0.3))
+              : (isDark ? AppColors.darkPremiumSurface : AppColors.creamWhite),
           borderRadius: BorderRadius.circular(AppRadius.xl),
           border: Border.all(
             color: isSelected
-                ? AppColors.primaryAmber
-                : (isDark ? AppColors.darkBorder : AppColors.borderDefault),
+                ? AppColors.neonRoyal
+                : (isDark ? AppColors.darkPremiumBorder : AppColors.borderDefault),
             width: isSelected ? 1.5 : 1,
           ),
           boxShadow: [
@@ -1027,10 +1027,10 @@ class ChatListViewState extends State<ChatListView>
   Widget _buildBottomNavigation(ThemeData theme, bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCard : AppColors.creamWhite,
+        color: isDark ? AppColors.darkPremiumSurface : AppColors.creamWhite,
         border: Border(
           top: BorderSide(
-            color: isDark ? AppColors.darkBorder : AppColors.borderDefault,
+            color: isDark ? AppColors.darkPremiumBorder : AppColors.borderDefault,
             width: 1,
           ),
         ),
@@ -1096,8 +1096,8 @@ class ChatListViewState extends State<ChatListView>
     bool isDark,
   ) {
     final isSelected = _selectedNavIndex == index;
-    final activeColor = AppColors.primaryAmber;
-    final inactiveColor = isDark ? AppColors.darkTextSecondary : AppColors.textTertiary;
+    final activeColor = AppColors.neonRoyal;
+    final inactiveColor = isDark ? AppColors.darkPremiumTextSecondary : AppColors.textTertiary;
     final color = isSelected ? activeColor : inactiveColor;
 
     return Expanded(
@@ -1113,9 +1113,9 @@ class ChatListViewState extends State<ChatListView>
                 AnimatedContainer(
                   duration: AppCurves.durationNormal,
                   padding: EdgeInsets.all(isSelected ? AppSpacing.sm : 0),
-                  decoration: BoxDecoration(
+                    decoration: BoxDecoration(
                     color: isSelected
-                        ? AppColors.primaryAmber.withValues(alpha: 0.15)
+                        ? AppColors.neonRoyal.withValues(alpha: 0.2)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(AppRadius.lg),
                   ),

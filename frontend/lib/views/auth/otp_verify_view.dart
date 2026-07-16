@@ -43,6 +43,9 @@ class _OtpVerifyViewState extends State<OtpVerifyView>
   late Animation<double> _scaleAnimation;
   late Animation<double> _successScaleAnimation;
 
+  bool _otpSent = false;
+  String? _otpError;
+
   @override
   void initState() {
     super.initState();
@@ -107,7 +110,14 @@ class _OtpVerifyViewState extends State<OtpVerifyView>
   Future<void> _sendOtpSilently() async {
     try {
       await AuthService.sendOtp(widget.email);
-    } catch (_) {}
+      if (mounted) setState(() => _otpSent = true);
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _otpError = e.toString().replaceFirst('Exception: ', '');
+        });
+      }
+    }
   }
 
   void _startCountdown() {
@@ -169,6 +179,7 @@ class _OtpVerifyViewState extends State<OtpVerifyView>
       _otp = '';
       _isLoading = true;
       _errorMessage = null;
+      _otpError = null;
     });
 
     try {
@@ -556,6 +567,54 @@ class _OtpVerifyViewState extends State<OtpVerifyView>
       child: Column(
         children: [
           _buildOtpInputs(isDark),
+          if (_otpError != null) ...[
+            const SizedBox(height: AppSpacing.md),
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              decoration: BoxDecoration(
+                color: AppColors.error.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.error_outline_rounded, color: AppColors.error, size: 18),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      _otpError!,
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.error,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          if (!_otpSent && _otpError == null) ...[
+            const SizedBox(height: AppSpacing.md),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.primaryAmber,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Text(
+                  'Đang gửi mã OTP...',
+                  style: AppTypography.bodySmall.copyWith(
+                    color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: AppSpacing.xl),
           _buildVerifyButton(theme, isDark),
           const SizedBox(height: AppSpacing.lg),

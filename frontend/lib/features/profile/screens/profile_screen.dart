@@ -127,7 +127,9 @@ class _ProfileScreenState extends State<ProfileScreen>
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       _currentUserId = user.uid;
-      _currentUserName = user.displayName ?? 'User';
+      _currentUserName = user.displayName?.trim().isNotEmpty == true
+          ? user.displayName!
+          : user.email?.split('@').firstOrNull ?? 'User';
       _currentUserAvatar = user.photoURL ?? '';
     } else {
       _currentUserId = '';
@@ -993,19 +995,14 @@ class _ProfileScreenState extends State<ProfileScreen>
   Widget _buildStatRow() {
     return Consumer<ProfileProvider>(
       builder: (context, provider, _) {
-        final photoCount = provider.photoCount == 0 && _isOwnProfile
-            ? 8 // mock data khi chưa load được
-            : provider.photoCount;
-        final friendCount = (provider.friendCount == 0 && _isOwnProfile
-                ? 420 // mock data
-                : _isOwnProfile
-                    ? provider.friendCount
-                    : provider.externalFriendCount);
-        final postCount = provider.postCount == 0 && _isOwnProfile
-            ? 12 // mock data
-            : _isOwnProfile
-                ? provider.postCount
-                : provider.posts.length;
+        final isLoading = provider.isLoading;
+        final photoCount = provider.photoCount;
+        final friendCount = _isOwnProfile
+            ? provider.friendCount
+            : provider.externalFriendCount;
+        final postCount = _isOwnProfile
+            ? provider.postCount
+            : provider.posts.length;
 
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
@@ -1028,9 +1025,9 @@ class _ProfileScreenState extends State<ProfileScreen>
             children: [
               Expanded(
                 child: _buildStatItem(
-                  value: '$postCount',
+                  value: isLoading ? '...' : '$postCount',
                   label: 'Bài viết',
-                  onTap: () => _tabController.animateTo(0),
+                  onTap: isLoading ? null : () => _tabController.animateTo(0),
                 ),
               ),
               Container(
@@ -1051,11 +1048,11 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
               Expanded(
                 child: _buildStatItem(
-                  value: '$photoCount',
+                  value: isLoading ? '...' : '$photoCount',
                   label: 'Ảnh',
-                  onTap: photoCount > 0
-                      ? () => _tabController.animateTo(_isOwnProfile ? 2 : 2)
-                      : null,
+                  onTap: isLoading || photoCount <= 0
+                      ? null
+                      : () => _tabController.animateTo(_isOwnProfile ? 2 : 2),
                 ),
               ),
               Container(
@@ -1076,17 +1073,17 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
               Expanded(
                 child: _buildStatItem(
-                  value: '$friendCount',
+                  value: isLoading ? '...' : '$friendCount',
                   label: 'Bạn bè',
-                  onTap: friendCount > 0
-                      ? () {
+                  onTap: isLoading || friendCount <= 0
+                      ? null
+                      : () {
                           if (_isOwnProfile) {
                             _tabController.animateTo(1);
                           } else {
                             _showFriendCountSheet(context, friendCount);
                           }
-                        }
-                      : null,
+                        },
                 ),
               ),
             ],

@@ -84,7 +84,9 @@ class _NewfeedScreenState extends State<NewfeedScreen>
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       _currentUserId = user.uid;
-      _currentUserName = user.displayName ?? 'User';
+      _currentUserName = user.displayName?.trim().isNotEmpty == true
+          ? user.displayName!
+          : user.email?.split('@').firstOrNull ?? 'User';
       _currentUserAvatar = user.photoURL ?? '';
     }
   }
@@ -124,7 +126,7 @@ class _NewfeedScreenState extends State<NewfeedScreen>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.darkPremiumSurface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),

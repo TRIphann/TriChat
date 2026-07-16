@@ -11,7 +11,8 @@
 #   Firebase__CredentialsBase64              -> decoded to FirebaseCredentials/serviceAccountKey.json
 #                                              (path matches appsettings default)
 #
-#   Redis__ConnectString                     -> appsettings: Redis:ConnectString
+#   Redis__RestUrl / Redis__RestToken   -> appsettings: Redis:RestUrl / :RestToken
+#                                        (Upstash REST API — not a TCP connect string)
 #   Cloudinary__CloudName / ApiKey / ApiSecret
 #   Groq__ApiKey                             -> appsettings: Groq:ApiKey
 #   Groq__Model                              -> optional, default "llama-3.1-8b-instant"
@@ -77,7 +78,8 @@ else
     "CredentialsBase64":   "${Firebase__CredentialsBase64:-}"
   },
   "Redis": {
-    "ConnectString": "${Redis__ConnectString:-redis:6379}"
+    "RestUrl":  "${Redis__RestUrl:-}",
+    "RestToken": "${Redis__RestToken:-}"
   },
   "Cloudinary": {
     "CloudName": "${Cloudinary__CloudName:-}",
