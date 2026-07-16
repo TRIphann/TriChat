@@ -360,13 +360,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return ValueListenableBuilder<bool>(
-      valueListenable: isDarkModeNotifier,
-      builder: (context, isDark, _) {
-        final theme = Theme.of(context);
-        return PreferredSize(
-          preferredSize: const Size.fromHeight(64),
-          child: Container(
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(64),
+      child: ValueListenableBuilder<bool>(
+        valueListenable: isDarkModeNotifier,
+        builder: (context, isDark, _) {
+          final theme = Theme.of(context);
+          return Container(
             decoration: BoxDecoration(
               color: isDark
                   ? AppColors.darkPremiumSurface
@@ -380,8 +380,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 ),
               ),
             ),
-        child: SafeArea(
-          bottom: false,
+            child: SafeArea(
+              bottom: false,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
             child: Row(
@@ -989,6 +989,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildDarkSendButton(VoidCallback onTap, {bool isDark = false}) {
+    final theme = Theme.of(context);
     return Material(
       color: Colors.transparent,
       shape: const CircleBorder(),
@@ -999,7 +1000,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: isDark ? AppColors.neonRoyal : Theme.of(context).colorScheme.onSurface,
+            color: isDark ? AppColors.neonRoyal : theme.colorScheme.onSurface,
             shape: BoxShape.circle,
             boxShadow: isDark
                 ? [

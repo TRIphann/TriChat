@@ -109,11 +109,11 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     try {
       XFile file;
       if (kIsWeb && _selectedBytes != null) {
-        file = XFile.fromRawData(_selectedBytes!, mimeType: 'image/jpeg', name: 'story.jpg');
+        file = XFile.fromData(_selectedBytes!, name: 'story.jpg', mimeType: 'image/jpeg');
       } else if (_selectedPath != null) {
         file = XFile(_selectedPath!);
       } else {
-        file = XFile.fromRawData(_selectedBytes!, mimeType: 'image/jpeg', name: 'story.jpg');
+        file = XFile.fromData(_selectedBytes!, name: 'story.jpg', mimeType: 'image/jpeg');
       }
 
       await StoryService.createStory(imageFile: file);
