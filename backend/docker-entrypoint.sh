@@ -73,7 +73,8 @@ else
   "Firebase": {
     "ProjectId":           "${Firebase__ProjectId:-}",
     "DatabaseId":          "${Firebase__DatabaseId:-}",
-    "CredentialsFilePath": "FirebaseCredentials/serviceAccountKey.json"
+    "CredentialsFilePath": "FirebaseCredentials/serviceAccountKey.json",
+    "CredentialsBase64":   "${Firebase__CredentialsBase64:-}"
   },
   "Redis": {
     "ConnectString": "${Redis__ConnectString:-redis:6379}"

@@ -20,6 +20,7 @@ public class FirebaseService
         var credentialsFilePath = section.GetValue<string>("CredentialsFilePath");
         var projectId = section.GetValue<string>("ProjectId");
         var credentialsJson = section.GetValue<string>("CredentialsJson");
+        var credentialsBase64 = section.GetValue<string>("CredentialsBase64");
 
         if (string.IsNullOrWhiteSpace(projectId))
             throw new InvalidOperationException("Missing Firebase:ProjectId in appsettings.json or FIREBASE__PROJECTID env var.");
@@ -35,6 +36,26 @@ public class FirebaseService
             using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(credentialsJson));
             credential = GoogleCredential.FromStream(stream);
         }
+        else if (!string.IsNullOrWhiteSpace(credentialsBase64))
+        {
+            // Credentials được truyền dạng base64 (Render-friendly: tránh vượt limit độ dài env var).
+            // docker-entrypoint.sh cũng decode giá trị này ra file, nhưng ở đây ta decode trực tiếp
+            // trong bộ nhớ để không phụ thuộc vào việc file có tồn tại hay không trên Render.
+            Console.WriteLine("[FIREBASE] Loading credentials from FIREBASE__CREDENTIALSBASE64 env var.");
+            try
+            {
+                var jsonBytes = Convert.FromBase64String(credentialsBase64);
+                using var stream = new MemoryStream(jsonBytes);
+                credential = GoogleCredential.FromStream(stream);
+            }
+            catch (FormatException ex)
+            {
+                throw new InvalidOperationException(
+                    "FIREBASE__CREDENTIALSBASE64 is not a valid base64 string. " +
+                    "Re-encode the service account JSON with `base64 -w 0 serviceAccountKey.json` " +
+                    "before pasting it into the env var.", ex);
+            }
+        }
         else if (!string.IsNullOrWhiteSpace(credentialsFilePath))
         {
             var resolvedPath = Path.GetFullPath(credentialsFilePath, AppContext.BaseDirectory);
@@ -43,14 +64,14 @@ public class FirebaseService
             if (!File.Exists(resolvedPath))
                 throw new FileNotFoundException(
                     $"Firebase credentials file not found: {resolvedPath}. " +
-                    "Set FIREBASE__CREDENTIALSJSON env var with the full JSON string instead.");
+                    "Set FIREBASE__CREDENTIALSJSON or FIREBASE__CREDENTIALSBASE64 env var with the JSON/base64 string instead.");
             credential = GoogleCredential.FromFile(resolvedPath);
         }
         else
         {
             throw new InvalidOperationException(
-                "Missing Firebase credentials. Set FIREBASE__CREDENTIALSJSON env var with the service account JSON, " +
-                "or Firebase:CredentialsFilePath in appsettings.json.");
+                "Missing Firebase credentials. Set one of: FIREBASE__CREDENTIALSJSON, " +
+                "FIREBASE__CREDENTIALSBASE64, or Firebase:CredentialsFilePath in appsettings.json.");
         }
 
 #pragma warning disable CS0618 // GoogleCredential.FromFile is deprecated; no replacement that works with FirestoreDbBuilder
