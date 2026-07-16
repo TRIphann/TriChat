@@ -150,11 +150,20 @@ class AuthService {
 
   static Future<void> sendOtp(String email) async {
     try {
-      // Backend expects JSON body (FromBody), not query parameters
-      await DioClient.instance.post(
+      final response = await DioClient.instance.post(
         '/api/otp/generate',
         data: {'email': email.trim()},
       );
+      if (response.statusCode == null || response.statusCode! < 200 || response.statusCode! >= 300) {
+        throw Exception(_extractErrorMessage(
+          DioException(
+            requestOptions: response.requestOptions,
+            response: response,
+            error: 'OTP send failed',
+          ),
+          'Không thể gửi OTP',
+        ));
+      }
     } on DioException catch (e) {
       throw Exception(_extractErrorMessage(e, 'Không thể gửi OTP'));
     } catch (e) {
@@ -164,13 +173,20 @@ class AuthService {
 
   static Future<bool> verifyOtp(String email, String otp) async {
     try {
-      // Backend expects JSON body (FromBody), not query parameters
       final response = await DioClient.instance.post(
         '/api/otp/verify',
         data: {'email': email.trim(), 'otp': otp.trim()},
       );
-      return response.statusCode == 200;
+      // Backend returns 200 on success, 401 on invalid OTP
+      if (response.statusCode == 200) {
+        return true;
+      }
+      return false;
     } on DioException catch (e) {
+      // 401 UNAUTHORIZED means OTP invalid — throw with clear message
+      if (e.response?.statusCode == 401) {
+        throw Exception('Mã OTP không đúng hoặc đã hết hạn');
+      }
       throw Exception(_extractErrorMessage(e, 'Mã OTP không hợp lệ'));
     } catch (e) {
       throw Exception('Lỗi xác thực: $e');

@@ -1731,7 +1731,7 @@ class _SwipeToReplyWrapperState extends State<_SwipeToReplyWrapper>
     _returnAnim = Tween<double>(
       begin: _offset,
       end: 0,
-    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.elasticOut));
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack));
     _ctrl.forward(from: 0);
   }
 

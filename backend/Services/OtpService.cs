@@ -26,7 +26,7 @@ namespace backend.Services
         private const int MaxAttempts = 3;
         private const int InitialBackoffMs = 600;
 
-        public async Task<string> GenerateOtpAsync(string email)
+        public async Task GenerateOtpAsync(string email)
         {
             var otpBytes = new byte[4];
             using (var rng = RandomNumberGenerator.Create())
@@ -34,6 +34,11 @@ namespace backend.Services
                 rng.GetBytes(otpBytes);
             }
             var otp = (BitConverter.ToUInt32(otpBytes, 0) % 900_000 + 100_000).ToString();
+
+            _logger.LogInformation(
+                "Generated OTP for {Email}: {Otp} (expires in 60s)",
+                email, otp);
+
             var hashedOtp = HashOtp(otp);
             var key = $"otp:{email}";
 
@@ -50,7 +55,7 @@ namespace backend.Services
                 throw new AppException(backend.Enums.ErrorCode.INTERNAL_ERROR);
             }
 
-            return otp;
+            _logger.LogInformation("OTP email sent successfully to {Email}", email);
         }
 
         public async Task VerifyOtpAsync(string email, string otp)
@@ -64,14 +69,21 @@ namespace backend.Services
                 "OTP lookup");
 
             if (storedHash is null)
+            {
+                _logger.LogWarning("OTP not found or expired for {Email}", email);
                 throw new AppException(backend.Enums.ErrorCode.INVALID_TOKEN);
+            }
 
             var inputHash = HashOtp(otp);
 
             if (storedHash != inputHash)
+            {
+                _logger.LogWarning("OTP mismatch for {Email}", email);
                 throw new AppException(backend.Enums.ErrorCode.INVALID_TOKEN);
+            }
 
             try { await _kv.DeleteAsync(key); } catch { }
+            _logger.LogInformation("OTP verified successfully for {Email}", email);
         }
 
         private async Task ExecuteWithRetryAsync(string key, Func<Task> op, string purpose)

@@ -1,25 +1,20 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend/apps/app_locale.dart';
 import 'package:frontend/component/widgets.dart';
 import 'package:frontend/config/app_colors.dart';
 import 'package:frontend/config/app_spacing.dart';
 import 'package:frontend/config/app_typography.dart';
 import 'package:frontend/features/friends/friends.dart';
 import 'package:frontend/services/auth_service.dart';
+import 'package:frontend/utils/app_localizations.dart';
 import 'package:frontend/utils/validator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 /// ════════════════════════════════════════════════════════════════
-/// HIGH-END LOGIN VIEW — Premium Authentication Screen
+/// PREMIUM LOGIN VIEW — High-End Authentication Screen
 /// ════════════════════════════════════════════════════════════════
-///
-/// Design Language:
-/// - Premium Editorial with warm cream tones
-/// - Double-Bezel card architecture
-/// - Generous macro-whitespace
-/// - Fluid spring animations
-/// - Amber accent for CTAs
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -28,8 +23,7 @@ class LoginView extends StatefulWidget {
   State<LoginView> createState() => _LoginViewState();
 }
 
-class _LoginViewState extends State<LoginView>
-    with SingleTickerProviderStateMixin {
+class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -41,6 +35,7 @@ class _LoginViewState extends State<LoginView>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
@@ -48,8 +43,8 @@ class _LoginViewState extends State<LoginView>
     _emailController.addListener(_onChanged);
 
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
       vsync: this,
+      duration: const Duration(milliseconds: 800),
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -60,12 +55,19 @@ class _LoginViewState extends State<LoginView>
     );
 
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.1),
+      begin: const Offset(0, 30),
       end: Offset.zero,
     ).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: const Interval(0.2, 1.0, curve: Curves.easeOutCubic),
+      ),
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOutBack,
       ),
     );
 
@@ -115,18 +117,13 @@ class _LoginViewState extends State<LoginView>
           context.go('/chat-list');
         } catch (e) {
           if (!mounted) return;
-          showTriSnack(
-            context,
-            'Lỗi khởi tạo dữ liệu: $e',
-            type: TriSnackType.error,
-          );
+          showTriSnack(context, 'Lỗi khởi tạo dữ liệu: $e', type: TriSnackType.error);
           setState(() => _isLoading = false);
         }
       } else {
         setState(() {
           _isLoading = false;
-          _debugError =
-              result.errorMessage ?? result.errorCode ?? 'Unknown error';
+          _debugError = result.errorMessage ?? result.errorCode ?? 'Unknown error';
         });
       }
     } catch (e) {
@@ -153,26 +150,52 @@ class _LoginViewState extends State<LoginView>
             opacity: _fadeAnimation,
             child: SlideTransition(
               position: _slideAnimation,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.lg,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SizedBox(height: size.height * 0.08),
-                    _buildHeader(theme, isDark),
-                    SizedBox(height: size.height * 0.06),
-                    _buildCard(theme, isDark),
-                    SizedBox(height: size.height * 0.04),
-                    _buildSignupHint(theme, isDark),
-                    SizedBox(height: AppSpacing.xxl),
-                  ],
+              child: ScaleTransition(
+                scale: _scaleAnimation,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SizedBox(height: size.height * 0.06),
+                      _buildBackButton(theme, isDark),
+                      SizedBox(height: size.height * 0.06),
+                      _buildHeader(theme, isDark),
+                      SizedBox(height: size.height * 0.06),
+                      _buildCard(theme, isDark),
+                      SizedBox(height: size.height * 0.04),
+                      _buildSignupHint(theme, isDark),
+                      SizedBox(height: AppSpacing.xxl),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildBackButton(ThemeData theme, bool isDark) {
+    return GestureDetector(
+      onTap: () => context.go('/'),
+      child: Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: isDark ? AppColors.darkCard : AppColors.creamWhite,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Icon(Icons.arrow_back_rounded,
+            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary, size: 22),
       ),
     );
   }
@@ -181,84 +204,31 @@ class _LoginViewState extends State<LoginView>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Premium back button
-        _buildBackButton(theme, isDark),
-        const SizedBox(height: AppSpacing.xl),
-        // Eyebrow text
         Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm,
-            vertical: AppSpacing.micro,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.micro),
           decoration: BoxDecoration(
-            color: AppColors.primaryAmberLight.withValues(alpha: 0.5),
+            gradient: LinearGradient(colors: [
+              AppColors.primaryAmber.withValues(alpha: 0.2),
+              AppColors.primaryAmber.withValues(alpha: 0.1),
+            ]),
             borderRadius: BorderRadius.circular(AppRadius.xs),
           ),
-          child: Text(
-            'CHÀO MỪNG TRỞ LẠI',
-            style: AppTypography.eyebrow.copyWith(
-              color: AppColors.primaryAmber,
-            ),
-          ),
+          child: Text('CHÀO MỪNG TRỞ LẠI',
+              style: AppTypography.eyebrow.copyWith(color: AppColors.primaryAmber)),
         ),
         const SizedBox(height: AppSpacing.md),
-        // Main heading
-        Text(
-          'Đăng nhập\nđể tiếp tục',
-          style: AppTypography.displaySmall.copyWith(
-            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
-            fontWeight: FontWeight.w800,
-            height: 1.1,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Text(
-          'Kết nối với bạn bè và gia đình một cách dễ dàng.',
-          style: AppTypography.bodyLarge.copyWith(
-            color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBackButton(ThemeData theme, bool isDark) {
-    return Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: isDark ? AppColors.darkCard : AppColors.creamWhite,
-        shape: const CircleBorder(),
-        child: InkWell(
-          onTap: () => context.go('/'),
-          customBorder: const CircleBorder(),
-          child: Container(
-            width: 48,
-            height: 48,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: isDark ? AppColors.darkBorder : AppColors.borderDefault,
-                width: 1,
-              ),
-            ),
-            child: Icon(
-              Icons.arrow_back_rounded,
+        Text('Đăng nhập\nđể tiếp tục',
+            style: AppTypography.displaySmall.copyWith(
               color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
-              size: 22,
-            ),
-          ),
-        ),
-      ),
+              fontWeight: FontWeight.w800,
+              height: 1.1,
+            )),
+        const SizedBox(height: AppSpacing.sm),
+        Text('Kết nối với bạn bè và gia đình một cách dễ dàng.',
+            style: AppTypography.bodyLarge.copyWith(
+              color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+            )),
+      ],
     );
   }
 
@@ -306,30 +276,22 @@ class _LoginViewState extends State<LoginView>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Email',
-          style: AppTypography.labelMedium.copyWith(
-            color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
-          ),
-        ),
+        Text('Email',
+            style: AppTypography.labelMedium.copyWith(
+              color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+            )),
         const SizedBox(height: AppSpacing.sm),
         TriTextField(
           controller: _emailController,
           keyboardType: TextInputType.emailAddress,
           textInputAction: TextInputAction.next,
           hintText: 'Nhập email của bạn',
-          prefixIcon: const Icon(Icons.email_outlined, size: 20),
+          prefixIcon: Icon(Icons.email_outlined, size: 20, color: AppColors.primaryAmber),
           validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Vui lòng nhập email';
-            }
+            if (value == null || value.isEmpty) return 'Vui lòng nhập email';
             final email = value.trim();
-            final emailRegex = RegExp(
-              r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
-            );
-            if (!emailRegex.hasMatch(email)) {
-              return 'Email không đúng định dạng';
-            }
+            final emailRegex = RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
+            if (!emailRegex.hasMatch(email)) return 'Email không đúng định dạng';
             return null;
           },
         ),
@@ -341,12 +303,10 @@ class _LoginViewState extends State<LoginView>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Mật khẩu',
-          style: AppTypography.labelMedium.copyWith(
-            color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
-          ),
-        ),
+        Text('Mật khẩu',
+            style: AppTypography.labelMedium.copyWith(
+              color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+            )),
         const SizedBox(height: AppSpacing.sm),
         TriTextField(
           controller: _passwordController,
@@ -354,18 +314,14 @@ class _LoginViewState extends State<LoginView>
           textInputAction: TextInputAction.done,
           onSubmitted: _handleLogin,
           hintText: 'Nhập mật khẩu',
-          prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
+          prefixIcon: Icon(Icons.lock_outline_rounded, size: 20, color: AppColors.primaryAmber),
           suffixIcon: IconButton(
             splashRadius: 20,
             icon: Icon(
-              _isPasswordVisible
-                  ? Icons.visibility_off_outlined
-                  : Icons.visibility_outlined,
+              _isPasswordVisible ? Icons.visibility_off_outlined : Icons.visibility_outlined,
               size: 20,
             ),
-            onPressed: () => setState(
-              () => _isPasswordVisible = !_isPasswordVisible,
-            ),
+            onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
           ),
           validator: (value) => Validator.password(value),
         ),
@@ -376,27 +332,56 @@ class _LoginViewState extends State<LoginView>
   Widget _buildForgotPassword(ThemeData theme, bool isDark) {
     return Align(
       alignment: Alignment.centerRight,
-      child: TextLinkButton(
-        label: 'Quên mật khẩu?',
-        color: AppColors.primaryAmber,
+      child: TextButton(
         onPressed: () {
-          showTriSnack(
-            context,
-            'Liên hệ hỗ trợ để khôi phục mật khẩu',
-            type: TriSnackType.info,
-            icon: Icons.info_outline_rounded,
-          );
+          showTriSnack(context, 'Liên hệ hỗ trợ để khôi phục mật khẩu',
+              type: TriSnackType.info, icon: Icons.info_outline_rounded);
         },
+        style: TextButton.styleFrom(foregroundColor: AppColors.primaryAmber),
+        child: Text('Quên mật khẩu?',
+            style: AppTypography.labelMedium.copyWith(color: AppColors.primaryAmber, fontWeight: FontWeight.w600)),
       ),
     );
   }
 
   Widget _buildLoginButton(ThemeData theme, bool isDark) {
-    return PrimaryButton(
-      label: 'Đăng nhập',
-      loading: _isLoading,
-      icon: Icons.arrow_forward_rounded,
-      onPressed: _handleLogin,
+    return GestureDetector(
+      onTap: _isLoading ? null : _handleLogin,
+      child: Container(
+        height: 56,
+        decoration: BoxDecoration(
+          gradient: _isLoading ? null : LinearGradient(colors: AppColors.primaryGradient),
+          color: _isLoading ? (isDark ? AppColors.darkBorder : AppColors.borderDefault) : null,
+          borderRadius: BorderRadius.circular(AppRadius.xl),
+          boxShadow: _isLoading ? null : [
+            BoxShadow(
+              color: AppColors.primaryAmber.withValues(alpha: 0.35),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Center(
+          child: _isLoading
+              ? SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    color: isDark ? AppColors.darkTextPrimary : AppColors.primaryAmber,
+                    strokeWidth: 2.5,
+                  ),
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Đăng nhập',
+                        style: AppTypography.labelLarge.copyWith(color: AppColors.textWhite, fontWeight: FontWeight.w700)),
+                    const SizedBox(width: AppSpacing.sm),
+                    Icon(Icons.arrow_forward_rounded, color: AppColors.textWhite, size: 20),
+                  ],
+                ),
+        ),
+      ),
     );
   }
 
@@ -404,12 +389,9 @@ class _LoginViewState extends State<LoginView>
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.errorLight,
+        gradient: LinearGradient(colors: [AppColors.errorLight, AppColors.errorLight.withValues(alpha: 0.5)]),
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(
-          color: AppColors.error.withValues(alpha: 0.2),
-          width: 1,
-        ),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -420,20 +402,12 @@ class _LoginViewState extends State<LoginView>
               color: AppColors.error.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
-              Icons.error_outline_rounded,
-              color: AppColors.error,
-              size: 18,
-            ),
+            child: Icon(Icons.error_outline_rounded, color: AppColors.error, size: 18),
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
-            child: Text(
-              _debugError!,
-              style: AppTypography.bodySmall.copyWith(
-                color: AppColors.error,
-              ),
-            ),
+            child: Text(_debugError!,
+                style: AppTypography.bodySmall.copyWith(color: AppColors.error)),
           ),
         ],
       ),
@@ -444,16 +418,14 @@ class _LoginViewState extends State<LoginView>
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(
-          'Chưa có tài khoản? ',
-          style: AppTypography.bodyMedium.copyWith(
-            color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
-          ),
-        ),
-        TextLinkButton(
-          label: 'Đăng ký ngay',
-          fontWeight: FontWeight.w700,
-          onPressed: () => context.go('/sign-up'),
+        Text('Chưa có tài khoản? ',
+            style: AppTypography.bodyMedium.copyWith(
+              color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+            )),
+        GestureDetector(
+          onTap: () => context.go('/sign-up'),
+          child: Text('Đăng ký ngay',
+              style: AppTypography.labelMedium.copyWith(color: AppColors.primaryAmber, fontWeight: FontWeight.w700)),
         ),
       ],
     );

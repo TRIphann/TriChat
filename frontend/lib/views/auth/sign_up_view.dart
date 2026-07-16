@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend/apps/app_locale.dart';
@@ -11,7 +12,7 @@ import 'package:frontend/utils/validator.dart';
 import 'package:go_router/go_router.dart';
 
 /// ════════════════════════════════════════════════════════════════
-/// HIGH-END SIGN UP VIEW — Premium Registration Screen
+/// PREMIUM SIGN UP VIEW — High-End Registration Screen
 /// ════════════════════════════════════════════════════════════════
 
 class SignUpView extends StatefulWidget {
@@ -23,7 +24,7 @@ class SignUpView extends StatefulWidget {
 }
 
 class _SignUpViewState extends State<SignUpView>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final FocusNode _emailFocusNode = FocusNode();
@@ -34,10 +35,11 @@ class _SignUpViewState extends State<SignUpView>
   bool _isLoading = false;
   String? _errorMessage;
 
-  late final AnimationController _shakeCtrl;
-  late final Animation<Offset> _shakeAnim;
-  late AnimationController _animationController;
+  late AnimationController _mainController;
+  late AnimationController _shakeCtrl;
   late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+  late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
@@ -46,39 +48,41 @@ class _SignUpViewState extends State<SignUpView>
       _emailController.text = widget.initialEmail!;
     }
 
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+    _mainController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeOut,
-      ),
-    );
-    _animationController.forward();
 
     _shakeCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 400),
     );
-    _shakeAnim = TweenSequence<Offset>([
-      TweenSequenceItem(
-        tween: Tween(begin: Offset.zero, end: const Offset(-0.02, 0)),
-        weight: 1,
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _mainController,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
       ),
-      TweenSequenceItem(
-        tween: Tween(
-          begin: const Offset(-0.02, 0),
-          end: const Offset(0.02, 0),
-        ),
-        weight: 2,
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.08),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _mainController,
+        curve: const Interval(0.2, 1.0, curve: Curves.easeOutCubic),
       ),
-      TweenSequenceItem(
-        tween: Tween(begin: const Offset(0.02, 0), end: Offset.zero),
-        weight: 1,
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _mainController,
+        curve: Curves.easeOutBack,
       ),
-    ]).animate(CurvedAnimation(parent: _shakeCtrl, curve: Curves.easeInOut));
+    );
+
+    _mainController.forward();
 
     _emailController.addListener(_updateButtonState);
     _updateButtonState();
@@ -89,7 +93,7 @@ class _SignUpViewState extends State<SignUpView>
     _emailController.dispose();
     _emailFocusNode.dispose();
     _shakeCtrl.dispose();
-    _animationController.dispose();
+    _mainController.dispose();
     super.dispose();
   }
 
@@ -182,9 +186,21 @@ class _SignUpViewState extends State<SignUpView>
                 height: 72,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.primaryAmberLight.withValues(alpha: 0.5),
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.primaryAmber.withValues(alpha: 0.2),
+                      AppColors.primaryAmberLight,
+                    ],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primaryAmber.withValues(alpha: 0.2),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.mark_email_read_outlined,
                   color: AppColors.primaryAmber,
                   size: 36,
@@ -210,16 +226,16 @@ class _SignUpViewState extends State<SignUpView>
               Row(
                 children: [
                   Expanded(
-                    child: SecondaryButton(
-                      label: 'Hủy',
-                      onPressed: () => Navigator.pop(context),
+                    child: _buildSecondaryButton(
+                      'Hủy',
+                      () => Navigator.pop(context),
                     ),
                   ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
-                    child: PrimaryButton(
-                      label: 'Tiếp tục',
-                      onPressed: () {
+                    child: _buildPrimaryButton(
+                      'Tiếp tục',
+                      () {
                         Navigator.pop(context);
                         context.push('/otp', extra: _emailController.text.trim());
                       },
@@ -228,6 +244,63 @@ class _SignUpViewState extends State<SignUpView>
                 ],
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPrimaryButton(String label, VoidCallback onPressed) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        height: 48,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: AppColors.primaryGradient,
+          ),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primaryAmber.withValues(alpha: 0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: AppTypography.labelMedium.copyWith(
+              color: AppColors.textWhite,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSecondaryButton(String label, VoidCallback onPressed) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        height: 48,
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkElevated : AppColors.creamSurface,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(
+            color: isDark ? AppColors.darkBorder : AppColors.borderDefault,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: AppTypography.labelMedium.copyWith(
+              color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ),
@@ -254,8 +327,15 @@ class _SignUpViewState extends State<SignUpView>
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: AppColors.warningLight,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.warning.withValues(alpha: 0.2),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.warning_amber_rounded,
                   color: AppColors.warning,
                   size: 36,
@@ -280,29 +360,16 @@ class _SignUpViewState extends State<SignUpView>
               Row(
                 children: [
                   Expanded(
-                    child: SecondaryButton(
-                      label: 'Tiếp tục',
-                      onPressed: () => Navigator.pop(ctx, false),
+                    child: _buildSecondaryButton(
+                      'Tiếp tục',
+                      () => Navigator.pop(ctx, false),
                     ),
                   ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(AppRadius.lg),
-                      ),
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.pop(ctx, true),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.error,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.xl,
-                            vertical: AppSpacing.md,
-                          ),
-                        ),
-                        child: const Text('Hủy đăng ký'),
-                      ),
+                    child: _buildDangerButton(
+                      'Hủy đăng ký',
+                      () => Navigator.pop(ctx, true),
                     ),
                   ),
                 ],
@@ -315,6 +382,35 @@ class _SignUpViewState extends State<SignUpView>
     if (shouldExit == true && mounted) {
       context.go('/');
     }
+  }
+
+  Widget _buildDangerButton(String label, VoidCallback onPressed) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        height: 48,
+        decoration: BoxDecoration(
+          color: AppColors.error,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.error.withValues(alpha: 0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: AppTypography.labelMedium.copyWith(
+              color: AppColors.textWhite,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   void _clearEmail() {
@@ -335,38 +431,47 @@ class _SignUpViewState extends State<SignUpView>
         return Scaffold(
           backgroundColor: isDark ? AppColors.darkBackground : AppColors.cream,
           body: SafeArea(
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: SlideTransition(
-                position: _shakeAnim,
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: SingleChildScrollView(
-                          physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.fromLTRB(
-                            AppSpacing.lg,
-                            AppSpacing.lg,
-                            AppSpacing.lg,
-                            0,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _buildBackButton(theme, isDark),
-                              SizedBox(height: size.height * 0.04),
-                              _buildHeader(theme, isDark, t),
-                              SizedBox(height: size.height * 0.04),
-                              _buildForm(theme, isDark, t),
-                            ],
-                          ),
+            child: AnimatedBuilder(
+              animation: _mainController,
+              builder: (context, child) {
+                return FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: ScaleTransition(
+                      scale: _scaleAnimation,
+                      child: child,
+                    ),
+                  ),
+                );
+              },
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.lg,
+                          AppSpacing.lg,
+                          AppSpacing.lg,
+                          0,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _buildBackButton(theme, isDark),
+                            SizedBox(height: size.height * 0.04),
+                            _buildHeader(theme, isDark, t),
+                            SizedBox(height: size.height * 0.04),
+                            _buildForm(theme, isDark, t),
+                          ],
                         ),
                       ),
-                      _buildBottomBar(theme, isDark, t),
-                    ],
-                  ),
+                    ),
+                    _buildBottomBar(theme, isDark, t),
+                  ],
                 ),
               ),
             ),
@@ -377,34 +482,39 @@ class _SignUpViewState extends State<SignUpView>
   }
 
   Widget _buildBackButton(ThemeData theme, bool isDark) {
-    return Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: isDark ? AppColors.darkCard : AppColors.creamWhite,
-        shape: const CircleBorder(),
-        child: InkWell(
-          onTap: _onBackPressed,
-          customBorder: const CircleBorder(),
-          child: Container(
-            width: 48,
-            height: 48,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: isDark ? AppColors.darkBorder : AppColors.borderDefault,
-                width: 1,
-              ),
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.easeOutBack,
+      builder: (context, value, child) {
+        return Transform.scale(
+          scale: value,
+          child: child,
+        );
+      },
+      child: Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: isDark ? AppColors.darkCard : AppColors.creamWhite,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
+          ],
+          border: Border.all(
+            color: isDark ? AppColors.darkBorder : AppColors.borderDefault,
+          ),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          shape: const CircleBorder(),
+          child: InkWell(
+            onTap: _onBackPressed,
+            customBorder: const CircleBorder(),
             child: Icon(
               Icons.arrow_back_rounded,
               color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
@@ -420,19 +530,35 @@ class _SignUpViewState extends State<SignUpView>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm,
-            vertical: AppSpacing.micro,
-          ),
-          decoration: BoxDecoration(
-            color: AppColors.primaryAmberLight.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(AppRadius.xs),
-          ),
-          child: Text(
-            'TẠO TÀI KHOẢN',
-            style: AppTypography.eyebrow.copyWith(
-              color: AppColors.primaryAmber,
+        TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeOutBack,
+          builder: (context, value, child) {
+            return Transform.scale(
+              scale: value,
+              child: Opacity(opacity: value, child: child),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: AppSpacing.micro,
+            ),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primaryAmber.withValues(alpha: 0.2),
+                  AppColors.primaryAmber.withValues(alpha: 0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(AppRadius.xs),
+            ),
+            child: Text(
+              'TẠO TÀI KHOẢN',
+              style: AppTypography.eyebrow.copyWith(
+                color: AppColors.primaryAmber,
+              ),
             ),
           ),
         ),
@@ -464,26 +590,37 @@ class _SignUpViewState extends State<SignUpView>
           _buildErrorBanner(isDark),
           const SizedBox(height: AppSpacing.lg),
         ],
-        TriTextField(
-          controller: _emailController,
-          focusNode: _emailFocusNode,
-          keyboardType: TextInputType.emailAddress,
-          hintText: 'Nhập email của bạn',
-          prefixIcon: const Icon(Icons.email_outlined, size: 20),
-          suffixIcon: _emailController.text.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.cancel_rounded, size: 20),
-                  onPressed: _clearEmail,
-                )
-              : null,
-          validator: (value) {
-            final t = AppLocalizations(localeNotifier.value);
-            return Validator.email(
-              value,
-              requiredMessage: t.get('validatorRequired'),
-              invalidMessage: t.get('validatorEmail'),
+        TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: const Duration(milliseconds: 700),
+          curve: Curves.easeOutCubic,
+          builder: (context, value, child) {
+            return Transform.translate(
+              offset: Offset(0, 20 * (1 - value)),
+              child: Opacity(opacity: value, child: child),
             );
           },
+          child: TriTextField(
+            controller: _emailController,
+            focusNode: _emailFocusNode,
+            keyboardType: TextInputType.emailAddress,
+            hintText: 'Nhập email của bạn',
+            prefixIcon: Icon(Icons.email_outlined, size: 20, color: AppColors.primaryAmber),
+            suffixIcon: _emailController.text.isNotEmpty
+                ? IconButton(
+                    icon: Icon(Icons.cancel_rounded, size: 20, color: AppColors.textTertiary),
+                    onPressed: _clearEmail,
+                  )
+                : null,
+            validator: (value) {
+              final t = AppLocalizations(localeNotifier.value);
+              return Validator.email(
+                value,
+                requiredMessage: t.get('validatorRequired'),
+                invalidMessage: t.get('validatorEmail'),
+              );
+            },
+          ),
         ),
         const SizedBox(height: AppSpacing.lg),
         _buildCheckbox(
@@ -506,39 +643,55 @@ class _SignUpViewState extends State<SignUpView>
   }
 
   Widget _buildErrorBanner(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppColors.errorLight,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(
-          color: AppColors.error.withValues(alpha: 0.2),
-          width: 1,
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutBack,
+      builder: (context, value, child) {
+        return Transform.scale(
+          scale: value,
+          child: Opacity(opacity: value, child: child),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppColors.errorLight,
+              AppColors.errorLight.withValues(alpha: 0.5),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(
+            color: AppColors.error.withValues(alpha: 0.3),
+            width: 1,
+          ),
         ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.xs),
-            decoration: BoxDecoration(
-              color: AppColors.error.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.xs),
+              decoration: BoxDecoration(
+                color: AppColors.error.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.error_outline_rounded,
+                color: AppColors.error,
+                size: 18,
+              ),
             ),
-            child: const Icon(
-              Icons.error_outline_rounded,
-              color: AppColors.error,
-              size: 18,
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Text(
+                _errorMessage!,
+                style: AppTypography.bodySmall.copyWith(color: AppColors.error),
+              ),
             ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Text(
-              _errorMessage!,
-              style: AppTypography.bodySmall.copyWith(color: AppColors.error),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -558,27 +711,47 @@ class _SignUpViewState extends State<SignUpView>
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AnimatedContainer(
-              duration: AppCurves.durationFast,
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: value ? AppColors.primaryAmber : Colors.transparent,
-                borderRadius: BorderRadius.circular(AppRadius.xs),
-                border: Border.all(
-                  color: value
-                      ? AppColors.primaryAmber
-                      : (isDark ? AppColors.darkBorder : AppColors.borderStrong),
-                  width: 1.5,
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.0, end: 1.0),
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutBack,
+              builder: (context, animValue, child) {
+                return Transform.scale(
+                  scale: animValue,
+                  child: child,
+                );
+              },
+              child: AnimatedContainer(
+                duration: AppCurves.durationFast,
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: value ? AppColors.primaryAmber : Colors.transparent,
+                  borderRadius: BorderRadius.circular(AppRadius.xs),
+                  border: Border.all(
+                    color: value
+                        ? AppColors.primaryAmber
+                        : (isDark ? AppColors.darkBorder : AppColors.borderStrong),
+                    width: 1.5,
+                  ),
+                  boxShadow: value
+                      ? [
+                          BoxShadow(
+                            color: AppColors.primaryAmber.withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
                 ),
+                child: value
+                    ? Icon(
+                        Icons.check_rounded,
+                        color: AppColors.textWhite,
+                        size: 16,
+                      )
+                    : null,
               ),
-              child: value
-                  ? const Icon(
-                      Icons.check_rounded,
-                      color: Colors.white,
-                      size: 16,
-                    )
-                  : null,
             ),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
@@ -618,11 +791,67 @@ class _SignUpViewState extends State<SignUpView>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          PrimaryButton(
-            label: 'Tiếp tục',
-            icon: Icons.arrow_forward_rounded,
-            loading: _isLoading,
-            onPressed: _isButtonEnabled ? _handleRegister : null,
+          GestureDetector(
+            onTap: _isButtonEnabled ? _handleRegister : null,
+            child: AnimatedContainer(
+              duration: AppCurves.durationNormal,
+              height: 56,
+              decoration: BoxDecoration(
+                gradient: _isButtonEnabled
+                    ? LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: AppColors.primaryGradient,
+                      )
+                    : null,
+                color: _isButtonEnabled
+                    ? null
+                    : (isDark ? AppColors.darkBorder : AppColors.borderDefault),
+                borderRadius: BorderRadius.circular(AppRadius.xl),
+                boxShadow: _isButtonEnabled
+                    ? [
+                        BoxShadow(
+                          color: AppColors.primaryAmber.withValues(alpha: 0.35),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Center(
+                child: _isLoading
+                    ? SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          color: AppColors.textWhite,
+                          strokeWidth: 2.5,
+                        ),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Tiếp tục',
+                            style: AppTypography.labelLarge.copyWith(
+                              color: _isButtonEnabled
+                                  ? AppColors.textWhite
+                                  : (isDark ? AppColors.darkTextTertiary : AppColors.textTertiary),
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Icon(
+                            Icons.arrow_forward_rounded,
+                            color: _isButtonEnabled
+                                ? AppColors.textWhite
+                                : (isDark ? AppColors.darkTextTertiary : AppColors.textTertiary),
+                            size: 20,
+                          ),
+                        ],
+                      ),
+              ),
+            ),
           ),
           const SizedBox(height: AppSpacing.md),
           Row(
@@ -634,10 +863,15 @@ class _SignUpViewState extends State<SignUpView>
                   color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
                 ),
               ),
-              TextLinkButton(
-                label: t.get('loginNow'),
-                fontWeight: FontWeight.w700,
-                onPressed: () => context.go('/'),
+              GestureDetector(
+                onTap: () => context.go('/'),
+                child: Text(
+                  t.get('loginNow'),
+                  style: AppTypography.labelMedium.copyWith(
+                    color: AppColors.primaryAmber,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
             ],
           ),

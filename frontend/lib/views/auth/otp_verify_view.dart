@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:frontend/component/widgets.dart';
 import 'package:frontend/config/app_colors.dart';
 import 'package:frontend/config/app_spacing.dart';
@@ -8,7 +9,7 @@ import 'package:frontend/services/auth_service.dart';
 import 'package:go_router/go_router.dart';
 
 /// ════════════════════════════════════════════════════════════════
-/// HIGH-END OTP VERIFY VIEW — Premium Verification Screen
+/// PREMIUM OTP VERIFY VIEW — High-End Verification Screen
 /// ════════════════════════════════════════════════════════════════
 
 class OtpVerifyView extends StatefulWidget {
@@ -21,36 +22,92 @@ class OtpVerifyView extends StatefulWidget {
 }
 
 class _OtpVerifyViewState extends State<OtpVerifyView>
-    with SingleTickerProviderStateMixin {
-  bool _isButtonEnabled = false;
+    with TickerProviderStateMixin {
   bool _isLoading = false;
   String _otp = '';
-
   int _countdown = 60;
   Timer? _timer;
   bool _canResend = false;
+  bool _isSuccess = false;
+  String? _errorMessage;
 
-  late AnimationController _animationController;
+  // OTP input controllers — one per digit
+  late List<TextEditingController> _controllers;
+  late List<FocusNode> _focusNodes;
+
+  late AnimationController _mainController;
+  late AnimationController _successController;
+  late AnimationController _pulseController;
   late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _successScaleAnimation;
 
   @override
   void initState() {
     super.initState();
 
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+    // OTP controllers & focus nodes
+    _controllers = List.generate(6, (_) => TextEditingController());
+    _focusNodes = List.generate(6, (_) => FocusNode());
+
+    _mainController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
+
+    _successController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeOut,
+        parent: _mainController,
+        curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
       ),
     );
-    _animationController.forward();
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.1),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _mainController,
+        curve: const Interval(0.2, 1.0, curve: Curves.easeOutCubic),
+      ),
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.9, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _mainController,
+        curve: Curves.easeOutBack,
+      ),
+    );
+
+    _successScaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _successController,
+        curve: Curves.easeOutBack,
+      ),
+    );
+
+    _mainController.forward();
+    _pulseController.repeat(reverse: true);
 
     _startCountdown();
-    AuthService.sendOtp(widget.email).catchError((_) {});
+    _sendOtpSilently();
+  }
+
+  Future<void> _sendOtpSilently() async {
+    try {
+      await AuthService.sendOtp(widget.email);
+    } catch (_) {}
   }
 
   void _startCountdown() {
@@ -61,54 +118,66 @@ class _OtpVerifyViewState extends State<OtpVerifyView>
       if (!mounted) return;
       if (_countdown <= 0) {
         timer.cancel();
-        setState(() => _canResend = true);
+        if (mounted) setState(() => _canResend = true);
       } else {
-        setState(() => _countdown--);
+        if (mounted) setState(() => _countdown--);
       }
     });
   }
 
-  Future<void> _onContinue(String otp) async {
-    if (otp.length != 6 || _isLoading) return;
-    setState(() => _isLoading = true);
-    try {
-      bool isValid = await AuthService.verifyOtp(widget.email, otp);
-      if (!mounted) return;
-      if (isValid) {
-        _showSuccessDialog();
-      } else {
-        _showErrorDialog('Mã xác thực không chính xác');
-        setState(() {
-          _otp = '';
-          _isButtonEnabled = false;
-        });
-      }
-    } catch (e) {
-      if (!mounted) return;
-      _showErrorDialog(e.toString().replaceFirst('Exception: ', ''));
-      setState(() {
-        _otp = '';
-        _isButtonEnabled = false;
-      });
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+  /// Called whenever any OTP digit changes — rebuilds _otp string and enables button when complete.
+  void _onOtpChanged(String value, int index) {
+    final fullOtp = _controllers.map((c) => c.text).join();
+    setState(() {
+      _otp = fullOtp;
+      _errorMessage = null;
+    });
+
+    // Auto-advance focus
+    if (value.isNotEmpty && index < 5) {
+      _focusNodes[index + 1].requestFocus();
+    }
+
+    // Auto-submit when all 6 digits are entered
+    if (fullOtp.length == 6) {
+      FocusScope.of(context).unfocus();
+      _onVerify(fullOtp);
+    }
+  }
+
+  void _onKeyEvent(int index, KeyEvent event) {
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.backspace &&
+        _controllers[index].text.isEmpty &&
+        index > 0) {
+      _controllers[index - 1].clear();
+      _focusNodes[index - 1].requestFocus();
+      _onOtpChanged('', index - 1);
     }
   }
 
   Future<void> _onResend() async {
     if (!_canResend || _isLoading) return;
-    setState(() => _isLoading = true);
+
+    // Clear all inputs
+    for (final c in _controllers) {
+      c.clear();
+    }
+    _focusNodes[0].requestFocus();
+
+    setState(() {
+      _otp = '';
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
     try {
       await AuthService.sendOtp(widget.email);
       _startCountdown();
-      setState(() {
-        _otp = '';
-        _isButtonEnabled = false;
-      });
       if (!mounted) return;
       showTriSnack(
         context,
-        'Mã OTP mới đã được gửi',
+        'Mã OTP mới đã được gửi đến ${widget.email}',
         type: TriSnackType.success,
         icon: Icons.mark_email_read_rounded,
       );
@@ -122,6 +191,46 @@ class _OtpVerifyViewState extends State<OtpVerifyView>
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _onVerify(String otp) async {
+    if (_otp.length != 6 || _isLoading) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final success = await AuthService.verifyOtp(widget.email, otp);
+      if (!mounted) return;
+
+      if (success) {
+        setState(() => _isSuccess = true);
+        _successController.forward();
+        await Future.delayed(const Duration(milliseconds: 1200));
+        if (!mounted) return;
+        _showSuccessDialog();
+      } else {
+        _showErrorDialog('Mã xác thực không chính xác');
+        _clearOtp();
+      }
+    } catch (e) {
+      if (!mounted) return;
+      final msg = e.toString().replaceFirst('Exception: ', '');
+      _showErrorDialog(msg);
+      _clearOtp();
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _clearOtp() {
+    for (final c in _controllers) {
+      c.clear();
+    }
+    _focusNodes[0].requestFocus();
+    setState(() {
+      _otp = '';
+      _errorMessage = null;
+    });
   }
 
   void _showSuccessDialog() {
@@ -141,31 +250,34 @@ class _OtpVerifyViewState extends State<OtpVerifyView>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 88,
-                height: 88,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppColors.successLight,
-                      Color(0xFFDCFCE7),
+              ScaleTransition(
+                scale: _successScaleAnimation,
+                child: Container(
+                  width: 88,
+                  height: 88,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppColors.success,
+                        AppColors.success.withValues(alpha: 0.8),
+                      ],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.success.withValues(alpha: 0.3),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
+                      ),
                     ],
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.success.withValues(alpha: 0.2),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.check_rounded,
-                  color: AppColors.success,
-                  size: 44,
+                  child: const Icon(
+                    Icons.check_rounded,
+                    color: AppColors.textWhite,
+                    size: 44,
+                  ),
                 ),
               ),
               const SizedBox(height: AppSpacing.xl),
@@ -224,25 +336,25 @@ class _OtpVerifyViewState extends State<OtpVerifyView>
                 height: 88,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: const LinearGradient(
+                  gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      AppColors.errorLight,
-                      Color(0xFFFEE2E2),
+                      AppColors.error,
+                      AppColors.error.withValues(alpha: 0.8),
                     ],
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.error.withValues(alpha: 0.2),
-                      blurRadius: 20,
+                      color: AppColors.error.withValues(alpha: 0.3),
+                      blurRadius: 24,
                       offset: const Offset(0, 8),
                     ),
                   ],
                 ),
                 child: const Icon(
                   Icons.error_outline_rounded,
-                  color: AppColors.error,
+                  color: AppColors.textWhite,
                   size: 44,
                 ),
               ),
@@ -282,7 +394,11 @@ class _OtpVerifyViewState extends State<OtpVerifyView>
   @override
   void dispose() {
     _timer?.cancel();
-    _animationController.dispose();
+    for (final c in _controllers) c.dispose();
+    for (final f in _focusNodes) f.dispose();
+    _mainController.dispose();
+    _successController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -297,21 +413,27 @@ class _OtpVerifyViewState extends State<OtpVerifyView>
       body: SafeArea(
         child: FadeTransition(
           opacity: _fadeAnimation,
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SizedBox(height: size.height * 0.06),
-                  _buildBackButton(theme, isDark),
-                  SizedBox(height: size.height * 0.04),
-                  _buildHeader(theme, isDark),
-                  SizedBox(height: size.height * 0.08),
-                  _buildOtpCard(theme, isDark),
-                  const SizedBox(height: AppSpacing.xxl),
-                ],
+          child: SlideTransition(
+            position: _slideAnimation,
+            child: ScaleTransition(
+              scale: _scaleAnimation,
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SizedBox(height: size.height * 0.06),
+                      _buildBackButton(theme, isDark),
+                      SizedBox(height: size.height * 0.04),
+                      _buildHeader(theme, isDark),
+                      SizedBox(height: size.height * 0.08),
+                      _buildOtpCard(theme, isDark),
+                      const SizedBox(height: AppSpacing.xxl),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
@@ -321,34 +443,32 @@ class _OtpVerifyViewState extends State<OtpVerifyView>
   }
 
   Widget _buildBackButton(ThemeData theme, bool isDark) {
-    return Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: isDark ? AppColors.darkCard : AppColors.creamWhite,
-        shape: const CircleBorder(),
-        child: InkWell(
-          onTap: () => context.pop(),
-          customBorder: const CircleBorder(),
-          child: Container(
-            width: 48,
-            height: 48,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: isDark ? AppColors.darkBorder : AppColors.borderDefault,
-                width: 1,
-              ),
+    return Transform.scale(
+      scale: 1.0,
+      child: Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: isDark ? AppColors.darkCard : AppColors.creamWhite,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
+          ],
+          border: Border.all(
+            color: isDark ? AppColors.darkBorder : AppColors.borderDefault,
+            width: 1,
+          ),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          shape: const CircleBorder(),
+          child: InkWell(
+            onTap: () => context.pop(),
+            customBorder: const CircleBorder(),
             child: Icon(
               Icons.arrow_back_rounded,
               color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
@@ -370,7 +490,12 @@ class _OtpVerifyViewState extends State<OtpVerifyView>
             vertical: AppSpacing.micro,
           ),
           decoration: BoxDecoration(
-            color: AppColors.primaryAmberLight.withValues(alpha: 0.5),
+            gradient: LinearGradient(
+              colors: [
+                AppColors.primaryAmber.withValues(alpha: 0.2),
+                AppColors.primaryAmber.withValues(alpha: 0.1),
+              ],
+            ),
             borderRadius: BorderRadius.circular(AppRadius.xs),
           ),
           child: Text(
@@ -430,26 +555,149 @@ class _OtpVerifyViewState extends State<OtpVerifyView>
       padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
         children: [
-          TriOtpInput(
-            length: 6,
-            onChanged: (otp) {
-              setState(() {
-                _otp = otp;
-                _isButtonEnabled = otp.length == 6;
-              });
-            },
-            onCompleted: _onContinue,
-          ),
+          _buildOtpInputs(isDark),
           const SizedBox(height: AppSpacing.xl),
-          PrimaryButton(
-            label: 'Xác thực',
-            icon: Icons.verified_rounded,
-            loading: _isLoading,
-            onPressed: _isButtonEnabled ? () => _onContinue(_otp) : null,
-          ),
+          _buildVerifyButton(theme, isDark),
           const SizedBox(height: AppSpacing.lg),
           _buildResendRow(isDark),
         ],
+      ),
+    );
+  }
+
+  Widget _buildOtpInputs(bool isDark) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: List.generate(6, (index) {
+        return _buildOtpBox(index, isDark);
+      }),
+    );
+  }
+
+  Widget _buildOtpBox(int index, bool isDark) {
+    final hasFocus = _focusNodes[index].hasFocus;
+    final hasValue = _controllers[index].text.isNotEmpty;
+
+    return AnimatedContainer(
+      duration: AppCurves.durationNormal,
+      width: 48,
+      height: 56,
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkElevated : AppColors.creamElevated,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(
+          color: hasFocus
+              ? AppColors.primaryAmber
+              : (isDark ? AppColors.darkBorder : AppColors.borderDefault),
+          width: hasFocus ? 2 : 1.5,
+        ),
+        boxShadow: hasFocus
+            ? [
+                BoxShadow(
+                  color: AppColors.primaryAmber.withValues(alpha: 0.2),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : null,
+      ),
+      child: KeyboardListener(
+        focusNode: FocusNode(),
+        onKeyEvent: (event) => _onKeyEvent(index, event),
+        child: TextField(
+          controller: _controllers[index],
+          focusNode: _focusNodes[index],
+          keyboardType: TextInputType.number,
+          textAlign: TextAlign.center,
+          maxLength: 1,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(1),
+          ],
+          style: AppTypography.headlineMedium.copyWith(
+            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+            fontWeight: FontWeight.w600,
+          ),
+          decoration: InputDecoration(
+            border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
+            errorBorder: InputBorder.none,
+            focusedErrorBorder: InputBorder.none,
+            counterText: '',
+            contentPadding: EdgeInsets.zero,
+            filled: false,
+            hintText: hasValue ? '' : '•',
+            hintStyle: AppTypography.headlineMedium.copyWith(
+              color: isDark ? AppColors.darkTextTertiary : AppColors.textTertiary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          onChanged: (value) => _onOtpChanged(value, index),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVerifyButton(ThemeData theme, bool isDark) {
+    final canVerify = _otp.length == 6 && !_isLoading;
+
+    return GestureDetector(
+      onTap: canVerify ? () => _onVerify(_otp) : null,
+      child: AnimatedContainer(
+        duration: AppCurves.durationNormal,
+        height: 56,
+        decoration: BoxDecoration(
+          gradient: canVerify
+              ? LinearGradient(colors: AppColors.primaryGradient)
+              : null,
+          color: canVerify
+              ? null
+              : (isDark ? AppColors.darkBorder : AppColors.borderDefault),
+          borderRadius: BorderRadius.circular(AppRadius.xl),
+          boxShadow: canVerify
+              ? [
+                  BoxShadow(
+                    color: AppColors.primaryAmber.withValues(alpha: 0.3),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ]
+              : null,
+        ),
+        child: Center(
+          child: _isLoading
+              ? SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    color: isDark ? AppColors.darkTextPrimary : AppColors.textWhite,
+                    strokeWidth: 2.5,
+                  ),
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Xác thực',
+                      style: AppTypography.labelLarge.copyWith(
+                        color: canVerify
+                            ? AppColors.textWhite
+                            : (isDark ? AppColors.darkTextTertiary : AppColors.textTertiary),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Icon(
+                      Icons.verified_rounded,
+                      color: canVerify
+                          ? AppColors.textWhite
+                          : (isDark ? AppColors.darkTextTertiary : AppColors.textTertiary),
+                      size: 20,
+                    ),
+                  ],
+                ),
+        ),
       ),
     );
   }
@@ -466,19 +714,29 @@ class _OtpVerifyViewState extends State<OtpVerifyView>
         ),
         GestureDetector(
           onTap: _canResend ? _onResend : null,
-          child: AnimatedDefaultTextStyle(
-            duration: AppCurves.durationFast,
-            style: AppTypography.labelMedium.copyWith(
-              color: _canResend
-                  ? AppColors.primaryAmber
-                  : (isDark ? AppColors.darkTextTertiary : AppColors.textTertiary),
-              fontWeight: FontWeight.w700,
-              decoration: _canResend ? TextDecoration.underline : TextDecoration.none,
-            ),
-            child: Text(
-              _canResend
-                  ? 'Gửi lại mã'
-                  : 'Gửi lại (${_countdown}s)',
+          child: AnimatedBuilder(
+            animation: _pulseController,
+            builder: (context, child) {
+              final scale = _canResend ? 1.0 + (_pulseController.value * 0.05) : 1.0;
+              return Transform.scale(
+                scale: scale,
+                child: child,
+              );
+            },
+            child: AnimatedDefaultTextStyle(
+              duration: AppCurves.durationFast,
+              style: AppTypography.labelMedium.copyWith(
+                color: _canResend
+                    ? AppColors.primaryAmber
+                    : (isDark ? AppColors.darkTextTertiary : AppColors.textTertiary),
+                fontWeight: FontWeight.w700,
+                decoration: _canResend ? TextDecoration.underline : TextDecoration.none,
+              ),
+              child: Text(
+                _canResend
+                    ? 'Gửi lại mã'
+                    : 'Gửi lại (${_countdown}s)',
+              ),
             ),
           ),
         ),

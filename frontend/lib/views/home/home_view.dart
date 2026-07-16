@@ -9,10 +9,10 @@ import 'package:frontend/config/tri_chat_logo.dart';
 import 'package:frontend/utils/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
-/// Trang chào mừng — phong cách Minimalist:
-/// - Nền trắng / off-white
-/// - Logo TriChat lớn ở giữa, chữ đen đậm
-/// - Typography sạch, không gradient, không glow
+/// ════════════════════════════════════════════════════════════════
+/// PREMIUM HOME VIEW — High-End Welcome Landing
+/// ════════════════════════════════════════════════════════════════
+
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
 
@@ -21,18 +21,14 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
-  String _selectedLanguage =
-      AppLocalizations(localeNotifier.value).displayName;
+  String _selectedLanguage = AppLocalizations(localeNotifier.value).displayName;
 
-  late final AnimationController _contentCtrl;
-  late final Animation<double> _logoFade;
-  late final Animation<Offset> _logoSlide;
-  late final Animation<double> _titleFade;
-  late final Animation<Offset> _titleSlide;
-  late final Animation<double> _cardFade;
-  late final Animation<Offset> _cardSlide;
-  late final Animation<double> _buttonsFade;
-  late final Animation<Offset> _buttonsSlide;
+  late AnimationController _contentCtrl;
+  late Animation<double> _logoOpacity;
+  late Animation<double> _titleOpacity;
+  late Animation<double> _cardOpacity;
+  late Animation<double> _buttonsOpacity;
+  late Animation<Offset> _titleSlide;
 
   @override
   void initState() {
@@ -46,70 +42,44 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
 
     _contentCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 1500),
     );
 
-    _logoFade = Tween<double>(begin: 0, end: 1).animate(
+    _logoOpacity = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _contentCtrl,
         curve: const Interval(0, 0.4, curve: Curves.easeOut),
       ),
     );
-    _logoSlide = Tween<Offset>(
-      begin: const Offset(0, -0.1),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _contentCtrl,
-        curve: const Interval(0, 0.5, curve: Curves.easeOutCubic),
-      ),
-    );
 
-    _titleFade = Tween<double>(begin: 0, end: 1).animate(
+    _titleOpacity = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _contentCtrl,
         curve: const Interval(0.2, 0.6, curve: Curves.easeOut),
       ),
     );
+
     _titleSlide = Tween<Offset>(
-      begin: const Offset(0, 0.08),
+      begin: const Offset(0, 20),
       end: Offset.zero,
     ).animate(
       CurvedAnimation(
         parent: _contentCtrl,
-        curve: const Interval(0.2, 0.6, curve: Curves.easeOutCubic),
+        curve: const Interval(0.2, 0.6, curve: Curves.easeOut),
       ),
     );
 
-    _cardFade = Tween<double>(begin: 0, end: 1).animate(
+    _cardOpacity = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _contentCtrl,
-        curve: const Interval(0.35, 0.7, curve: Curves.easeOut),
-      ),
-    );
-    _cardSlide = Tween<Offset>(
-      begin: const Offset(0, 0.1),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _contentCtrl,
-        curve: const Interval(0.35, 0.7, curve: Curves.easeOutCubic),
+        curve: const Interval(0.4, 0.8, curve: Curves.easeOut),
       ),
     );
 
-    _buttonsFade = Tween<double>(begin: 0, end: 1).animate(
+    _buttonsOpacity = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _contentCtrl,
-        curve: const Interval(0.55, 1, curve: Curves.easeOut),
-      ),
-    );
-    _buttonsSlide = Tween<Offset>(
-      begin: const Offset(0, 0.14),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _contentCtrl,
-        curve: const Interval(0.55, 1, curve: Curves.easeOutCubic),
+        curve: const Interval(0.6, 1, curve: Curves.easeOut),
       ),
     );
 
@@ -180,19 +150,15 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                               child: Text(
                                 lang,
                                 style: AppTypography.bodyLarge.copyWith(
-                                  fontWeight: isSelected
-                                      ? FontWeight.w700
-                                      : FontWeight.w400,
-                                  color: isSelected
-                                      ? AppColors.neutralBlack
-                                      : theme.colorScheme.onSurface,
+                                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                                  color: isSelected ? AppColors.primaryAmber : theme.colorScheme.onSurface,
                                 ),
                               ),
                             ),
                             if (isSelected)
-                              const Icon(
+                              Icon(
                                 Icons.check_rounded,
-                                color: AppColors.neutralBlack,
+                                color: AppColors.primaryAmber,
                                 size: 20,
                               ),
                           ],
@@ -216,38 +182,32 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       valueListenable: localeNotifier,
       builder: (context, locale, _) {
         final t = AppLocalizations(locale);
-        return AnimatedBuilder(
-          animation: _contentCtrl,
-          builder: (context, _) {
-            return Scaffold(
-              backgroundColor: theme.scaffoldBackgroundColor,
-              body: SafeArea(
-                child: Column(
-                  children: [
-                    _buildLanguageSelector(),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.xl,
-                        ),
-                        child: Column(
-                          children: [
-                            const SizedBox(height: AppSpacing.huge),
-                            _buildHero(t),
-                            const SizedBox(height: AppSpacing.huge),
-                            _buildFeatureCard(t),
-                            const SizedBox(height: AppSpacing.xxl),
-                            _buildButtons(t),
-                            const SizedBox(height: AppSpacing.xl),
-                          ],
-                        ),
-                      ),
+        return Scaffold(
+          backgroundColor: theme.scaffoldBackgroundColor,
+          body: SafeArea(
+            child: Column(
+              children: [
+                _buildLanguageSelector(),
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: AppSpacing.huge),
+                        _buildHero(t),
+                        const SizedBox(height: AppSpacing.huge),
+                        _buildFeatureCard(t),
+                        const SizedBox(height: AppSpacing.xxl),
+                        _buildButtons(t),
+                        const SizedBox(height: AppSpacing.xl),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            );
-          },
+              ],
+            ),
+          ),
         );
       },
     );
@@ -255,63 +215,50 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
 
   Widget _buildLanguageSelector() {
     final theme = Theme.of(context);
-    return FadeTransition(
-      opacity: _logoFade,
-      child: Padding(
-        padding: const EdgeInsets.only(
-          top: AppSpacing.md,
-          right: AppSpacing.lg,
-          left: AppSpacing.lg,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            GestureDetector(
-              onTap: _showLanguageSheet,
-              behavior: HitTestBehavior.opaque,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.sm,
-                ),
-                decoration: BoxDecoration(
-                  color: theme.brightness == Brightness.dark
-                      ? AppColors.darkSurface
-                      : AppColors.neutralGray100,
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                  border: Border.all(
-                    color: theme.dividerColor,
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.language_rounded,
-                      color: theme.colorScheme.onSurface,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      _selectedLanguage,
-                      style: AppTypography.bodySmall.copyWith(
-                        color: theme.colorScheme.onSurface,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(width: 2),
-                    Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      color: theme.colorScheme.onSurface,
-                      size: 18,
-                    ),
-                  ],
+    return Padding(
+      padding: const EdgeInsets.only(
+        top: AppSpacing.md,
+        right: AppSpacing.lg,
+        left: AppSpacing.lg,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          GestureDetector(
+            onTap: _showLanguageSheet,
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.sm,
+              ),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+                border: Border.all(
+                  color: AppColors.primaryAmber.withValues(alpha: 0.3),
+                  width: 1,
                 ),
               ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.language_rounded, color: AppColors.primaryAmber, size: 16),
+                  const SizedBox(width: 6),
+                  Text(
+                    _selectedLanguage,
+                    style: AppTypography.bodySmall.copyWith(
+                      color: theme.colorScheme.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(width: 2),
+                  Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primaryAmber, size: 18),
+                ],
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -322,25 +269,46 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       mainAxisSize: MainAxisSize.min,
       children: [
         FadeTransition(
-          opacity: _logoFade,
-          child: SlideTransition(
-            position: _logoSlide,
-            child: const TriChatLogoLarge(size: 110),
+          opacity: _logoOpacity,
+          child: Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: AppColors.primaryGradient,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primaryAmber.withValues(alpha: 0.4),
+                  blurRadius: 30,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Icon(Icons.chat_rounded, color: AppColors.textWhite, size: 56),
           ),
         ),
         const SizedBox(height: AppSpacing.xl),
         FadeTransition(
-          opacity: _titleFade,
+          opacity: _titleOpacity,
           child: SlideTransition(
             position: _titleSlide,
             child: Column(
               children: [
-                Text(
-                  'TriChat',
-                  style: AppTypography.displayLarge.copyWith(
-                    color: theme.colorScheme.onSurface,
-                    fontSize: 48,
-                    letterSpacing: -1.5,
+                ShaderMask(
+                  shaderCallback: (bounds) => LinearGradient(
+                    colors: [AppColors.primaryAmber, AppColors.accentWarm],
+                  ).createShader(bounds),
+                  child: Text(
+                    'TriChat',
+                    style: AppTypography.displayLarge.copyWith(
+                      fontSize: 52,
+                      letterSpacing: -1.5,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
@@ -363,73 +331,56 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   Widget _buildFeatureCard(AppLocalizations t) {
     final theme = Theme.of(context);
     return FadeTransition(
-      opacity: _cardFade,
-      child: SlideTransition(
-        position: _cardSlide,
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: Border.all(color: theme.dividerColor, width: 1),
+      opacity: _cardOpacity,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(AppRadius.xxl),
+          border: Border.all(
+            color: AppColors.primaryAmber.withValues(alpha: 0.2),
+            width: 1,
           ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildFeatureChip(
-                    Icons.chat_bubble_outline_rounded,
-                    'Chat',
-                    theme,
-                  ),
-                  _buildFeatureChip(
-                    Icons.people_outline_rounded,
-                    'Bạn bè',
-                    theme,
-                  ),
-                  _buildFeatureChip(
-                    Icons.auto_stories_outlined,
-                    'Bản tin',
-                    theme,
-                  ),
-                ],
+        ),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildFeatureChip(Icons.chat_bubble_outline_rounded, 'Chat', AppColors.primaryAmber, theme),
+                _buildFeatureChip(Icons.people_outline_rounded, 'Bạn bè', AppColors.accentWarm, theme),
+                _buildFeatureChip(Icons.auto_stories_outlined, 'Bản tin', AppColors.textSecondary, theme),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'Trò chuyện. Kết nối. Mọi lúc mọi nơi.',
+              textAlign: TextAlign.center,
+              style: AppTypography.bodySmall.copyWith(
+                color: theme.hintColor,
+                height: 1.5,
               ),
-              const SizedBox(height: AppSpacing.md),
-              Text(
-                'Trò chuyện. Kết nối. Mọi lúc mọi nơi.',
-                textAlign: TextAlign.center,
-                style: AppTypography.bodySmall.copyWith(
-                  color: theme.hintColor,
-                  height: 1.5,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildFeatureChip(IconData icon, String label, ThemeData theme) {
+  Widget _buildFeatureChip(IconData icon, String label, Color color, ThemeData theme) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 52,
-          height: 52,
+          width: 56,
+          height: 56,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: theme.brightness == Brightness.dark
-                ? AppColors.darkCard
-                : AppColors.neutralGray100,
-            border: Border.all(
-              color: theme.dividerColor,
-              width: 1,
-            ),
+            color: color.withValues(alpha: 0.1),
+            border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
           ),
-          child: Icon(icon, color: theme.colorScheme.onSurface, size: 22),
+          child: Icon(icon, color: color, size: 26),
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
@@ -445,23 +396,66 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
 
   Widget _buildButtons(AppLocalizations t) {
     return FadeTransition(
-      opacity: _buttonsFade,
-      child: SlideTransition(
-        position: _buttonsSlide,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+      opacity: _buttonsOpacity,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildPrimaryButton(t.get('login'), Icons.login_rounded, () => context.go('/login')),
+          const SizedBox(height: AppSpacing.md),
+          _buildSecondaryButton(t.get('createAccount'), Icons.person_add_alt_1_outlined, () => context.go('/sign-up')),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPrimaryButton(String label, IconData icon, VoidCallback onPressed) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        width: double.infinity,
+        height: 56,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(colors: AppColors.primaryGradient),
+          borderRadius: BorderRadius.circular(AppRadius.xl),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primaryAmber.withValues(alpha: 0.4),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            PrimaryButton(
-              label: t.get('login'),
-              icon: Icons.login_rounded,
-              onPressed: () => context.go('/login'),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            SecondaryButton(
-              label: t.get('createAccount'),
-              icon: Icons.person_add_alt_1_outlined,
-              onPressed: () => context.go('/sign-up'),
-            ),
+            Icon(icon, color: AppColors.textWhite, size: 22),
+            const SizedBox(width: AppSpacing.sm),
+            Text(label, style: AppTypography.labelLarge.copyWith(color: AppColors.textWhite, fontWeight: FontWeight.w700)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSecondaryButton(String label, IconData icon, VoidCallback onPressed) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        width: double.infinity,
+        height: 56,
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkCard : AppColors.creamWhite,
+          borderRadius: BorderRadius.circular(AppRadius.xl),
+          border: Border.all(color: AppColors.primaryAmber.withValues(alpha: 0.5), width: 1.5),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: AppColors.primaryAmber, size: 22),
+            const SizedBox(width: AppSpacing.sm),
+            Text(label, style: AppTypography.labelLarge.copyWith(color: AppColors.primaryAmber, fontWeight: FontWeight.w700)),
           ],
         ),
       ),

@@ -31,11 +31,10 @@ namespace backend.Controllers
         [ProducesResponseType(typeof(ApiResponse<ErrorDetail>), StatusCodes.Status422UnprocessableEntity)]
         public async Task<IActionResult> GenerateOtp([FromBody] GenerateOtpRequest request)
         {
-            var generatedOtp = await otpService.GenerateOtpAsync(request.Email);
+            await otpService.GenerateOtpAsync(request.Email);
 
             return Ok(ApiResponse<OtpResponse>.SuccessResponse(new OtpResponse
             {
-                Otp = generatedOtp,
                 Email = request.Email
             }));
         }
