@@ -382,101 +382,103 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             ),
             child: SafeArea(
               bottom: false,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: Icon(
-                    Icons.arrow_back_rounded,
-                    color: theme.colorScheme.onSurface,
-                    size: 22,
-                  ),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                Expanded(
-                  child: InkWell(
-                    onTap: _openConversationInfo,
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    child: Selector<ChatProvider, bool>(
-                      selector: (_, p) =>
-                          widget.conversation.type == 'private' &&
-                          widget.conversation.otherUserId != null &&
-                          p.isUserOnline(widget.conversation.otherUserId!),
-                      builder: (_, isOnline, __) => Row(
-                        children: [
-                          TriAvatar(
-                            imageUrl: widget.conversation.displayAvatar,
-                            name: widget.conversation.displayName,
-                            size: 40,
-                          ),
-                          const SizedBox(width: AppSpacing.md),
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  widget.conversation.displayName,
-                                  style: AppTypography.bodyLarge.copyWith(
-                                    color: isDark
-                                        ? AppColors.darkPremiumTextPrimary
-                                        : theme.colorScheme.onSurface,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: -0.2,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        Icons.arrow_back_rounded,
+                        color: theme.colorScheme.onSurface,
+                        size: 22,
+                      ),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                    const SizedBox(width: AppSpacing.xs),
+                    Expanded(
+                      child: InkWell(
+                        onTap: _openConversationInfo,
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                        child: Selector<ChatProvider, bool>(
+                          selector: (_, p) =>
+                              widget.conversation.type == 'private' &&
+                              widget.conversation.otherUserId != null &&
+                              p.isUserOnline(widget.conversation.otherUserId!),
+                          builder: (_, isOnline, __) => Row(
+                            children: [
+                              TriAvatar(
+                                imageUrl: widget.conversation.displayAvatar,
+                                name: widget.conversation.displayName,
+                                size: 40,
+                              ),
+                              const SizedBox(width: AppSpacing.md),
+                              Expanded(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      widget.conversation.displayName,
+                                      style: AppTypography.bodyLarge.copyWith(
+                                        color: isDark
+                                            ? AppColors.darkPremiumTextPrimary
+                                            : theme.colorScheme.onSurface,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: -0.2,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      isOnline
+                                          ? 'Đang hoạt động'
+                                          : widget.conversation.displayStatus,
+                                      style: AppTypography.labelSmall.copyWith(
+                                        color: isOnline
+                                            ? AppColors.neonOnline
+                                            : (isDark
+                                                ? AppColors.darkPremiumTextSecondary
+                                                : theme.hintColor),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  isOnline
-                                      ? 'Đang hoạt động'
-                                      : widget.conversation.displayStatus,
-                                  style: AppTypography.labelSmall.copyWith(
-                                    color: isOnline
-                                        ? AppColors.neonOnline
-                                        : (isDark
-                                            ? AppColors.darkPremiumTextSecondary
-                                            : theme.hintColor),
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
+                    if (widget.conversation.type == 'group')
+                      const SizedBox.shrink(),
+                    const SizedBox(width: AppSpacing.xs),
+                    _buildAppBarIcon(
+                      Icons.call_outlined,
+                      onTap: _startVoiceCall,
+                      isDark: isDark,
+                    ),
+                    _buildAppBarIcon(
+                      Icons.videocam_outlined,
+                      onTap: _startVideoCall,
+                      isDark: isDark,
+                    ),
+                    _buildAppBarIcon(
+                      Icons.info_outline_rounded,
+                      onTap: _openConversationInfo,
+                      isDark: isDark,
+                    ),
+                  ],
                 ),
-                if (widget.conversation.type == 'group')
-                  const SizedBox.shrink(),
-                const SizedBox(width: AppSpacing.xs),
-                _buildAppBarIcon(
-                  Icons.call_outlined,
-                  onTap: _startVoiceCall,
-                  isDark: isDark,
-                ),
-                _buildAppBarIcon(
-                  Icons.videocam_outlined,
-                  onTap: _startVideoCall,
-                  isDark: isDark,
-                ),
-                _buildAppBarIcon(
-                  Icons.info_outline_rounded,
-                  onTap: _openConversationInfo,
-                  isDark: isDark,
-                ),
-              ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
