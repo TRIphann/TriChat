@@ -95,13 +95,13 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded,
-              color: Colors.white, size: 22),
+              color: AppColors.neutralBlack, size: 22),
           onPressed: () => Navigator.pop(ctx),
         ),
         title: Text(
           'Lời mời kết bạn',
           style: AppTypography.titleMedium.copyWith(
-            color: Colors.white,
+            color: AppColors.neutralBlack,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -110,9 +110,9 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
           preferredSize: const Size.fromHeight(46),
           child: TabBar(
             controller: _tabs,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white60,
-            indicatorColor: Colors.white,
+            labelColor: AppColors.neutralBlack,
+            unselectedLabelColor: AppColors.textSecondary,
+            indicatorColor: AppColors.primaryOrange,
             indicatorWeight: 2.5,
             labelStyle: AppTypography.labelLarge,
             unselectedLabelStyle: AppTypography.labelMedium,

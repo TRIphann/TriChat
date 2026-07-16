@@ -119,7 +119,9 @@ var allowedOrigins = builder.Environment.IsDevelopment()
       }
     : new List<string> {
         "https://trichatt.netlify.app",
-        "https://www.trichatt.netlify.app"
+        "https://www.trichatt.netlify.app",
+        "https://trichat.onrender.com",
+        "http://trichat.onrender.com"
       };
 
 var extraOrigins = builder.Configuration["AllowedCorsOrigins"];

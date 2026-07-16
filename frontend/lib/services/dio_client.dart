@@ -2,6 +2,21 @@ import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:frontend/config/api_config.dart';
 
+/// Separate Dio client for public endpoints (no Firebase auth required).
+/// Uses shorter timeouts so users don't wait 120s on cold-start failures.
+class PublicDioClient {
+  PublicDioClient._();
+
+  static final Dio instance = Dio(
+    BaseOptions(
+      baseUrl: ApiConfig.baseUrl,
+      connectTimeout: const Duration(seconds: 30),
+      sendTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
+    ),
+  );
+}
+
 /// Interceptor tự động gắn Firebase ID Token vào Header Authorization
 /// của mọi request. Token được refresh tự động khi hết hạn.
 class _AuthInterceptor extends Interceptor {

@@ -417,33 +417,18 @@ class _NewfeedScreenState extends State<NewfeedScreen>
       ),
       child: Row(
         children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors: [
-                  AppColors.neonRoyal,
-                  AppColors.neonRoyal.withValues(alpha: 0.7),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+          if (_currentUserAvatar.isNotEmpty)
+            ClipOval(
+              child: Image.network(
+                _currentUserAvatar,
+                width: 46,
+                height: 46,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _buildAvatarFallback(),
               ),
-            ),
-            child: Center(
-              child: Text(
-                _currentUserName.isNotEmpty
-                    ? _currentUserName[0].toUpperCase()
-                    : '?',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 16,
-                ),
-              ),
-            ),
-          ),
+            )
+          else
+            _buildAvatarFallback(),
           const SizedBox(width: 12),
           Expanded(
             child: GestureDetector(
@@ -476,6 +461,36 @@ class _NewfeedScreenState extends State<NewfeedScreen>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAvatarFallback() {
+    return Container(
+      width: 46,
+      height: 46,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          colors: [
+            AppColors.neonRoyal,
+            AppColors.neonRoyal.withValues(alpha: 0.7),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Center(
+        child: Text(
+          _currentUserName.isNotEmpty
+              ? _currentUserName[0].toUpperCase()
+              : '?',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+            fontSize: 16,
+          ),
+        ),
       ),
     );
   }
@@ -843,9 +858,31 @@ class _NewfeedScreenState extends State<NewfeedScreen>
         if (provider.state == FeedLoadingState.error &&
             provider.posts.isEmpty) {
           return SliverFillRemaining(
-            child: ListView(
-              padding: const EdgeInsets.only(top: 8, bottom: 100),
-              children: _buildMockPostsFeed(),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.cloud_off_rounded,
+                      size: 52, color: AppColors.darkPremiumTextSecondary),
+                  const SizedBox(height: 14),
+                  Text(
+                    'Không thể tải bài viết',
+                    style: TextStyle(
+                      color: AppColors.darkPremiumTextPrimary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () => provider.refreshFeed(),
+                    child: Text(
+                      'Thử lại',
+                      style: TextStyle(color: AppColors.neonRoyal),
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         }

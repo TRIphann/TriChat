@@ -476,7 +476,7 @@ class ChatListViewState extends State<ChatListView>
   }) {
     final isSelected = _selectedNavIndex == index;
     final activeColor = isDark ? AppColors.darkTextPrimary : AppColors.textWhite;
-    final inactiveColor = isDark ? AppColors.darkTextTertiary : AppColors.textTertiary;
+    final inactiveColor = isDark ? AppColors.darkTextSecondary : AppColors.textTertiary;
 
     Widget item = Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -1097,7 +1097,7 @@ class ChatListViewState extends State<ChatListView>
   ) {
     final isSelected = _selectedNavIndex == index;
     final activeColor = AppColors.primaryAmber;
-    final inactiveColor = isDark ? AppColors.darkTextTertiary : AppColors.textTertiary;
+    final inactiveColor = isDark ? AppColors.darkTextSecondary : AppColors.textTertiary;
     final color = isSelected ? activeColor : inactiveColor;
 
     return Expanded(

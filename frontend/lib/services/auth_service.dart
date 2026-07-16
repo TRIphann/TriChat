@@ -1,4 +1,3 @@
-// AuthService - works on both web and native platforms
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -150,7 +149,7 @@ class AuthService {
 
   static Future<void> sendOtp(String email) async {
     try {
-      final response = await DioClient.instance.post(
+      final response = await PublicDioClient.instance.post(
         '/api/otp/generate',
         data: {'email': email.trim()},
       );
@@ -173,17 +172,15 @@ class AuthService {
 
   static Future<bool> verifyOtp(String email, String otp) async {
     try {
-      final response = await DioClient.instance.post(
+      final response = await PublicDioClient.instance.post(
         '/api/otp/verify',
         data: {'email': email.trim(), 'otp': otp.trim()},
       );
-      // Backend returns 200 on success, 401 on invalid OTP
       if (response.statusCode == 200) {
         return true;
       }
       return false;
     } on DioException catch (e) {
-      // 401 UNAUTHORIZED means OTP invalid — throw with clear message
       if (e.response?.statusCode == 401) {
         throw Exception('Mã OTP không đúng hoặc đã hết hạn');
       }
