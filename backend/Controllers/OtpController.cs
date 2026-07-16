@@ -1,3 +1,4 @@
+using backend.Exceptions;
 using backend.common;
 using backend.dtos.Request;
 using backend.dtos.Response;
@@ -45,12 +46,12 @@ namespace backend.Controllers
             catch (AppException ex)
             {
                 _logger.LogWarning(ex, "OTP generate FAILED for email: {Email} with AppException", request.Email);
-                return StatusCode(422, ApiResponse<object>.ErrorResponse(ex.Message, ex.ErrorCode));
+                return StatusCode(422, ApiResponse<object>.ErrorResponse(422, ex.Message));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "OTP generate FAILED for email: {Email} with unexpected error", request.Email);
-                return StatusCode(500, ApiResponse<object>.ErrorResponse("Lỗi hệ thống: " + ex.Message));
+                return StatusCode(500, ApiResponse<object>.ErrorResponse(500, "Lỗi hệ thống: " + ex.Message));
             }
         }
 
@@ -82,12 +83,12 @@ namespace backend.Controllers
             catch (AppException ex)
             {
                 _logger.LogWarning(ex, "OTP verify FAILED for email: {Email} with AppException", request.Email);
-                return StatusCode(401, ApiResponse<object>.ErrorResponse(ex.Message, ex.ErrorCode));
+                return StatusCode(401, ApiResponse<object>.ErrorResponse(401, ex.Message));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "OTP verify FAILED for email: {Email} with unexpected error", request.Email);
-                return StatusCode(500, ApiResponse<object>.ErrorResponse("Lỗi hệ thống: " + ex.Message));
+                return StatusCode(500, ApiResponse<object>.ErrorResponse(500, "Lỗi hệ thống: " + ex.Message));
             }
         }
     }

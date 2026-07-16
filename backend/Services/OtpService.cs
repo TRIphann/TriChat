@@ -53,7 +53,7 @@ namespace backend.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to cache OTP for {Email} - Redis may not be configured", email);
-                throw new AppException(backend.Enums.ErrorCode.INTERNAL_ERROR, "Hệ thống cache chưa được cấu hình. Vui lòng thử lại sau.");
+                throw new AppException(backend.Enums.ErrorCode.INTERNAL_ERROR);
             }
 
             var emailSent = await _emailService.SendOtpEmailAsync(email, otp);
@@ -82,7 +82,7 @@ namespace backend.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to lookup OTP for {Email} - Redis may not be configured", email);
-                throw new AppException(backend.Enums.ErrorCode.INTERNAL_ERROR, "Hệ thống cache chưa được cấu hình. Vui lòng thử lại sau.");
+                throw new AppException(backend.Enums.ErrorCode.INTERNAL_ERROR);
             }
 
             if (storedHash is null)
