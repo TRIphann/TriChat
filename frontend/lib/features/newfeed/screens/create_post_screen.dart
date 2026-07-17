@@ -156,7 +156,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   void _showVisibilitySheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.darkPremiumSurface,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
@@ -177,7 +177,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   void _showFriendSelector() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.darkPremiumSurface,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
@@ -322,13 +322,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     return Stack(
       children: [
         Material(
-          color: Colors.white,
+          color: AppColors.darkPremiumSurface,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               _buildHandle(),
               _buildHeader(),
-              Divider(height: 1, color: Colors.grey.shade200),
+              Divider(height: 1, color: AppColors.darkPremiumBorder),
               Flexible(
                 child: SingleChildScrollView(
                   padding: EdgeInsets.only(bottom: bottomPadding + 16),
@@ -357,7 +357,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.darkPremiumSurface,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
@@ -368,7 +368,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                         height: 44,
                         child: CircularProgressIndicator(
                           strokeWidth: 3,
-                          color: AppColors.primaryOrange,
+                          color: AppColors.neonRoyal,
                         ),
                       ),
                       SizedBox(height: 16),
@@ -377,7 +377,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
-                          color: AppColors.neutralBlack,
+                          color: AppColors.darkPremiumTextPrimary,
                         ),
                       ),
                     ],
@@ -397,7 +397,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         width: 36,
         height: 4,
         decoration: BoxDecoration(
-          color: Colors.grey.shade300,
+          color: AppColors.darkPremiumBorder,
           borderRadius: BorderRadius.circular(2),
         ),
       ),
@@ -418,7 +418,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             height: 44,
             child: IconButton(
               onPressed: () => Navigator.pop(context),
-              icon: Icon(Icons.close, color: AppColors.neutralGray700, size: 22),
+              icon: Icon(Icons.close, color: AppColors.darkPremiumTextPrimary, size: 22),
             ),
           ),
           Expanded(
@@ -428,7 +428,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w600,
-                color: AppColors.neutralBlack,
+                color: AppColors.darkPremiumTextPrimary,
               ),
             ),
           ),
@@ -440,13 +440,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     height: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: AppColors.primaryBlue,
+                      color: AppColors.neonRoyal,
                     ),
                   )
                 : Text(
                     'Đăng',
                     style: TextStyle(
-                      color: AppColors.primaryBlue,
+                      color: AppColors.neonRoyal,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -462,26 +462,26 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF7E8),
+        color: AppColors.neonRoyal.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFFFD89A)),
+        border: Border.all(color: AppColors.neonRoyal.withValues(alpha: 0.3)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
+        children: [
           Icon(
             Icons.info_outline,
             size: 18,
-            color: Color(0xFFD48806),
+            color: AppColors.neonRoyal,
           ),
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               'Ảnh này sẽ được đặt làm avatar khi bạn bấm Đăng. Nếu bạn đóng màn hình này, avatar sẽ không thay đổi.',
               style: TextStyle(
                 fontSize: 13,
                 height: 1.4,
-                color: Color(0xFF8C5A00),
+                color: AppColors.darkPremiumTextPrimary,
               ),
             ),
           ),
@@ -612,10 +612,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                    color: AppColors.neonRoyal.withValues(alpha: 0.18),
                     borderRadius: BorderRadius.circular(15),
                     border: Border.all(
-                      color: AppColors.primaryBlue.withValues(alpha: 0.3),
+                      color: AppColors.neonRoyal.withValues(alpha: 0.4),
                     ),
                   ),
                   child: Row(
@@ -626,7 +626,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                         height: 16,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: AppColors.success,
+                          color: AppColors.neonOnline,
                         ),
                         child: Center(
                           child: Text(
@@ -646,7 +646,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                         friend.fullName,
                         style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.primaryBlue,
+                          color: AppColors.neonRoyal,
                         ),
                       ),
                     ],
@@ -825,7 +825,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     const SizedBox(width: 8),
                     Text(
                       'Chọn ảnh từ thiết bị',
-                      style: TextStyle(fontSize: 14, color: AppColors.neutralBlack),
+                      style: TextStyle(fontSize: 14, color: AppColors.darkPremiumTextPrimary),
                     ),
                   ],
                 ),
@@ -905,7 +905,7 @@ class _VisibilitySheetState extends State<_VisibilitySheet> {
             width: 36,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey.shade300,
+              color: AppColors.darkPremiumBorder,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -918,7 +918,7 @@ class _VisibilitySheetState extends State<_VisibilitySheet> {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.neutralBlack,
+                    color: AppColors.darkPremiumTextPrimary,
                   ),
                 ),
               ],
@@ -976,7 +976,7 @@ class _VisibilitySheetState extends State<_VisibilitySheet> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         color: isSelected
-            ? AppColors.primaryBlue.withValues(alpha: 0.06)
+            ? AppColors.neonRoyal.withValues(alpha: 0.12)
             : Colors.transparent,
         child: Row(
           children: [
@@ -984,10 +984,10 @@ class _VisibilitySheetState extends State<_VisibilitySheet> {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                color: AppColors.neonRoyal.withValues(alpha: 0.18),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(icon, color: AppColors.primaryBlue, size: 20),
+              child: Icon(icon, color: AppColors.neonRoyal, size: 20),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -1000,22 +1000,22 @@ class _VisibilitySheetState extends State<_VisibilitySheet> {
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
                       color: isSelected
-                          ? AppColors.primaryBlue
-                          : AppColors.neutralBlack,
+                          ? AppColors.neonRoyal
+                          : AppColors.darkPremiumTextPrimary,
                     ),
                   ),
                   Text(
                     subtitle,
                     style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.neutralGray700,
+                      color: AppColors.darkPremiumTextSecondary,
                     ),
                   ),
                 ],
               ),
             ),
             if (isSelected)
-              Icon(Icons.check, color: AppColors.primaryBlue, size: 20),
+              Icon(Icons.check, color: AppColors.neonRoyal, size: 20),
           ],
         ),
       ),
@@ -1025,7 +1025,7 @@ class _VisibilitySheetState extends State<_VisibilitySheet> {
   void _showFriendSelectorSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.darkPremiumSurface,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
@@ -1071,7 +1071,7 @@ class _FriendSelectorSheet extends StatelessWidget {
             width: 36,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey.shade300,
+              color: AppColors.darkPremiumBorder,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -1085,7 +1085,7 @@ class _FriendSelectorSheet extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.neutralBlack,
+                      color: AppColors.darkPremiumTextPrimary,
                     ),
                   ),
                 ),
@@ -1094,7 +1094,7 @@ class _FriendSelectorSheet extends StatelessWidget {
                   child: Text(
                     'Xong',
                     style: TextStyle(
-                      color: AppColors.primaryBlue,
+                      color: AppColors.neonRoyal,
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                     ),
@@ -1103,7 +1103,7 @@ class _FriendSelectorSheet extends StatelessWidget {
               ],
             ),
           ),
-          const Divider(height: 1),
+          const Divider(height: 1, color: AppColors.darkPremiumBorder),
           Expanded(
             child: Consumer<FriendProvider>(
               builder: (context, provider, _) {
@@ -1117,13 +1117,13 @@ class _FriendSelectorSheet extends StatelessWidget {
                         Icon(
                           Icons.group_outlined,
                           size: 48,
-                          color: Colors.grey.shade400,
+                          color: AppColors.darkPremiumTextSecondary,
                         ),
                         const SizedBox(height: 12),
                         Text(
                           'Chưa có bạn bè',
                           style: TextStyle(
-                            color: Colors.grey.shade600,
+                            color: AppColors.darkPremiumTextSecondary,
                             fontSize: 14,
                           ),
                         ),
@@ -1167,7 +1167,7 @@ class _FriendSelectorSheet extends StatelessWidget {
                                 color: color,
                                 border: Border.all(
                                   color: isSelected
-                                      ? AppColors.primaryBlue
+                                      ? AppColors.neonRoyal
                                       : Colors.transparent,
                                   width: 2,
                                 ),
@@ -1217,7 +1217,7 @@ class _FriendSelectorSheet extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w500,
-                                      color: AppColors.neutralBlack,
+                                      color: AppColors.darkPremiumTextPrimary,
                                     ),
                                   ),
                                   if (friend.friendId.isNotEmpty)
@@ -1225,7 +1225,7 @@ class _FriendSelectorSheet extends StatelessWidget {
                                       friend.friendId,
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: AppColors.neutralGray700,
+                                        color: AppColors.darkPremiumTextSecondary,
                                       ),
                                     ),
                                 ],
@@ -1236,8 +1236,8 @@ class _FriendSelectorSheet extends StatelessWidget {
                                   ? Icons.check_circle
                                   : Icons.circle_outlined,
                               color: isSelected
-                                  ? AppColors.primaryBlue
-                                  : Colors.grey.shade300,
+                                  ? AppColors.neonRoyal
+                                  : AppColors.darkPremiumBorder,
                               size: 22,
                             ),
                           ],
@@ -1256,14 +1256,12 @@ class _FriendSelectorSheet extends StatelessWidget {
 
   Color _avatarColor(String name) {
     final colors = [
-      AppColors.success,
-      AppColors.primaryOrange,
-      AppColors.primaryOrangeLight,
-      AppColors.accentBrown,
-      AppColors.accentRed,
-      AppColors.accentBrown,
-      AppColors.accentBrown,
-      AppColors.neutralGray700,
+      AppColors.neonOnline,
+      AppColors.neonRoyal,
+      AppColors.neonOrange,
+      AppColors.neonPink,
+      AppColors.neonPurple,
+      AppColors.neonYellow,
     ];
     if (name.isEmpty) return colors[0];
     return colors[name.codeUnitAt(0) % colors.length];

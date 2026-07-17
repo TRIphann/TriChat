@@ -58,7 +58,10 @@ namespace backend.Services
             var emailSent = await _emailService.SendOtpEmailAsync(email, otp);
             if (!emailSent)
             {
-                _logger.LogWarning("Email delivery failed for {Email} - OTP will be returned in response", email);
+                _logger.LogWarning(
+                    "Email delivery failed for {Email} - OTP will be returned in response. " +
+                    "Check Resend config (ApiKey, From domain verification) on Render.",
+                    email);
                 try { await _kv.DeleteAsync(key); } catch { }
             }
             else

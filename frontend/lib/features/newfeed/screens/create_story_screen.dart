@@ -100,11 +100,13 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     }
 
     try {
+      // Try to request camera permission first
       final XFile? image = await _picker.pickImage(
         source: ImageSource.camera,
         imageQuality: 85,
         maxWidth: 1080,
         maxHeight: 1920,
+        preferredCameraDevice: CameraDevice.rear,
       );
 
       if (image != null) {
@@ -115,14 +117,30 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           if (mounted) setState(() => _selectedPath = image.path);
         }
       } else {
-        // Camera returned null - show option to choose from gallery
-        if (mounted) _showImageSourceDialog();
+        // Camera returned null - this happens on:
+        // 1. Emulators without camera support
+        // 2. Permission denied
+        // 3. No camera available
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Không thể truy cập camera. Vui lòng chọn ảnh từ thư viện.'),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
         setState(() => _errorMessage = 'Không thể chụp ảnh: $e');
         // Try gallery as fallback
-        _pickFromGallery();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi camera: $e. Đang mở thư viện ảnh...'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        await _pickFromGallery();
       }
     }
   }

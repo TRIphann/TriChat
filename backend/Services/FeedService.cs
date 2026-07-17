@@ -144,14 +144,18 @@ namespace backend.Services
         // create feed (story or post)
         public async Task<FeedResponse> CreateFeedAsync(string userId, CreateFeedRequest request)
         {
+            request.Content ??= new CreateContentRequest();
+
             var now = Timestamp.FromDateTime(DateTime.UtcNow);
             var docRef = db.Collection("feeds").Document();
             var feedId = docRef.Id;
 
             var mediaList = new List<Dictionary<String, Object>>();
 
-            foreach (var media in request.Content.Media)
+            var mediaItems = request.Content.Media ?? new List<CreateMediaRequest>();
+            foreach (var media in mediaItems)
             {
+                if (media?.File == null) continue;
                 var (url, publicId, MediaType) = await cloudinaryService.UploadAsync(media.File, userId, feedId, request.Type);
                 mediaList.Add(new Dictionary<string, object>
                 {
@@ -167,7 +171,7 @@ namespace backend.Services
                 ["type"] = request.Type,
                 ["content"] = new Dictionary<string, object>
                 {
-                    ["caption"] = request.Content.Caption,
+                    ["caption"] = request.Content?.Caption ?? string.Empty,
                     ["media"] = mediaList
                 },
                 ["privacy"] = request.Privacy,
@@ -202,7 +206,7 @@ namespace backend.Services
             {
                 try
                 {
-                    await groqModerationService.ModerateFeedAsync(feedId, request.Content.Caption, imageUrls);
+                    await groqModerationService.ModerateFeedAsync(feedId, request.Content?.Caption ?? string.Empty, imageUrls);
                 }
                 catch (Exception ex)
                 {

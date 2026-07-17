@@ -116,15 +116,24 @@ class _OtpVerifyViewState extends State<OtpVerifyView>
           _otpSent = true;
           _fallbackOtp = fallbackOtp;
         });
-        // Show fallback OTP if email failed
+        // Always show a banner explaining the OTP delivery status
         if (fallbackOtp != null && fallbackOtp.isNotEmpty) {
           _showFallbackOtpDialog(fallbackOtp);
+          setState(() {
+            _otpError =
+                'Email không khả dụng. Vui lòng dùng mã OTP được hiển thị trong hộp thoại.';
+          });
+        } else {
+          setState(() {
+            _otpError = null;
+          });
         }
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _otpError = e.toString().replaceFirst('Exception: ', '');
+          _otpError =
+              'Không thể gửi OTP: ${e.toString().replaceFirst('Exception: ', '')}. Bạn có thể thử lại sau.';
         });
       }
     }
@@ -670,6 +679,67 @@ class _OtpVerifyViewState extends State<OtpVerifyView>
       padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
         children: [
+          if (_fallbackOtp != null && _fallbackOtp!.isNotEmpty) ...[
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.warning.withValues(alpha: 0.18),
+                    AppColors.primaryAmber.withValues(alpha: 0.10),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(
+                  color: AppColors.warning.withValues(alpha: 0.5),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.warning.withValues(alpha: 0.2),
+                    ),
+                    child: Icon(
+                      Icons.mark_email_read_outlined,
+                      color: AppColors.warning,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Email không khả dụng',
+                          style: AppTypography.labelMedium.copyWith(
+                            color: AppColors.warning,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Mã OTP của bạn: $_fallbackOtp',
+                          style: AppTypography.titleMedium.copyWith(
+                            color: AppColors.primaryAmber,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+          ],
           _buildOtpInputs(isDark),
           if (_otpError != null) ...[
             const SizedBox(height: AppSpacing.md),

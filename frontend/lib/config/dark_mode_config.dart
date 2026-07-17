@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Dark mode notifier - quản lý trạng thái dark mode toàn app
-final ValueNotifier<bool> isDarkModeNotifier = ValueNotifier<bool>(false);
+final ValueNotifier<bool> isDarkModeNotifier = ValueNotifier<bool>(true);
 
 /// Toggle dark mode
 void toggleDarkMode() {

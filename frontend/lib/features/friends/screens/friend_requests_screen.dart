@@ -80,12 +80,12 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
     FriendProvider provider,
   ) {
     return Scaffold(
-      backgroundColor: AppColors.creamBackground,
+      backgroundColor: AppColors.darkPremiumBackground,
       appBar: AppBar(
         flexibleSpace: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: AppColors.appBarGradient,
+            gradient: const LinearGradient(
+              colors: AppColors.darkPremiumHeaderGradient,
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -95,28 +95,34 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded,
-              color: AppColors.neutralBlack, size: 22),
+              color: AppColors.darkPremiumTextPrimary, size: 22),
           onPressed: () => Navigator.pop(ctx),
         ),
         title: Text(
           'Lời mời kết bạn',
           style: AppTypography.titleMedium.copyWith(
-            color: AppColors.neutralBlack,
+            color: AppColors.darkPremiumTextPrimary,
             fontWeight: FontWeight.w700,
           ),
         ),
         centerTitle: false,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(46),
-          child: TabBar(
-            controller: _tabs,
-            labelColor: AppColors.neutralBlack,
-            unselectedLabelColor: AppColors.textSecondary,
-            indicatorColor: AppColors.primaryOrange,
-            indicatorWeight: 2.5,
-            labelStyle: AppTypography.labelLarge,
-            unselectedLabelStyle: AppTypography.labelMedium,
-            tabs: [
+          child: Container(
+            decoration: const BoxDecoration(
+              border: Border(
+                top: BorderSide(color: AppColors.darkPremiumBorder, width: 1),
+              ),
+            ),
+            child: TabBar(
+              controller: _tabs,
+              labelColor: AppColors.neonRoyal,
+              unselectedLabelColor: AppColors.darkPremiumTextSecondary,
+              indicatorColor: AppColors.neonRoyal,
+              indicatorWeight: 2.5,
+              labelStyle: AppTypography.labelLarge,
+              unselectedLabelStyle: AppTypography.labelMedium,
+              tabs: [
               Tab(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -126,7 +132,7 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
                       const SizedBox(width: AppSpacing.xs),
                       _buildBadge(
                         '${provider.pendingReceivedCount}',
-                        AppColors.accentRed,
+                        AppColors.neonRed,
                       ),
                     ],
                   ],
@@ -141,7 +147,7 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
                       const SizedBox(width: AppSpacing.xs),
                       _buildBadge(
                         '${provider.pendingSent.length}',
-                        Colors.white30,
+                        AppColors.darkPremiumTextSecondary,
                       ),
                     ],
                   ],
@@ -151,12 +157,15 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
           ),
         ),
       ),
-      body: TabBarView(
-        controller: _tabs,
-        children: [
-          _buildReceivedTab(isDark, provider),
-          _buildSentTab(isDark, provider),
-        ],
+      body: Container(
+        color: AppColors.darkPremiumBackground,
+        child: TabBarView(
+          controller: _tabs,
+          children: [
+            _buildReceivedTab(isDark, provider),
+            _buildSentTab(isDark, provider),
+          ],
+        ),
       ),
     );
   }
@@ -184,24 +193,33 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
   // ── TAB: ĐÃ NHẬN ─────────────────────────────────────────────
   Widget _buildReceivedTab(bool isDark, FriendProvider provider) {
     if (provider.requestsState == LoadingState.loading) {
-      return const LoadingView();
-    }
-
-    if (provider.pendingReceived.isEmpty) {
-      return EmptyState(
-        icon: Icons.mark_email_read_outlined,
-        title: 'Không có lời mời kết bạn',
-        subtitle: 'Khi ai đó gửi lời mời, bạn sẽ thấy ở đây',
+      return Container(
+        color: AppColors.darkPremiumBackground,
+        child: const LoadingView(),
       );
     }
 
-    return ListView.separated(
-      padding: EdgeInsets.zero,
-      itemCount: provider.pendingReceived.length,
-      separatorBuilder: (_, _) =>
-          Divider(height: 1, color: AppColors.neutralGray300),
-      itemBuilder: (_, i) =>
-          _buildReceivedTile(provider.pendingReceived[i], isDark, provider),
+    if (provider.pendingReceived.isEmpty) {
+      return Container(
+        color: AppColors.darkPremiumBackground,
+        child: EmptyState(
+          icon: Icons.mark_email_read_outlined,
+          title: 'Không có lời mời kết bạn',
+          subtitle: 'Khi ai đó gửi lời mời, bạn sẽ thấy ở đây',
+        ),
+      );
+    }
+
+    return Container(
+      color: AppColors.darkPremiumBackground,
+      child: ListView.separated(
+        padding: EdgeInsets.zero,
+        itemCount: provider.pendingReceived.length,
+        separatorBuilder: (_, _) =>
+            Divider(height: 1, color: AppColors.darkPremiumBorder),
+        itemBuilder: (_, i) =>
+            _buildReceivedTile(provider.pendingReceived[i], isDark, provider),
+      ),
     );
   }
 
@@ -216,7 +234,7 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
         : f.senderId;
 
     return Container(
-      color: AppColors.creamWhite,
+      color: AppColors.darkPremiumSurface,
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -236,14 +254,14 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
                       child: Text(
                         displayName,
                         style: AppTypography.titleSmall.copyWith(
-                          color: AppColors.getTextPrimary(isDark),
+                          color: AppColors.darkPremiumTextPrimary,
                         ),
                       ),
                     ),
                     Text(
                       _formatTime(f.createdAt),
                       style: AppTypography.bodySmall.copyWith(
-                        color: AppColors.getTextSecondary(isDark),
+                        color: AppColors.darkPremiumTextSecondary,
                       ),
                     ),
                   ],
@@ -303,7 +321,7 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
     return Text(
       label,
       style: AppTypography.bodySmall.copyWith(
-        color: AppColors.getTextSecondary(isDark),
+        color: AppColors.darkPremiumTextSecondary,
       ),
     );
   }
@@ -311,24 +329,33 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
   // ── TAB: ĐÃ GỬI ──────────────────────────────────────────────
   Widget _buildSentTab(bool isDark, FriendProvider provider) {
     if (provider.requestsState == LoadingState.loading) {
-      return const LoadingView();
-    }
-
-    if (provider.pendingSent.isEmpty) {
-      return EmptyState(
-        icon: Icons.send_outlined,
-        title: 'Chưa gửi lời mời nào',
-        subtitle: 'Tìm bạn bè và gửi lời mời kết bạn',
+      return Container(
+        color: AppColors.darkPremiumBackground,
+        child: const LoadingView(),
       );
     }
 
-    return ListView.separated(
-      padding: EdgeInsets.zero,
-      itemCount: provider.pendingSent.length,
-      separatorBuilder: (_, _) =>
-          Divider(height: 1, color: AppColors.neutralGray300),
-      itemBuilder: (_, i) =>
-          _buildSentTile(provider.pendingSent[i], isDark, provider),
+    if (provider.pendingSent.isEmpty) {
+      return Container(
+        color: AppColors.darkPremiumBackground,
+        child: EmptyState(
+          icon: Icons.send_outlined,
+          title: 'Chưa gửi lời mời nào',
+          subtitle: 'Tìm bạn bè và gửi lời mời kết bạn',
+        ),
+      );
+    }
+
+    return Container(
+      color: AppColors.darkPremiumBackground,
+      child: ListView.separated(
+        padding: EdgeInsets.zero,
+        itemCount: provider.pendingSent.length,
+        separatorBuilder: (_, _) =>
+            Divider(height: 1, color: AppColors.darkPremiumBorder),
+        itemBuilder: (_, i) =>
+            _buildSentTile(provider.pendingSent[i], isDark, provider),
+      ),
     );
   }
 
@@ -340,7 +367,7 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
     final isLoading = provider.isActionLoading(f.addresseeId);
 
     return Container(
-      color: AppColors.creamWhite,
+      color: AppColors.darkPremiumSurface,
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.lg,
         vertical: AppSpacing.md,
@@ -357,14 +384,14 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen>
                 Text(
                   f.addresseeId,
                   style: AppTypography.titleSmall.copyWith(
-                    color: AppColors.getTextPrimary(isDark),
+                    color: AppColors.darkPremiumTextPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Đang chờ chấp nhận • ${_formatTime(f.createdAt)}',
                   style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.getTextSecondary(isDark),
+                    color: AppColors.darkPremiumTextSecondary,
                   ),
                 ),
               ],

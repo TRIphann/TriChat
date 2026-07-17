@@ -5,6 +5,7 @@ enum FriendActionStyle { primary, secondary, danger, ghost }
 
 /// Nút hành động chuẩn dùng trong danh sách bạn bè / tìm kiếm.
 /// Hỗ trợ loading state và 4 style khác nhau.
+/// Hỗ trợ dark mode với tham số isDark.
 class FriendActionButton extends StatelessWidget {
   final String label;
   final IconData? icon;
@@ -13,6 +14,7 @@ class FriendActionButton extends StatelessWidget {
   final FriendActionStyle style;
   final double height;
   final double? minWidth;
+  final bool isDark;
 
   const FriendActionButton({
     super.key,
@@ -23,6 +25,7 @@ class FriendActionButton extends StatelessWidget {
     this.style = FriendActionStyle.primary,
     this.height = 32,
     this.minWidth,
+    this.isDark = false,
   });
 
   @override
@@ -75,6 +78,28 @@ class FriendActionButton extends StatelessWidget {
   }
 
   _BtnConfig _styleConfig() {
+    if (isDark) {
+      switch (style) {
+        case FriendActionStyle.primary:
+          return _BtnConfig(bg: AppColors.neonRoyal, fg: Colors.white);
+        case FriendActionStyle.secondary:
+          return _BtnConfig(
+            bg: AppColors.neonRoyal.withValues(alpha: 0.15),
+            fg: AppColors.neonRoyal,
+          );
+        case FriendActionStyle.danger:
+          return _BtnConfig(
+            bg: AppColors.neonRed.withValues(alpha: 0.15),
+            fg: AppColors.neonRed,
+          );
+        case FriendActionStyle.ghost:
+          return _BtnConfig(
+            bg: Colors.transparent,
+            fg: AppColors.darkPremiumTextSecondary,
+            border: Border.all(color: AppColors.darkPremiumBorder, width: 1),
+          );
+      }
+    }
     switch (style) {
       case FriendActionStyle.primary:
         return _BtnConfig(bg: AppColors.primaryOrange, fg: Colors.white);

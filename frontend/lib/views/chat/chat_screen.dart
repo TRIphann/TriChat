@@ -285,9 +285,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         }
       },
       child: Scaffold(
-        backgroundColor: isDarkMode
-            ? AppColors.darkPremiumBackground
-            : Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: AppColors.darkPremiumBackground,
         resizeToAvoidBottomInset: true,
         appBar: _buildAppBar(),
         body: ValueListenableBuilder<bool>(
@@ -302,49 +300,58 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     chat.activeConversation ?? widget.conversation,
                   ),
                 Expanded(
-                  child: Stack(
-                    children: [
-                      _isLoading
-                          ? const LoadingView()
-                          : _buildMessageList(),
-                      AnimatedPositioned(
-                        duration: const Duration(milliseconds: 220),
-                        curve: Curves.easeOut,
-                        right: 16,
-                        bottom: _showScrollToBottom ? 12 : -56,
-                        child: AnimatedOpacity(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: AppColors.darkChatSurfaceGradient,
+                      ),
+                    ),
+                    child: Stack(
+                      children: [
+                        _isLoading
+                            ? const LoadingView()
+                            : _buildMessageList(),
+                        AnimatedPositioned(
                           duration: const Duration(milliseconds: 220),
-                          opacity: _showScrollToBottom ? 1.0 : 0.0,
-                          child: GestureDetector(
-                            onTap: _scrollToBottom,
-                            child: Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? AppColors.darkPremiumSurface
-                                    : Theme.of(context).colorScheme.surface,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: isDark
-                                      ? AppColors.darkPremiumBorder
-                                      : Theme.of(context).dividerColor,
-                                  width: 1,
+                          curve: Curves.easeOut,
+                          right: 16,
+                          bottom: _showScrollToBottom ? 12 : -56,
+                          child: AnimatedOpacity(
+                            duration: const Duration(milliseconds: 220),
+                            opacity: _showScrollToBottom ? 1.0 : 0.0,
+                            child: GestureDetector(
+                              onTap: _scrollToBottom,
+                              child: Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: AppColors.darkPremiumSurface,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: AppColors.neonRoyal,
+                                    width: 1,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.neonRoyal.withValues(alpha: 0.35),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
                                 ),
-                                boxShadow: AppShadows.xs,
-                              ),
-                              child: Icon(
-                                Icons.keyboard_arrow_down_rounded,
-                                color: isDark
-                                    ? AppColors.darkPremiumTextPrimary
-                                    : Theme.of(context).colorScheme.onSurface,
-                                size: 26,
+                                child: Icon(
+                                  Icons.keyboard_arrow_down_rounded,
+                                  color: AppColors.neonRoyal,
+                                  size: 26,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
                 if (_replyToMessage != null) _buildReplyPreview(),
