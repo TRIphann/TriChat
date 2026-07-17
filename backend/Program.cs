@@ -53,21 +53,14 @@ Console.WriteLine($"[CONFIG] Redis.RestToken: '{(string.IsNullOrEmpty(redisSecti
 
 builder.Services.AddHttpClient<IKeyValueStore, UpstashRedisService>();
 
-builder.Services.Configure<ResendSettings>(
-    builder.Configuration.GetSection("Resend"));
+builder.Services.Configure<GmailSmtpSettings>(
+    builder.Configuration.GetSection("GmailSmtp"));
 
-// Log Resend config at startup for debugging
-var resendSection = builder.Configuration.GetSection("Resend");
-Console.WriteLine($"[CONFIG] Resend.ApiKey: '{(string.IsNullOrEmpty(resendSection["ApiKey"]) ? "NOT SET" : "***" + resendSection["ApiKey"]?.TakeLast(8).ToString())}'");
-Console.WriteLine($"[CONFIG] Resend.From: '{resendSection["From"]}'");
-
-builder.Services.AddHttpClient("resend", client =>
-{
-    client.BaseAddress = new Uri("https://api.resend.com/");
-    // Resend p95 < 1s; SMTP timeout used to be 15s. Keep a generous ceiling
-    // so the network blip on Render's free tier doesn't kill the request.
-    client.Timeout = TimeSpan.FromSeconds(15);
-});
+// Log Gmail SMTP config at startup for debugging
+var smtpSection = builder.Configuration.GetSection("GmailSmtp");
+Console.WriteLine($"[CONFIG] GmailSmtp.Username: '{(string.IsNullOrEmpty(smtpSection["Username"]) ? "NOT SET" : smtpSection["Username"])}'");
+Console.WriteLine($"[CONFIG] GmailSmtp.Password: '{(string.IsNullOrEmpty(smtpSection["Password"]) ? "NOT SET" : "***SET")}'");
+Console.WriteLine($"[CONFIG] GmailSmtp.FromEmail: '{smtpSection["FromEmail"]}'");
 
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("Cloudinary"));
@@ -129,7 +122,9 @@ var allowedOrigins = builder.Environment.IsDevelopment()
       }
     : new List<string> {
         "https://trichat.onrender.com",
-        "http://trichat.onrender.com"
+        "http://trichat.onrender.com",
+        "https://trichatt.netlify.app",
+        "http://trichatt.netlify.app"
       };
 
 var extraOrigins = builder.Configuration["AllowedCorsOrigins"];
