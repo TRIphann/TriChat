@@ -1,66 +1,51 @@
-﻿using backend.Attributes;
+﻿using System.Net.Http.Headers;
+using System.Text;
+using backend.Attributes;
 using backend.settings;
 using Microsoft.Extensions.Options;
 
 namespace backend.Services;
 
 /// <summary>
-/// Sends OTP email via Gmail SMTP using an App Password.
-/// Requires: GMAIL_SMTP__USERNAME and GMAIL_SMTP__PASSWORD on Render.
+/// Sends OTP email via Mailgun HTTP API.
+/// Requires: MAILGUN_API_KEY and MAILGUN_DOMAIN on Render.
 /// </summary>
 [ScopedService]
 public class EmailService
 {
-    private readonly GmailSmtpSettings _settings;
+    private readonly MailgunSettings _settings;
     private readonly ILogger<EmailService> _logger;
+    private readonly IHttpClientFactory _httpClientFactory;
 
     public EmailService(
-        IOptions<GmailSmtpSettings> settings,
-        ILogger<EmailService> logger)
+        IOptions<MailgunSettings> settings,
+        ILogger<EmailService> logger,
+        IHttpClientFactory httpClientFactory)
     {
         _settings = settings.Value;
         _logger = logger;
+        _httpClientFactory = httpClientFactory;
     }
 
     public async Task<bool> SendOtpEmailAsync(string toEmail, string otp)
     {
         _logger.LogInformation(
-            "Sending OTP via Gmail SMTP. To: {Email}, Username: {Username}",
-            toEmail, _settings.Username);
+            "Sending OTP via Mailgun. To: {Email}, Domain: {Domain}",
+            toEmail, _settings.Domain);
 
-        if (string.IsNullOrWhiteSpace(_settings.Username) ||
-            string.IsNullOrWhiteSpace(_settings.Password))
+        if (string.IsNullOrWhiteSpace(_settings.ApiKey) ||
+            string.IsNullOrWhiteSpace(_settings.Domain))
         {
             _logger.LogError(
-                "Gmail SMTP not configured. Set GMAIL_SMTP__USERNAME and " +
-                "GMAIL_SMTP__PASSWORD on Render.");
+                "Mailgun not configured. Set MAILGUN_API_KEY and MAILGUN_DOMAIN on Render.");
             return false;
         }
 
-        try
-        {
-            var from = string.IsNullOrWhiteSpace(_settings.FromEmail)
-                ? _settings.Username
-                : _settings.FromEmail;
+        var from = string.IsNullOrWhiteSpace(_settings.FromEmail)
+            ? $"postmaster@{_settings.Domain}"
+            : _settings.FromEmail;
 
-            using var smtp = new System.Net.Mail.SmtpClient
-            {
-                Host = _settings.SmtpHost,
-                Port = _settings.Port,
-                EnableSsl = _settings.EnableSsl,
-                DeliveryMethod = System.Net.Mail.SmtpDeliveryMethod.Network,
-                Credentials = new System.Net.NetworkCredential(
-                    _settings.Username,
-                    _settings.Password),
-                Timeout = 30000,
-            };
-
-            using var msg = new System.Net.Mail.MailMessage
-            {
-                From = new System.Net.Mail.MailAddress(from, _settings.FromName),
-                Subject = "Your TriChat OTP Code",
-                IsBodyHtml = true,
-                Body = $@"
+        var htmlBody = $@"
 <!DOCTYPE html>
 <html>
 <head>
@@ -81,27 +66,57 @@ public class EmailService
         <p class='warning'>Do not share this code with anyone!</p>
     </div>
 </body>
-</html>",
+</html>";
+
+        try
+        {
+            var client = _httpClientFactory.CreateClient("mailgun");
+
+            var content = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                { "from", $"{_settings.FromName} <{from}>" },
+                { "to", toEmail },
+                { "subject", "Your TriChat OTP Code" },
+                { "html", htmlBody }
+            });
+
+            var credentials = Convert.ToBase64String(
+                Encoding.UTF8.GetBytes($"api:{_settings.ApiKey}"));
+
+            var request = new HttpRequestMessage(HttpMethod.Post,
+                $"{_settings.BaseUrl}/{_settings.Domain}/messages")
+            {
+                Content = content
             };
-            msg.To.Add(toEmail);
+            request.Headers.Authorization =
+                new AuthenticationHeaderValue("Basic", credentials);
 
-            await smtp.SendMailAsync(msg);
+            var response = await client.SendAsync(request);
+            var body = await response.Content.ReadAsStringAsync();
 
-            _logger.LogInformation(
-                "Gmail SMTP: OTP email sent to {Email}", toEmail);
-            return true;
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInformation(
+                    "Mailgun: OTP email sent to {Email}. Response: {Response}",
+                    toEmail, body);
+                return true;
+            }
+
+            _logger.LogError(
+                "Mailgun API error. Status: {StatusCode}, Body: {Body}",
+                response.StatusCode, body);
+            return false;
         }
-        catch (System.Net.Mail.SmtpException ex)
+        catch (HttpRequestException ex)
         {
             _logger.LogError(ex,
-                "Gmail SMTP failed for {Email}. Status: {StatusCode}, Message: {Message}",
-                toEmail, ex.StatusCode, ex.Message);
+                "Mailgun HTTP error sending OTP to {Email}", toEmail);
             return false;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex,
-                "Unexpected error sending OTP email via Gmail SMTP to {Email}", toEmail);
+                "Unexpected error sending OTP via Mailgun to {Email}", toEmail);
             return false;
         }
     }
