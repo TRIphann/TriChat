@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend/component/widgets.dart';
@@ -7,10 +8,6 @@ import 'package:frontend/config/app_spacing.dart';
 import 'package:frontend/config/app_typography.dart';
 import 'package:frontend/services/auth_service.dart';
 import 'package:go_router/go_router.dart';
-
-/// ════════════════════════════════════════════════════════════════
-/// PREMIUM OTP VERIFY VIEW — High-End Verification Screen
-/// ════════════════════════════════════════════════════════════════
 
 class OtpVerifyView extends StatefulWidget {
   final String email;
@@ -45,7 +42,6 @@ class _OtpVerifyViewState extends State<OtpVerifyView>
 
   bool _otpSent = false;
   String? _otpError;
-  String? _fallbackOtp; // OTP returned when email fails
 
   @override
   void initState() {
@@ -110,113 +106,34 @@ class _OtpVerifyViewState extends State<OtpVerifyView>
 
   Future<void> _sendOtpSilently() async {
     try {
-      final fallbackOtp = await AuthService.sendOtp(widget.email);
+      await AuthService.sendOtp(widget.email);
       if (mounted) {
         setState(() {
           _otpSent = true;
-          _fallbackOtp = fallbackOtp;
+          _otpError = null;
         });
-        // Always show a banner explaining the OTP delivery status
-        if (fallbackOtp != null && fallbackOtp.isNotEmpty) {
-          _showFallbackOtpDialog(fallbackOtp);
-          setState(() {
-            _otpError =
-                'Email không khả dụng. Vui lòng dùng mã OTP được hiển thị trong hộp thoại.';
-          });
-        } else {
-          setState(() {
-            _otpError = null;
-          });
+      }
+    } on DioException catch (e) {
+      if (mounted) {
+        // Check if this is an email delivery failure (422 from backend)
+        final status = e.response?.statusCode;
+        final data = e.response?.data;
+        String errorMsg = 'Không thể gửi OTP. Vui lòng thử lại sau.';
+        if (data is Map && data['message'] != null) {
+          errorMsg = data['message'].toString();
         }
+        setState(() {
+          _otpError = errorMsg;
+        });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _otpError =
-              'Không thể gửi OTP: ${e.toString().replaceFirst('Exception: ', '')}. Bạn có thể thử lại sau.';
+              'Không thể gửi OTP: ${e.toString().replaceFirst('Exception: ', '')}. Vui lòng thử lại.';
         });
       }
     }
-  }
-
-  void _showFallbackOtpDialog(String otp) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => Dialog(
-        backgroundColor: isDark ? AppColors.darkCard : AppColors.creamWhite,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.xxl),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.xxl),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.warning.withValues(alpha: 0.2),
-                ),
-                child: Icon(Icons.email_outlined, color: AppColors.warning, size: 40),
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              Text(
-                'Email không khả dụng',
-                style: AppTypography.titleLarge.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                'Mã OTP của bạn:',
-                style: AppTypography.bodyMedium.copyWith(
-                  color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryAmber.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppRadius.lg),
-                  border: Border.all(color: AppColors.primaryAmber.withValues(alpha: 0.3)),
-                ),
-                child: Text(
-                  otp,
-                  style: AppTypography.displaySmall.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.primaryAmber,
-                    letterSpacing: 8,
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Text(
-                'Hãy nhập mã này để xác thực',
-                style: AppTypography.bodySmall.copyWith(
-                  color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              SizedBox(
-                width: double.infinity,
-                child: PrimaryButton(
-                  label: 'Đã hiểu',
-                  onPressed: () => Navigator.pop(ctx),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   void _startCountdown() {
@@ -279,32 +196,18 @@ class _OtpVerifyViewState extends State<OtpVerifyView>
       _isLoading = true;
       _errorMessage = null;
       _otpError = null;
-      _fallbackOtp = null;
     });
 
     try {
-      final fallbackOtp = await AuthService.sendOtp(widget.email);
+      await AuthService.sendOtp(widget.email);
       _startCountdown();
       if (!mounted) return;
-      setState(() {
-        _fallbackOtp = fallbackOtp;
-      });
-      if (fallbackOtp != null && fallbackOtp.isNotEmpty) {
-        _showFallbackOtpDialog(fallbackOtp);
-        showTriSnack(
-          context,
-          'Mã OTP mới đã được tạo',
-          type: TriSnackType.success,
-          icon: Icons.mark_email_read_rounded,
-        );
-      } else {
-        showTriSnack(
-          context,
-          'Mã OTP mới đã được gửi đến ${widget.email}',
-          type: TriSnackType.success,
-          icon: Icons.mark_email_read_rounded,
-        );
-      }
+      showTriSnack(
+        context,
+        'Mã OTP mới đã được gửi đến ${widget.email}',
+        type: TriSnackType.success,
+        icon: Icons.mark_email_read_rounded,
+      );
     } catch (e) {
       if (!mounted) return;
       showTriSnack(
@@ -679,67 +582,6 @@ class _OtpVerifyViewState extends State<OtpVerifyView>
       padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
         children: [
-          if (_fallbackOtp != null && _fallbackOtp!.isNotEmpty) ...[
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.warning.withValues(alpha: 0.18),
-                    AppColors.primaryAmber.withValues(alpha: 0.10),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(
-                  color: AppColors.warning.withValues(alpha: 0.5),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.warning.withValues(alpha: 0.2),
-                    ),
-                    child: Icon(
-                      Icons.mark_email_read_outlined,
-                      color: AppColors.warning,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Email không khả dụng',
-                          style: AppTypography.labelMedium.copyWith(
-                            color: AppColors.warning,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Mã OTP của bạn: $_fallbackOtp',
-                          style: AppTypography.titleMedium.copyWith(
-                            color: AppColors.primaryAmber,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 4,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-          ],
           _buildOtpInputs(isDark),
           if (_otpError != null) ...[
             const SizedBox(height: AppSpacing.md),

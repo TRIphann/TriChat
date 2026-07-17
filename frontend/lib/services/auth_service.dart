@@ -147,7 +147,7 @@ class AuthService {
     } catch (_) {}
   }
 
-  static Future<String?> sendOtp(String email) async {
+  static Future<void> sendOtp(String email) async {
     try {
       final response = await PublicDioClient.instance.post(
         '/api/otp/generate',
@@ -164,19 +164,16 @@ class AuthService {
         ));
       }
       // Return OTP if email failed (it's in the result field)
+      // This OTP will be sent back during verify if email delivery fails
       final data = response.data;
       if (data is Map) {
         final result = data['result'] as Map?;
         if (result != null && result['otp'] != null) {
-          // Remember fallback OTP so verifyOtp can pass it as a hint if
-          // Redis was also unable to cache it server-side.
           _lastFallbackOtp = result['otp'] as String;
-          return _lastFallbackOtp;
+        } else {
+          _lastFallbackOtp = null;
         }
       }
-      // Email was sent successfully — clear any prior cached fallback
-      _lastFallbackOtp = null;
-      return null;
     } on DioException catch (e) {
       throw Exception(_extractErrorMessage(e, 'Không thể gửi OTP'));
     } catch (e) {
@@ -185,9 +182,7 @@ class AuthService {
   }
 
   /// Stores the most recent fallback OTP so verifyOtp can pass it to the
-  /// backend as a hint when Redis is unavailable. The backend's
-  /// `VerifyOtpAsync` accepts `cachedOtp` and uses it as a verification
-  /// source if the lookup in Redis returns nothing.
+  /// backend as a hint when Redis/email is unavailable.
   static String? _lastFallbackOtp;
 
   static String? get lastFallbackOtp => _lastFallbackOtp;

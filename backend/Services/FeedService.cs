@@ -80,13 +80,13 @@ namespace backend.Services
                 (col, batch) => col
                     .WhereEqualTo("type", "post")
                     .WhereIn("user_id", batch)
-                    .WhereNotEqualTo("privacy", "only_me")
                     .WhereEqualTo("is_enable", true)
                     .OrderByDescending("create_at"));
 
             var filtered = posts
                 .Where(p => !mutedUserIds.Contains(p.UserId))
                 .Where(p => !hiddenPostIds.Contains(p.Id))
+                .Where(p => p.Privacy != "only_me") // Filter out "only_me" posts in memory
                 .Where(p => CanViewPost(p, userId, friendIds))
                 .ToList();
 
