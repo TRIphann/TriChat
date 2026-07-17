@@ -270,7 +270,7 @@ class _ModernPostCardState extends State<ModernPostCard>
           child: Stack(
             children: [
               AspectRatio(
-                aspectRatio: 4 / 5,
+                aspectRatio: 16 / 9,
                 child: _NetworkImageWithLoader(url: urls.first),
               ),
               if (_showLikeOverlay)

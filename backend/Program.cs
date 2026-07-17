@@ -53,19 +53,14 @@ Console.WriteLine($"[CONFIG] Redis.RestToken: '{(string.IsNullOrEmpty(redisSecti
 
 builder.Services.AddHttpClient<IKeyValueStore, UpstashRedisService>();
 
-builder.Services.Configure<MailgunSettings>(
-    builder.Configuration.GetSection("Mailgun"));
+builder.Services.Configure<GmailSmtpSettings>(
+    builder.Configuration.GetSection("GmailSmtp"));
 
-// Log Mailgun config at startup for debugging
-var mailgunSection = builder.Configuration.GetSection("Mailgun");
-Console.WriteLine($"[CONFIG] Mailgun.Domain: '{mailgunSection["Domain"]}'");
-Console.WriteLine($"[CONFIG] Mailgun.ApiKey: '{(string.IsNullOrEmpty(mailgunSection["ApiKey"]) ? "NOT SET" : "***SET")}'");
-
-builder.Services.AddHttpClient("mailgun", client =>
-{
-    client.BaseAddress = new Uri("https://api.mailgun.net/v3/");
-    client.Timeout = TimeSpan.FromSeconds(30);
-});
+// Log Gmail SMTP config at startup for debugging
+var gmailSection = builder.Configuration.GetSection("GmailSmtp");
+Console.WriteLine($"[CONFIG] GmailSmtp.Username: '{gmailSection["Username"]}'");
+Console.WriteLine($"[CONFIG] GmailSmtp.Password: '{(string.IsNullOrEmpty(gmailSection["Password"]) ? "NOT SET" : "***SET")}'");
+Console.WriteLine($"[CONFIG] GmailSmtp.FromEmail: '{gmailSection["FromEmail"]}'");
 
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("Cloudinary"));

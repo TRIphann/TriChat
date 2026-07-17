@@ -221,6 +221,11 @@ class ProfileProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void addPost(PostModel post) {
+    _posts.insert(0, post);
+    notifyListeners();
+  }
+
   void clear() {
     _posts = [];
     _friends = [];

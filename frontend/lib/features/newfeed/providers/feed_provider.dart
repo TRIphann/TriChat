@@ -128,7 +128,7 @@ class FeedProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> createPost({
+  Future<PostModel?> createPost({
     required String content,
     List<XFile>? images,
     String visibility = 'public',
@@ -148,12 +148,12 @@ class FeedProvider extends ChangeNotifier {
       _allPosts = [post, ..._allPosts];
       _isCreating = false;
       notifyListeners();
-      return true;
+      return post;
     } catch (e) {
       _isCreating = false;
       _errorMessage = e.toString();
       notifyListeners();
-      return false;
+      return null;
     }
   }
 

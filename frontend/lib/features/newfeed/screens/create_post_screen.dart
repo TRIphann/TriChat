@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/config/app_colors.dart';
 import 'package:frontend/features/friends/providers/friend_provider.dart';
+import 'package:frontend/features/profile/providers/profile_provider.dart';
 import 'package:frontend/services/auth_service.dart';
 import '../providers/feed_provider.dart';
 
@@ -256,7 +257,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       // vì user đã chọn như vậy. Nếu không muốn avatar xuất hiện trong bài,
       // bỏ qua ảnh đầu tiên.
       final xfiles = _selectedImages.map((p) => p.file).toList();
-      final success = await provider.createPost(
+      final createdPost = await provider.createPost(
         content: _contentController.text.trim(),
         images: xfiles.isNotEmpty ? xfiles : null,
         visibility: _visibility,
@@ -267,12 +268,15 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
       setState(() => _isLoading = false);
 
-      if (success) {
+      if (createdPost != null) {
+        // Also add the post to ProfileProvider for the profile page to show it
+        try {
+          context.read<ProfileProvider>().addPost(createdPost);
+        } catch (_) {}
         // Reload profile để cập nhật avatar mới (nếu có)
         if (widget.shouldUpdateAvatarOnSubmit) {
           try {
             await FirebaseAuth.instance.currentUser?.reload();
-            // Trigger ProfileProvider reload thông qua avatar URL
           } catch (_) {}
         }
         Navigator.pop(context, true);
