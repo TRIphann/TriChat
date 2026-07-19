@@ -15,7 +15,6 @@ import 'package:frontend/views/home/load_view.dart';
 import 'package:frontend/views/home/home_view.dart';
 import 'package:frontend/views/auth/login_view.dart';
 import 'package:frontend/views/auth/sign_up_view.dart';
-import 'package:frontend/views/auth/otp_verify_view.dart';
 import 'package:frontend/views/auth/enter_name_view.dart';
 import 'package:frontend/views/auth/personal_info_view.dart';
 import 'package:frontend/views/auth/update_avatar.dart';
@@ -45,7 +44,6 @@ GoRouter createRouter() {
 
       final isAuthRoute = location == '/login' || location == '/sign-up';
       final isSetupRoute =
-          location == '/otp' ||
           location == '/enter-name' ||
           location == '/set-password' ||
           location == '/reset-password' ||
@@ -75,13 +73,6 @@ GoRouter createRouter() {
       GoRoute(
         path: '/sign-up',
         builder: (context, state) => const SignUpView(),
-      ),
-      GoRoute(
-        path: '/otp',
-        builder: (context, state) {
-          final email = state.extra as String? ?? '';
-          return OtpVerifyView(email: email);
-        },
       ),
       GoRoute(
         path: '/reset-password',

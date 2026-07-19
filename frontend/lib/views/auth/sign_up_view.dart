@@ -1,23 +1,17 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:frontend/apps/app_locale.dart';
 import 'package:frontend/component/widgets.dart';
 import 'package:frontend/config/app_colors.dart';
 import 'package:frontend/config/app_spacing.dart';
 import 'package:frontend/config/app_typography.dart';
 import 'package:frontend/services/auth_service.dart';
-import 'package:frontend/utils/app_localizations.dart';
-import 'package:frontend/utils/validator.dart';
 import 'package:go_router/go_router.dart';
 
 /// ════════════════════════════════════════════════════════════════
-/// PREMIUM SIGN UP VIEW — High-End Registration Screen
+/// SIGN UP VIEW — Tạo tài khoản trực tiếp (đã bỏ qua bước OTP)
 /// ════════════════════════════════════════════════════════════════
 
 class SignUpView extends StatefulWidget {
-  final String? initialEmail;
-  const SignUpView({super.key, this.initialEmail});
+  const SignUpView({super.key});
 
   @override
   State<SignUpView> createState() => _SignUpViewState();
@@ -26,14 +20,26 @@ class SignUpView extends StatefulWidget {
 class _SignUpViewState extends State<SignUpView>
     with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+  final FocusNode _firstNameFocusNode = FocusNode();
+  final FocusNode _lastNameFocusNode = FocusNode();
   final FocusNode _emailFocusNode = FocusNode();
+  final FocusNode _passwordFocusNode = FocusNode();
+  final FocusNode _confirmFocusNode = FocusNode();
 
-  bool _agreeTerms = false;
-  bool _agreeSocialPolicy = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirm = true;
   bool _isButtonEnabled = false;
   bool _isLoading = false;
+  bool _agreeTerms = false;
   String? _errorMessage;
+  double _passwordStrength = 0;
+  String _passwordStrengthLabel = '';
+  Color _passwordStrengthColor = Colors.transparent;
 
   late AnimationController _mainController;
   late AnimationController _shakeCtrl;
@@ -44,27 +50,20 @@ class _SignUpViewState extends State<SignUpView>
   @override
   void initState() {
     super.initState();
-    if (widget.initialEmail != null) {
-      _emailController.text = widget.initialEmail!;
-    }
-
     _mainController = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-
     _shakeCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 400),
     );
-
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _mainController,
         curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
       ),
     );
-
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.08),
       end: Offset.zero,
@@ -74,51 +73,101 @@ class _SignUpViewState extends State<SignUpView>
         curve: const Interval(0.2, 1.0, curve: Curves.easeOutCubic),
       ),
     );
-
     _scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _mainController,
-        curve: Curves.easeOutBack,
-      ),
+      CurvedAnimation(parent: _mainController, curve: Curves.easeOutBack),
     );
-
     _mainController.forward();
 
+    _firstNameController.addListener(_updateButtonState);
+    _lastNameController.addListener(_updateButtonState);
     _emailController.addListener(_updateButtonState);
+    _passwordController.addListener(() {
+      _evaluatePasswordStrength();
+      _updateButtonState();
+    });
+    _confirmPasswordController.addListener(_updateButtonState);
     _updateButtonState();
   }
 
   @override
   void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _firstNameFocusNode.dispose();
+    _lastNameFocusNode.dispose();
     _emailFocusNode.dispose();
+    _passwordFocusNode.dispose();
+    _confirmFocusNode.dispose();
     _shakeCtrl.dispose();
     _mainController.dispose();
     super.dispose();
   }
 
+  void _evaluatePasswordStrength() {
+    final p = _passwordController.text;
+    int score = 0;
+    if (p.length >= 8) score++;
+    if (RegExp(r'[A-Z]').hasMatch(p)) score++;
+    if (RegExp(r'[0-9]').hasMatch(p)) score++;
+    if (RegExp(r'[!@#\$%^&*(),.?":{}|<>]').hasMatch(p)) score++;
+    setState(() {
+      _passwordStrength = score / 4;
+      switch (score) {
+        case 0:
+        case 1:
+          _passwordStrengthLabel = 'Yếu';
+          _passwordStrengthColor = AppColors.error;
+          break;
+        case 2:
+          _passwordStrengthLabel = 'Trung bình';
+          _passwordStrengthColor = AppColors.warning;
+          break;
+        case 3:
+        case 4:
+          _passwordStrengthLabel = score == 4 ? 'Rất mạnh' : 'Mạnh';
+          _passwordStrengthColor = AppColors.success;
+          break;
+      }
+    });
+  }
+
+  bool _isValidEmail(String value) {
+    final emailRegex = RegExp(r'^[\w.-]+@[\w.-]+\.\w{2,}$');
+    return emailRegex.hasMatch(value.trim());
+  }
+
   void _updateButtonState() {
-    final t = AppLocalizations(localeNotifier.value);
-    final isEmailValid = Validator.email(
-      _emailController.text,
-      requiredMessage: t.get('validatorRequired'),
-      invalidMessage: t.get('validatorEmail'),
-    ) ==
-        null;
+    final email = _emailController.text.trim();
+    final firstName = _firstNameController.text.trim();
+    final lastName = _lastNameController.text.trim();
+    final password = _passwordController.text;
+    final confirm = _confirmPasswordController.text;
+
+    final isEmailValid = _isValidEmail(email);
+    final isPasswordValid =
+        password.length >= 8 &&
+            RegExp(r'[a-z]').hasMatch(password) &&
+            RegExp(r'[A-Z]').hasMatch(password) &&
+            RegExp(r'[0-9]').hasMatch(password);
+    final isConfirmValid = confirm.isNotEmpty && confirm == password;
 
     setState(() {
-      _isButtonEnabled = isEmailValid && _agreeTerms && _agreeSocialPolicy;
+      _isButtonEnabled = email.isNotEmpty &&
+          firstName.isNotEmpty &&
+          lastName.isNotEmpty &&
+          isEmailValid &&
+          isPasswordValid &&
+          isConfirmValid &&
+          _agreeTerms;
       if (_errorMessage != null) _errorMessage = null;
     });
   }
 
   void _onAgreeTermsChanged(bool? value) {
     setState(() => _agreeTerms = value ?? false);
-    _updateButtonState();
-  }
-
-  void _onAgreeSocialPolicyChanged(bool? value) {
-    setState(() => _agreeSocialPolicy = value ?? false);
     _updateButtonState();
   }
 
@@ -134,16 +183,29 @@ class _SignUpViewState extends State<SignUpView>
     });
     try {
       final email = _emailController.text.trim();
-      await AuthService.sendOtp(email);
+      final password = _passwordController.text;
+      final firstName = _firstNameController.text.trim();
+      final lastName = _lastNameController.text.trim();
+
+      await AuthService.register(
+        RegisterRequest(
+          email: email,
+          password: password,
+          firstName: firstName,
+          lastName: lastName,
+        ),
+      );
+
       if (!mounted) return;
-      _showConfirmSheet();
+      _showSuccessDialog();
     } catch (e) {
       if (!mounted) return;
       final rawMessage = e.toString().replaceFirst('Exception: ', '');
-      setState(() => _errorMessage = _mapRegisterError(rawMessage));
+      setState(() {
+        _isLoading = false;
+        _errorMessage = _mapRegisterError(rawMessage);
+      });
       _shakeCtrl.forward(from: 0);
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -159,13 +221,18 @@ class _SignUpViewState extends State<SignUpView>
     if (lower.contains('invalid') && lower.contains('email')) {
       return 'Địa chỉ email không hợp lệ.';
     }
-    if (lower.contains('gửi') || lower.contains('send')) {
-      return 'Không thể gửi OTP. Vui lòng thử lại sau.';
+    if (lower.contains('password') &&
+        (lower.contains('8') ||
+            lower.contains('least') ||
+            lower.contains('minimum') ||
+            lower.contains('characters') ||
+            lower.contains('ký tự'))) {
+      return 'Mật khẩu phải có ít nhất 8 ký tự.';
     }
     return message;
   }
 
-  void _showConfirmSheet() {
+  void _showSuccessDialog() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
@@ -177,130 +244,71 @@ class _SignUpViewState extends State<SignUpView>
           borderRadius: BorderRadius.circular(AppRadius.xxl),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.xl),
+          padding: const EdgeInsets.all(AppSpacing.xxl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 72,
-                height: 72,
+                width: 88,
+                height: 88,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                     colors: [
-                      AppColors.primaryAmber.withValues(alpha: 0.2),
-                      AppColors.primaryAmberLight,
+                      AppColors.success,
+                      AppColors.success.withValues(alpha: 0.8),
                     ],
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primaryAmber.withValues(alpha: 0.2),
-                      blurRadius: 20,
+                      color: AppColors.success.withValues(alpha: 0.3),
+                      blurRadius: 24,
                       offset: const Offset(0, 8),
                     ),
                   ],
                 ),
-                child: Icon(
-                  Icons.mark_email_read_outlined,
-                  color: AppColors.primaryAmber,
-                  size: 36,
+                child: const Icon(
+                  Icons.check_rounded,
+                  color: AppColors.textWhite,
+                  size: 44,
                 ),
               ),
-              const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.xl),
               Text(
-                'Xác nhận email',
+                'Tạo tài khoản thành công!',
                 style: AppTypography.titleLarge.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                  color: isDark
+                      ? AppColors.darkTextPrimary
+                      : AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
-                'Mã xác thực sẽ được gửi đến\n${_emailController.text}',
-                style: AppTypography.bodyMedium.copyWith(
-                  color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
-                ),
+                'Tài khoản của bạn đã được tạo.\nHãy đăng nhập để bắt đầu.',
                 textAlign: TextAlign.center,
+                style: AppTypography.bodyMedium.copyWith(
+                  color: isDark
+                      ? AppColors.darkTextSecondary
+                      : AppColors.textSecondary,
+                ),
               ),
               const SizedBox(height: AppSpacing.xl),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildSecondaryButton(
-                      'Hủy',
-                      () => Navigator.pop(context),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: _buildPrimaryButton(
-                      'Tiếp tục',
-                      () {
-                        Navigator.pop(context);
-                        context.push('/otp', extra: _emailController.text.trim());
-                      },
-                    ),
-                  ),
-                ],
+              SizedBox(
+                width: double.infinity,
+                child: PrimaryButton(
+                  label: 'Đăng nhập ngay',
+                  icon: Icons.arrow_forward_rounded,
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    setState(() => _isLoading = false);
+                    context.go('/login');
+                  },
+                ),
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPrimaryButton(String label, VoidCallback onPressed) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        height: 48,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: AppColors.primaryGradient,
-          ),
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primaryAmber.withValues(alpha: 0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: AppTypography.labelMedium.copyWith(
-              color: AppColors.textWhite,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSecondaryButton(String label, VoidCallback onPressed) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        height: 48,
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.darkElevated : AppColors.creamSurface,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(
-            color: isDark ? AppColors.darkBorder : AppColors.borderDefault,
-          ),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: AppTypography.labelMedium.copyWith(
-              color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
-              fontWeight: FontWeight.w600,
-            ),
           ),
         ),
       ),
@@ -352,7 +360,9 @@ class _SignUpViewState extends State<SignUpView>
               Text(
                 'Toàn bộ dữ liệu đã nhập sẽ bị xóa.',
                 style: AppTypography.bodyMedium.copyWith(
-                  color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                  color: isDark
+                      ? AppColors.darkTextSecondary
+                      : AppColors.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -384,6 +394,32 @@ class _SignUpViewState extends State<SignUpView>
     }
   }
 
+  Widget _buildSecondaryButton(String label, VoidCallback onPressed) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        height: 48,
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkElevated : AppColors.creamSurface,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(
+            color: isDark ? AppColors.darkBorder : AppColors.borderDefault,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: AppTypography.labelMedium.copyWith(
+              color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildDangerButton(String label, VoidCallback onPressed) {
     return GestureDetector(
       onTap: onPressed,
@@ -413,71 +449,60 @@ class _SignUpViewState extends State<SignUpView>
     );
   }
 
-  void _clearEmail() {
-    _emailController.clear();
-    _updateButtonState();
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final size = MediaQuery.of(context).size;
 
-    return ValueListenableBuilder(
-      valueListenable: localeNotifier,
-      builder: (context, locale, _) {
-        final t = AppLocalizations(locale);
-        return Scaffold(
-          backgroundColor: isDark ? AppColors.darkBackground : AppColors.cream,
-          body: SafeArea(
-            child: AnimatedBuilder(
-              animation: _mainController,
-              builder: (context, child) {
-                return FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: SlideTransition(
-                    position: _slideAnimation,
-                    child: ScaleTransition(
-                      scale: _scaleAnimation,
-                      child: child,
-                    ),
-                  ),
-                );
-              },
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                        physics: const BouncingScrollPhysics(),
-                        padding: const EdgeInsets.fromLTRB(
-                          AppSpacing.lg,
-                          AppSpacing.lg,
-                          AppSpacing.lg,
-                          0,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            _buildBackButton(theme, isDark),
-                            SizedBox(height: size.height * 0.04),
-                            _buildHeader(theme, isDark, t),
-                            SizedBox(height: size.height * 0.04),
-                            _buildForm(theme, isDark, t),
-                          ],
-                        ),
-                      ),
-                    ),
-                    _buildBottomBar(theme, isDark, t),
-                  ],
+    return Scaffold(
+      backgroundColor: isDark ? AppColors.darkBackground : AppColors.cream,
+      body: SafeArea(
+        child: AnimatedBuilder(
+          animation: _mainController,
+          builder: (context, child) {
+            return FadeTransition(
+              opacity: _fadeAnimation,
+              child: SlideTransition(
+                position: _slideAnimation,
+                child: ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: child,
                 ),
               ),
+            );
+          },
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.lg,
+                      AppSpacing.lg,
+                      0,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildBackButton(theme, isDark),
+                        SizedBox(height: size.height * 0.03),
+                        _buildHeader(theme, isDark),
+                        SizedBox(height: size.height * 0.025),
+                        _buildForm(theme, isDark),
+                      ],
+                    ),
+                  ),
+                ),
+                _buildBottomBar(theme, isDark),
+              ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -526,7 +551,7 @@ class _SignUpViewState extends State<SignUpView>
     );
   }
 
-  Widget _buildHeader(ThemeData theme, bool isDark, AppLocalizations t) {
+  Widget _buildHeader(ThemeData theme, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -573,7 +598,7 @@ class _SignUpViewState extends State<SignUpView>
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
-          'Nhập email để tạo tài khoản TriChat mới.',
+          'Điền thông tin để tạo tài khoản TriChat mới.',
           style: AppTypography.bodyLarge.copyWith(
             color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
           ),
@@ -582,7 +607,7 @@ class _SignUpViewState extends State<SignUpView>
     );
   }
 
-  Widget _buildForm(ThemeData theme, bool isDark, AppLocalizations t) {
+  Widget _buildForm(ThemeData theme, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -590,53 +615,162 @@ class _SignUpViewState extends State<SignUpView>
           _buildErrorBanner(isDark),
           const SizedBox(height: AppSpacing.lg),
         ],
-        TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0.0, end: 1.0),
-          duration: const Duration(milliseconds: 700),
-          curve: Curves.easeOutCubic,
-          builder: (context, value, child) {
-            return Transform.translate(
-              offset: Offset(0, 20 * (1 - value)),
-              child: Opacity(opacity: value, child: child),
-            );
+        // Họ + Tên
+        Row(
+          children: [
+            Expanded(
+              child: TriTextField(
+                controller: _firstNameController,
+                focusNode: _firstNameFocusNode,
+                keyboardType: TextInputType.name,
+                hintText: 'Họ',
+                prefixIcon: Icon(Icons.person_outline_rounded, size: 20, color: AppColors.primaryAmber),
+                textInputAction: TextInputAction.next,
+                onSubmitted: () => _lastNameFocusNode.requestFocus(),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Nhập họ';
+                  }
+                  return null;
+                },
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: TriTextField(
+                controller: _lastNameController,
+                focusNode: _lastNameFocusNode,
+                keyboardType: TextInputType.name,
+                hintText: 'Tên',
+                textInputAction: TextInputAction.next,
+                onSubmitted: () => _emailFocusNode.requestFocus(),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Nhập tên';
+                  }
+                  return null;
+                },
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.md),
+        // Email
+        TriTextField(
+          controller: _emailController,
+          focusNode: _emailFocusNode,
+          keyboardType: TextInputType.emailAddress,
+          hintText: 'Nhập email của bạn',
+          prefixIcon: Icon(Icons.email_outlined, size: 20, color: AppColors.primaryAmber),
+          textInputAction: TextInputAction.next,
+          onSubmitted: () => _passwordFocusNode.requestFocus(),
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'Vui lòng nhập email';
+            }
+            if (!_isValidEmail(value)) {
+              return 'Địa chỉ email không hợp lệ';
+            }
+            return null;
           },
-          child: TriTextField(
-            controller: _emailController,
-            focusNode: _emailFocusNode,
-            keyboardType: TextInputType.emailAddress,
-            hintText: 'Nhập email của bạn',
-            prefixIcon: Icon(Icons.email_outlined, size: 20, color: AppColors.primaryAmber),
-            suffixIcon: _emailController.text.isNotEmpty
-                ? IconButton(
-                    icon: Icon(Icons.cancel_rounded, size: 20, color: AppColors.textTertiary),
-                    onPressed: _clearEmail,
-                  )
-                : null,
-            validator: (value) {
-              final t = AppLocalizations(localeNotifier.value);
-              return Validator.email(
-                value,
-                requiredMessage: t.get('validatorRequired'),
-                invalidMessage: t.get('validatorEmail'),
-              );
-            },
+        ),
+        const SizedBox(height: AppSpacing.md),
+        // Mật khẩu
+        TriTextField(
+          controller: _passwordController,
+          focusNode: _passwordFocusNode,
+          obscureText: _obscurePassword,
+          hintText: 'Mật khẩu',
+          prefixIcon: Icon(Icons.lock_outline_rounded, size: 20, color: AppColors.primaryAmber),
+          suffixIcon: IconButton(
+            icon: Icon(
+              _obscurePassword
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+              size: 20,
+              color: AppColors.textTertiary,
+            ),
+            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
           ),
+          textInputAction: TextInputAction.next,
+          onSubmitted: () => _confirmFocusNode.requestFocus(),
+          validator: (value) {
+            if (value == null || value.isEmpty) return 'Vui lòng nhập mật khẩu';
+            if (value.length < 8) return 'Mật khẩu phải có ít nhất 8 ký tự';
+            if (!RegExp(r'[a-z]').hasMatch(value)) {
+              return 'Phải có ít nhất 1 chữ thường';
+            }
+            if (!RegExp(r'[A-Z]').hasMatch(value)) {
+              return 'Phải có ít nhất 1 chữ hoa';
+            }
+            if (!RegExp(r'[0-9]').hasMatch(value)) {
+              return 'Phải có ít nhất 1 chữ số';
+            }
+            return null;
+          },
+        ),
+        if (_passwordController.text.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.sm),
+          _buildPasswordStrengthBar(),
+        ],
+        const SizedBox(height: AppSpacing.md),
+        // Xác nhận mật khẩu
+        TriTextField(
+          controller: _confirmPasswordController,
+          focusNode: _confirmFocusNode,
+          obscureText: _obscureConfirm,
+          hintText: 'Xác nhận mật khẩu',
+          prefixIcon: Icon(Icons.lock_outline_rounded, size: 20, color: AppColors.primaryAmber),
+          suffixIcon: IconButton(
+            icon: Icon(
+              _obscureConfirm
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+              size: 20,
+              color: AppColors.textTertiary,
+            ),
+            onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+          ),
+          textInputAction: TextInputAction.done,
+          onSubmitted: _handleRegister,
+          validator: (value) {
+            if (value == null || value.isEmpty) return 'Vui lòng xác nhận mật khẩu';
+            if (value != _passwordController.text) return 'Mật khẩu không khớp';
+            return null;
+          },
         ),
         const SizedBox(height: AppSpacing.lg),
         _buildCheckbox(
           value: _agreeTerms,
           onChanged: _onAgreeTermsChanged,
-          label: t.get('agreeTerms'),
-          link: t.get('agreeTermsLink'),
+          label: 'Tôi đồng ý với',
+          link: 'Điều khoản sử dụng & Chính sách bảo mật',
           isDark: isDark,
         ),
+      ],
+    );
+  }
+
+  Widget _buildPasswordStrengthBar() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+          child: LinearProgressIndicator(
+            value: _passwordStrength,
+            minHeight: 4,
+            backgroundColor: Colors.black12,
+            valueColor: AlwaysStoppedAnimation<Color>(_passwordStrengthColor),
+          ),
+        ),
         const SizedBox(height: AppSpacing.xs),
-        _buildCheckbox(
-          value: _agreeSocialPolicy,
-          onChanged: _onAgreeSocialPolicyChanged,
-          label: t.get('agreePolicy'),
-          link: t.get('agreePolicyLink'),
-          isDark: isDark,
+        Text(
+          'Độ mạnh: $_passwordStrengthLabel',
+          style: AppTypography.bodySmall.copyWith(
+            color: _passwordStrengthColor,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ],
     );
@@ -771,7 +905,7 @@ class _SignUpViewState extends State<SignUpView>
     );
   }
 
-  Widget _buildBottomBar(ThemeData theme, bool isDark, AppLocalizations t) {
+  Widget _buildBottomBar(ThemeData theme, bool isDark) {
     return Container(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.lg,
@@ -792,7 +926,7 @@ class _SignUpViewState extends State<SignUpView>
         mainAxisSize: MainAxisSize.min,
         children: [
           GestureDetector(
-            onTap: _isButtonEnabled ? _handleRegister : null,
+            onTap: _isButtonEnabled && !_isLoading ? _handleRegister : null,
             child: AnimatedContainer(
               duration: AppCurves.durationNormal,
               height: 56,
@@ -832,7 +966,7 @@ class _SignUpViewState extends State<SignUpView>
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'Tiếp tục',
+                            'Tạo tài khoản',
                             style: AppTypography.labelLarge.copyWith(
                               color: _isButtonEnabled
                                   ? AppColors.textWhite
@@ -858,15 +992,15 @@ class _SignUpViewState extends State<SignUpView>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                '${t.get('noAccount')} ',
+                'Đã có tài khoản? ',
                 style: AppTypography.bodyMedium.copyWith(
                   color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
                 ),
               ),
               GestureDetector(
-                onTap: () => context.go('/'),
+                onTap: () => context.go('/login'),
                 child: Text(
-                  t.get('loginNow'),
+                  'Đăng nhập ngay',
                   style: AppTypography.labelMedium.copyWith(
                     color: AppColors.primaryAmber,
                     fontWeight: FontWeight.w700,

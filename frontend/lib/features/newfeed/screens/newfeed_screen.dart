@@ -122,8 +122,8 @@ class _NewfeedScreenState extends State<NewfeedScreen>
     );
   }
 
-  void _showCreatePost() {
-    showModalBottomSheet(
+  void _showCreatePost() async {
+    final result = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.darkPremiumSurface,
@@ -142,6 +142,17 @@ class _NewfeedScreenState extends State<NewfeedScreen>
         ),
       ),
     );
+
+    // CreatePostScreen already inserts the new post into FeedProvider via
+    // createPost(). We still want to refresh so we pick up any backend-side
+    // changes (e.g. comment_count, like state for older posts) and ensure
+    // the new entry is in sync with the server.
+    if (!mounted) return;
+    if (result == true) {
+      try {
+        await context.read<FeedProvider>().refreshFeed();
+      } catch (_) {}
+    }
   }
 
   Color get _avatarColor {

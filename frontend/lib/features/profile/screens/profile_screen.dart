@@ -275,8 +275,8 @@ class _ProfileScreenState extends State<ProfileScreen>
     String? imagePath,
     bool shouldUpdateAvatarOnSubmit = false,
     String? avatarImagePath,
-  }) {
-    showModalBottomSheet(
+  }) async {
+    final result = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.white,
@@ -299,6 +299,24 @@ class _ProfileScreenState extends State<ProfileScreen>
         ),
       ),
     );
+
+    // After the create-post sheet closes, if a post was created, force a fresh
+    // refresh so the new entry shows up immediately on the profile (and other
+    // tabs that observe the same ProfileProvider).
+    if (!mounted) return;
+    if (result == true) {
+      // Throttle: don't refetch more than once every 2s
+      final now = DateTime.now();
+      if (_lastReloadedAt == null ||
+          now.difference(_lastReloadedAt!) > const Duration(seconds: 2)) {
+        _lastReloadedAt = now;
+        if (_isOwnProfile) {
+          await _reloadOwnProfile();
+        } else if (_targetUserId != null) {
+          await context.read<ProfileProvider>().refreshProfile(_targetUserId!);
+        }
+      }
+    }
   }
 
   Future<void> _updateAvatarOnly(XFile image, Uint8List bytes) async {

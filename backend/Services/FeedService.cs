@@ -73,21 +73,23 @@ namespace backend.Services
             var mutedUserIds = mutedUserIdsTask.Result;
             var hiddenPostIds = hiddenPostIdsTask.Result;
 
-            // Get all posts from own feed and friends' feeds
+            // Get all posts from own feed and friends' feeds.
+            // NOTE: We filter is_enable and order in memory to avoid composite
+            // indexes (WhereIn + OrderBy on different fields requires one).
             var targetIds = friendIds.Append(userId).Distinct().ToList();
 
             var posts = await QueryFeedsByBatchAsync(db, targetIds, "post",
                 (col, batch) => col
                     .WhereEqualTo("type", "post")
-                    .WhereIn("user_id", batch)
-                    .WhereEqualTo("is_enable", true)
-                    .OrderByDescending("create_at"));
+                    .WhereIn("user_id", batch));
 
             var filtered = posts
+                .Where(p => p.IsEnable)
                 .Where(p => !mutedUserIds.Contains(p.UserId))
                 .Where(p => !hiddenPostIds.Contains(p.Id))
                 .Where(p => p.Privacy != "only_me") // Filter out "only_me" posts in memory
                 .Where(p => CanViewPost(p, userId, friendIds))
+                .OrderByDescending(p => p.CreatedAt)
                 .ToList();
 
             var authorIds = filtered.Select(p => p.UserId);
