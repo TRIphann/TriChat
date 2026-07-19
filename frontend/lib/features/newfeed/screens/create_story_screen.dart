@@ -51,14 +51,19 @@ class _CreateStoryScreenState extends State<CreateStoryScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (_cameraController == null || !_cameraController!.value.isInitialized) {
-      return;
-    }
-
-    if (state == AppLifecycleState.inactive) {
-      _cameraController?.dispose();
-    } else if (state == AppLifecycleState.resumed) {
-      _initializeCamera();
+    // When the app goes background / inactive / paused, the camera preview
+    // is no longer visible — releasing the hardware here stops the OS
+    // camera indicator from staying lit. We deliberately do NOT re-init on
+    // `resumed` because the user is most likely navigating elsewhere;
+    // trying to re-grab the camera frequently causes "camera in use" errors
+    // on Android. Use the retake button to start preview again.
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      if (_cameraController != null &&
+          _cameraController!.value.isInitialized) {
+        _cameraController?.dispose();
+      }
     }
   }
 

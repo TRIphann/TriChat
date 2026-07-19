@@ -143,39 +143,69 @@ class ProfileProvider extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
 
-    try {
-      final results = await Future.wait([
-        ProfileService.getUserPosts(userId),
-        ProfileService.getFriends(userId: userId),
-        ProfileService.getCurrentUserProfile(),
-      ]);
+    // Run each fetch independently so a failure in one doesn't blow away
+    // the others (e.g. if a single endpoint returns 500/401, posts should
+    // still load and the UI should not show empty). Previously we used
+    // Future.wait which aborts the whole batch on the first rejection.
+    final postsFuture = ProfileService.getUserPosts(userId)
+        .then<List<PostModel>>((p) => p)
+        .catchError((Object e) {
+      _errorMessage =
+          'Không thể tải bài viết: ${e.toString().replaceFirst('Exception: ', '')}';
+      return <PostModel>[];
+    });
+    final friendsFuture = ProfileService.getFriends(userId: userId)
+        .then<List<FriendSummaryModel>>((f) => f)
+        .catchError((Object e) {
+      _errorMessage =
+          '${_errorMessage ?? ''}\nKhông thể tải bạn bè: ${e.toString().replaceFirst('Exception: ', '')}';
+      return <FriendSummaryModel>[];
+    });
+    final profileFuture = ProfileService.getCurrentUserProfile()
+        .then<UserProfileModel?>((p) => p)
+        .catchError((Object e) {
+      _errorMessage =
+          '${_errorMessage ?? ''}\nKhông thể tải hồ sơ: ${e.toString().replaceFirst('Exception: ', '')}';
+      return null;
+    });
 
-      _posts = results[0] as List<PostModel>;
-      _friends = results[1] as List<FriendSummaryModel>;
-      _userProfile = results[2] as UserProfileModel;
+    final results = await Future.wait([postsFuture, friendsFuture, profileFuture]);
 
-      userName = _userProfile?.fullName;
-      if (_userProfile?.dateOfBirth != null) {
-        final dob = _userProfile!.dateOfBirth!;
-        birthday = '${dob.year}-${dob.month.toString().padLeft(2, '0')}-${dob.day.toString().padLeft(2, '0')}';
-      } else {
-        birthday = null;
-      }
-      _isLoading = false;
-    } catch (e) {
-      _errorMessage = e.toString();
-      _isLoading = false;
+    _posts = results[0] as List<PostModel>;
+    _friends = results[1] as List<FriendSummaryModel>;
+    _userProfile = results[2] as UserProfileModel?;
+
+    userName = _userProfile?.fullName;
+    if (_userProfile?.dateOfBirth != null) {
+      final dob = _userProfile!.dateOfBirth!;
+      birthday = '${dob.year}-${dob.month.toString().padLeft(2, '0')}-${dob.day.toString().padLeft(2, '0')}';
+    } else {
+      birthday = null;
     }
+    _isLoading = false;
 
     notifyListeners();
   }
 
   Future<void> refreshProfile(String userId) async {
     try {
-      final results = await Future.wait([
-        ProfileService.getUserPosts(userId),
-        ProfileService.getFriends(userId: userId),
-      ]);
+      // Independent fetches so a failure in one doesn't kill the rest.
+      final postsFuture = ProfileService.getUserPosts(userId)
+          .then<List<PostModel>>((p) => p)
+          .catchError((Object e) {
+        _errorMessage =
+            'Không thể tải bài viết: ${e.toString().replaceFirst('Exception: ', '')}';
+        return _posts;
+      });
+      final friendsFuture = ProfileService.getFriends(userId: userId)
+          .then<List<FriendSummaryModel>>((f) => f)
+          .catchError((Object e) {
+        _errorMessage =
+            'Không thể tải bạn bè: ${e.toString().replaceFirst('Exception: ', '')}';
+        return _friends;
+      });
+
+      final results = await Future.wait([postsFuture, friendsFuture]);
 
       _posts = results[0] as List<PostModel>;
       _friends = results[1] as List<FriendSummaryModel>;

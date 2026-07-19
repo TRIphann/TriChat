@@ -99,17 +99,20 @@ class AuthService {
 
       final user = credential.user!;
 
-      // Backend expects PascalCase field names
+      // Backend is configured with JsonNamingPolicy.SnakeCaseLower, so all
+      // payload keys must be snake_case (e.g. `first_name`, `date_of_birth`)
+      // — PascalCase keys are silently ignored and the validator then fails
+      // because required fields are empty.
       await DioClient.instance.post(
         '/api/user',
         data: {
-          'Id': user.uid,
-          'FirstName': req.firstName,
-          'LastName': req.lastName,
-          'Email': req.email,
-          'Password': req.password,
-          'DateOfBirth': req.dateOfBirth,
-          'Bio': req.bio ?? '',
+          'id': user.uid,
+          'first_name': req.firstName,
+          'last_name': req.lastName,
+          'email': req.email,
+          'password': req.password,
+          'date_of_birth': req.dateOfBirth,
+          'bio': req.bio ?? '',
         },
       );
     } on FirebaseAuthException catch (e) {

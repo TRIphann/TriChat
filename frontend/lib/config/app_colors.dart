@@ -182,6 +182,12 @@ class AppColors {
     Color(0xFF1C1917),
   ];
 
+  /// Chat bubble mine gradient (light mode) — warm brand orange.
+  static const List<Color> lightBubbleMineGradient = [
+    Color(0xFFD97706),
+    Color(0xFFB45309),
+  ];
+
   /// Alias for legacy compatibility
   static const List<Color> chatBubbleMineGradient = darkBubbleMineGradient;
 

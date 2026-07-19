@@ -552,12 +552,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildPinnedMessage(Conversation conv) {
+    final isDark = isDarkModeNotifier.value;
+    final bg = isDark ? AppColors.darkPremiumSurface : AppColors.creamWhite;
+    final border = isDark ? AppColors.darkPremiumBorder : AppColors.creamTertiary;
+    final accentColor = isDark ? AppColors.neonRoyalGlow : AppColors.primaryOrange;
+    final secondaryText = isDark
+        ? AppColors.darkPremiumTextSecondary
+        : AppColors.accentBrown;
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.darkPremiumSurface,
+        color: bg,
         border: Border(
           bottom: BorderSide(
-            color: AppColors.darkPremiumBorder,
+            color: border,
             width: 1,
           ),
         ),
@@ -567,9 +574,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           Container(
             width: 3,
             height: 44,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: AppColors.darkBubbleMineGradient,
+                colors: isDark
+                    ? AppColors.darkBubbleMineGradient
+                    : AppColors.lightBubbleMineGradient,
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
@@ -579,7 +588,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           Icon(
             Icons.push_pin_rounded,
             size: 14,
-            color: AppColors.neonRoyalGlow,
+            color: accentColor,
           ),
           const SizedBox(width: 6),
           Expanded(
@@ -590,7 +599,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 Text(
                   'Tin nhắn đã ghim',
                   style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.neonRoyalGlow,
+                    color: accentColor,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -598,7 +607,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 Text(
                   conv.pinnedMessageContent ?? '',
                   style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.darkPremiumTextSecondary,
+                    color: secondaryText,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -609,15 +618,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           const SizedBox(width: AppSpacing.sm),
           GestureDetector(
             onTap: _unpinMessage,
-            child: const Padding(
-              padding: EdgeInsets.symmetric(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
                 horizontal: 12,
                 vertical: 10,
               ),
               child: Icon(
                 Icons.close_rounded,
                 size: 18,
-                color: AppColors.darkPremiumTextSecondary,
+                color: secondaryText,
               ),
             ),
           ),
@@ -797,12 +806,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildReplyPreview() {
+    final isDark = isDarkModeNotifier.value;
+    final bg = isDark ? AppColors.darkPremiumSurface : AppColors.creamWhite;
+    final border = isDark ? AppColors.darkPremiumBorder : AppColors.creamTertiary;
+    final accentColor = isDark ? AppColors.neonRoyalGlow : AppColors.primaryOrange;
+    final secondaryText = isDark
+        ? AppColors.darkPremiumTextSecondary
+        : AppColors.accentBrown;
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.darkPremiumSurface,
+      decoration: BoxDecoration(
+        color: bg,
         border: Border(
           top: BorderSide(
-            color: AppColors.darkPremiumBorder,
+            color: border,
             width: 1,
           ),
         ),
@@ -812,9 +828,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           Container(
             width: 3,
             height: 52,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: AppColors.darkBubbleMineGradient,
+                colors: isDark
+                    ? AppColors.darkBubbleMineGradient
+                    : AppColors.lightBubbleMineGradient,
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
@@ -831,7 +849,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   Text(
                     'Trả lời ${_replyToMessage!.senderName}',
                     style: AppTypography.labelSmall.copyWith(
-                      color: AppColors.neonRoyalGlow,
+                      color: accentColor,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -839,7 +857,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   Text(
                     _replyToMessage!.content,
                     style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.darkPremiumTextSecondary,
+                      color: secondaryText,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -850,8 +868,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           ),
           GestureDetector(
             onTap: () => setState(() => _replyToMessage = null),
-            child: const Padding(
-              padding: EdgeInsets.symmetric(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
                 horizontal: 12,
                 vertical: 10,
               ),
@@ -1394,12 +1412,22 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final timeStr =
         '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
 
+    final isDark = isDarkModeNotifier.value;
+    final bg = isDark ? AppColors.darkPremiumSurface : AppColors.creamWhite;
+    final border = isDark ? AppColors.darkPremiumBorder : AppColors.creamTertiary;
+    final elevated = isDark
+        ? AppColors.darkPremiumElevated
+        : AppColors.creamSurface;
+    final onSurface = isDark
+        ? AppColors.darkPremiumTextPrimary
+        : AppColors.accentBrown;
+
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.darkPremiumSurface,
+      decoration: BoxDecoration(
+        color: bg,
         border: Border(
           top: BorderSide(
-            color: AppColors.darkPremiumBorder,
+            color: border,
             width: 1,
           ),
         ),
@@ -1423,10 +1451,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 child: Container(
                   height: 44,
                   decoration: BoxDecoration(
-                    color: AppColors.darkPremiumElevated,
+                    color: elevated,
                     borderRadius: BorderRadius.circular(22),
                     border: Border.all(
-                      color: AppColors.darkPremiumBorder,
+                      color: border,
                       width: 1,
                     ),
                   ),
@@ -1445,7 +1473,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       Text(
                         'Đang ghi âm...',
                         style: TextStyle(
-                          color: AppColors.darkPremiumTextPrimary,
+                          color: onSurface,
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
