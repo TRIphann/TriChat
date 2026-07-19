@@ -350,7 +350,7 @@ class ChatListViewState extends State<ChatListView>
   Widget _buildMobileView(AppLocalizations t, bool isDark) {
     final theme = Theme.of(context);
     return Container(
-      color: isDark ? AppColors.darkBackground : AppColors.cream,
+      color: theme.scaffoldBackgroundColor,
       child: Column(
         children: [
           Expanded(
@@ -557,15 +557,7 @@ class ChatListViewState extends State<ChatListView>
           AppSpacing.lg,
           AppSpacing.md,
         ),
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.darkPremiumSurface : AppColors.creamWhite,
-          border: Border(
-            bottom: BorderSide(
-              color: isDark ? AppColors.darkPremiumBorder : AppColors.borderDefault,
-              width: 1,
-            ),
-          ),
-        ),
+        color: isDark ? AppColors.darkSurface : theme.scaffoldBackgroundColor,
         child: SafeArea(
           bottom: false,
           child: Column(
@@ -584,7 +576,7 @@ class ChatListViewState extends State<ChatListView>
                     child: Text(
                       t.get('messages'),
                       style: AppTypography.headlineMedium.copyWith(
-                        color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                        color: theme.colorScheme.onSurface,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.5,
                       ),
@@ -866,22 +858,9 @@ class ChatListViewState extends State<ChatListView>
         duration: AppCurves.durationNormal,
         decoration: BoxDecoration(
           color: isSelected
-              ? (isDark ? AppColors.neonRoyal.withValues(alpha: 0.15) : AppColors.primaryOrangeLight.withValues(alpha: 0.3))
-              : (isDark ? AppColors.darkPremiumSurface : AppColors.creamWhite),
+              ? AppColors.primaryOrangeLight.withValues(alpha: 0.45)
+              : theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(AppRadius.xl),
-          border: Border.all(
-            color: isSelected
-                ? AppColors.neonRoyal
-                : (isDark ? AppColors.darkPremiumBorder : AppColors.borderDefault),
-            width: isSelected ? 1.5 : 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
         ),
         child: Material(
           color: Colors.transparent,
@@ -916,9 +895,7 @@ class ChatListViewState extends State<ChatListView>
                                       color: AppColors.success,
                                       shape: BoxShape.circle,
                                       border: Border.all(
-                                        color: isDark
-                                            ? AppColors.darkCard
-                                            : AppColors.creamWhite,
+                                        color: theme.colorScheme.surface,
                                         width: 2.5,
                                       ),
                                       boxShadow: [
@@ -950,9 +927,7 @@ class ChatListViewState extends State<ChatListView>
                                   fontWeight: unreadCount > 0
                                       ? FontWeight.w700
                                       : FontWeight.w600,
-                                  color: isDark
-                                      ? AppColors.darkTextPrimary
-                                      : AppColors.textPrimary,
+                                  color: theme.colorScheme.onSurface,
                                 ),
                               ),
                             ),
@@ -962,9 +937,7 @@ class ChatListViewState extends State<ChatListView>
                               style: AppTypography.timestamp.copyWith(
                                 color: unreadCount > 0
                                     ? AppColors.primaryAmber
-                                    : (isDark
-                                        ? AppColors.darkTextTertiary
-                                        : AppColors.textTertiary),
+                                    : theme.hintColor,
                               ),
                             ),
                           ],
@@ -981,12 +954,8 @@ class ChatListViewState extends State<ChatListView>
                                 overflow: TextOverflow.ellipsis,
                                 style: AppTypography.bodySmall.copyWith(
                                   color: unreadCount > 0
-                                      ? (isDark
-                                          ? AppColors.darkTextSecondary
-                                          : AppColors.textSecondary)
-                                      : (isDark
-                                          ? AppColors.darkTextTertiary
-                                          : AppColors.textTertiary),
+                                      ? theme.colorScheme.onSurface.withValues(alpha: 0.8)
+                                      : theme.hintColor,
                                   fontWeight: unreadCount > 0
                                       ? FontWeight.w500
                                       : FontWeight.w400,
@@ -1027,25 +996,15 @@ class ChatListViewState extends State<ChatListView>
   Widget _buildBottomNavigation(ThemeData theme, bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkPremiumSurface : AppColors.creamWhite,
+        color: theme.colorScheme.surface,
         border: Border(
-          top: BorderSide(
-            color: isDark ? AppColors.darkPremiumBorder : AppColors.borderDefault,
-            width: 1,
-          ),
+          top: BorderSide(color: theme.dividerColor, width: 1),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -4),
-          ),
-        ],
       ),
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 68,
+          height: 64,
           child: Row(
             children: [
               _buildBottomNavItem(
@@ -1096,45 +1055,45 @@ class ChatListViewState extends State<ChatListView>
     bool isDark,
   ) {
     final isSelected = _selectedNavIndex == index;
-    final activeColor = AppColors.neonRoyal;
-    final inactiveColor = isDark ? AppColors.darkPremiumTextSecondary : AppColors.textTertiary;
+    final activeColor = AppColors.primaryOrange;
+    final inactiveColor = theme.hintColor;
     final color = isSelected ? activeColor : inactiveColor;
 
     return Expanded(
-      child: AnimatedContainer(
-        duration: AppCurves.durationNormal,
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () => setState(() => _selectedNavIndex = index),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                AnimatedContainer(
-                  duration: AppCurves.durationNormal,
-                  padding: EdgeInsets.all(isSelected ? AppSpacing.sm : 0),
-                    decoration: BoxDecoration(
-                    color: isSelected
-                        ? AppColors.neonRoyal.withValues(alpha: 0.2)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(AppRadius.lg),
-                  ),
-                  child: Icon(
-                    isSelected ? activeIcon : inactiveIcon,
-                    color: color,
-                    size: 24,
-                  ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => setState(() => _selectedNavIndex = index),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedContainer(
+                duration: AppCurves.durationNormal,
+                padding: EdgeInsets.symmetric(
+                  horizontal: isSelected ? AppSpacing.md : 0,
+                  vertical: isSelected ? 4 : 0,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  label,
-                  style: AppTypography.labelSmall.copyWith(
-                    color: color,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  ),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.primaryOrangeLight
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                 ),
-              ],
-            ),
+                child: Icon(
+                  isSelected ? activeIcon : inactiveIcon,
+                  color: color,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: AppTypography.labelSmall.copyWith(
+                  color: color,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+            ],
           ),
         ),
       ),

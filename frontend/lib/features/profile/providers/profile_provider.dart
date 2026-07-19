@@ -207,7 +207,22 @@ class ProfileProvider extends ChangeNotifier {
 
       final results = await Future.wait([postsFuture, friendsFuture]);
 
-      _posts = results[0] as List<PostModel>;
+      final fetchedPosts = results[0] as List<PostModel>;
+
+      // Merge strategy: if the freshly fetched list is *shorter* than what
+      // we already had in cache (which happens right after creating a post
+      // when Firestore read-after-write hasn't caught up yet), preserve any
+      // cached posts whose IDs are missing from the response. This prevents
+      // the optimistic "just created" post from being wiped out by a stale
+      // empty fetch.
+      final fetchedIds = fetchedPosts.map((p) => p.id).toSet();
+      final missingFromFetch =
+          _posts.where((p) => !fetchedIds.contains(p.id)).toList();
+      if (missingFromFetch.isNotEmpty) {
+        _posts = [...fetchedPosts, ...missingFromFetch];
+      } else {
+        _posts = fetchedPosts;
+      }
       _friends = results[1] as List<FriendSummaryModel>;
       _errorMessage = null;
     } catch (e) {

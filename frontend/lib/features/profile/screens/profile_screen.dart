@@ -159,7 +159,10 @@ class _ProfileScreenState extends State<ProfileScreen>
   Future<void> _reloadOwnProfile() async {
     if (_targetUserId == null) return;
     if (!mounted) return;
-    await context.read<ProfileProvider>().loadProfile(_targetUserId!);
+    // Use refreshProfile (keeps existing posts on fetch failure) instead of
+    // loadProfile (which wipes `_posts = []` first and can therefore erase
+    // posts that the user just created and the API hasn't yet indexed).
+    await context.read<ProfileProvider>().refreshProfile(_targetUserId!);
   }
 
   Future<void> _loadOtherUserProfile() async {
@@ -205,7 +208,11 @@ class _ProfileScreenState extends State<ProfileScreen>
     final currentTabIndex = _tabController.index;
 
     if (_isOwnProfile) {
-      await context.read<ProfileProvider>().loadProfile(_targetUserId!);
+      // Use refreshProfile so an empty fetch response doesn't blow away
+      // any locally-known posts (e.g. ones we just created).
+      await context
+          .read<ProfileProvider>()
+          .refreshProfile(_targetUserId!);
     } else {
       await _loadOtherUserProfile();
     }
@@ -300,21 +307,37 @@ class _ProfileScreenState extends State<ProfileScreen>
       ),
     );
 
-    // After the create-post sheet closes, if a post was created, force a fresh
-    // refresh so the new entry shows up immediately on the profile (and other
-    // tabs that observe the same ProfileProvider).
+    // After the create-post sheet closes, if a post was created:
+    // 1. `CreatePostScreen` already called `ProfileProvider.addPost(post)` to
+    //    prepend it to the cache, so the UI updates immediately.
+    // 2. We deliberately skip the immediate `_reloadOwnProfile()` round-trip
+    //    here — that re-fetch frequently races with the backend write and
+    //    returns an empty list (the new doc isn't yet visible to the query
+    //    due to Firestore read-after-write semantics + the reset
+    //    `_posts = []` inside `loadProfile`), which would wipe out the freshly
+    //    added post and make the list look empty. The post already in cache
+    //    will be confirmed by the next natural reload (tab switch, pull-to-
+    //    refresh, or app restart).
     if (!mounted) return;
     if (result == true) {
-      // Throttle: don't refetch more than once every 2s
-      final now = DateTime.now();
-      if (_lastReloadedAt == null ||
-          now.difference(_lastReloadedAt!) > const Duration(seconds: 2)) {
-        _lastReloadedAt = now;
-        if (_isOwnProfile) {
-          await _reloadOwnProfile();
-        } else if (_targetUserId != null) {
+      if (_isOwnProfile) {
+        // Lazy background revalidation — but only if the user is *not*
+        // actively looking at the posts tab, so we don't clobber the
+        // optimistic state.
+        Future.microtask(() async {
+          if (!mounted) return;
+          final now = DateTime.now();
+          if (_lastReloadedAt != null &&
+              now.difference(_lastReloadedAt!) < const Duration(seconds: 5)) {
+            return;
+          }
+          _lastReloadedAt = now;
+          // Use refreshProfile which preserves the existing posts on failure
+          // (via the per-fetch catchError we added earlier).
           await context.read<ProfileProvider>().refreshProfile(_targetUserId!);
-        }
+        });
+      } else if (_targetUserId != null) {
+        await context.read<ProfileProvider>().refreshProfile(_targetUserId!);
       }
     }
   }
