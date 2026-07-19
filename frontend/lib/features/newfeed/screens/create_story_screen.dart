@@ -1,12 +1,12 @@
-import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:frontend/config/app_colors.dart';
 import 'package:frontend/config/app_spacing.dart';
-import 'package:frontend/features/newfeed/services/story_service.dart';
+import 'package:frontend/features/newfeed/providers/story_provider.dart';
 
 /// Dark premium story creation screen with live camera preview
 class CreateStoryScreen extends StatefulWidget {
@@ -239,9 +239,35 @@ class _CreateStoryScreenState extends State<CreateStoryScreen>
     _initializeCamera();
   }
 
+  /// Explicitly shut down the camera. Must be called before the screen is
+  /// disposed so the OS releases the hardware; otherwise the indicator stays
+  /// lit on some Android devices.
+  Future<void> _shutdownCamera() async {
+    final controller = _cameraController;
+    if (controller == null) return;
+    _cameraController = null;
+    if (controller.value.isInitialized) {
+      try {
+        // Best-effort: turn off the torch/flash before tearing down.
+        if (_isFlashOn) {
+          try {
+            await controller.setFlashMode(FlashMode.off);
+          } catch (_) {}
+        }
+        await controller.dispose();
+      } catch (_) {}
+    }
+  }
+
   Future<void> _postStory() async {
     if (_capturedBytes == null && _capturedPath == null) return;
     if (_isLoading) return;
+
+    // Stop the camera preview *before* the upload — without this the camera
+    // indicator stays on after we pop and the next screen sees a locked
+    // hardware resource.
+    await _shutdownCamera();
+    if (!mounted) return;
 
     setState(() {
       _isLoading = true;
@@ -256,9 +282,25 @@ class _CreateStoryScreenState extends State<CreateStoryScreen>
         file = XFile(_capturedPath!);
       }
 
-      await StoryService.createStory(imageFile: file);
+      // Route through StoryProvider so the new story is prepended to the
+      // in-memory list (and the newsfeed UI updates immediately, without
+      // requiring a full reload).
+      final newStory = await context.read<StoryProvider>().createStory(file);
 
       if (!mounted) return;
+      if (newStory == null) {
+        final err = context.read<StoryProvider>().errorMessage ?? 'Không thể đăng story';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi: $err'),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+        setState(() => _isLoading = false);
+        return;
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Đăng story thành công!'),
@@ -266,7 +308,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen>
           duration: Duration(seconds: 2),
         ),
       );
-      context.pop(true);
+      // Pop with the new story so the caller can use it if needed.
+      context.pop(newStory);
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -284,10 +327,21 @@ class _CreateStoryScreenState extends State<CreateStoryScreen>
     }
   }
 
+  Future<void> _cancel() async {
+    await _shutdownCamera();
+    if (!mounted) return;
+    context.pop();
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _cameraController?.dispose();
+    // Best-effort synchronous tear-down for the case where the user pushed
+    // the back button or the route was replaced without calling cancel.
+    try {
+      _cameraController?.dispose();
+    } catch (_) {}
+    _cameraController = null;
     super.dispose();
   }
 
@@ -417,7 +471,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen>
           // Close button
           _buildControlButton(
             icon: Icons.close_rounded,
-            onTap: () => context.pop(),
+            onTap: _cancel,
           ),
 
           // Flash and camera switch (only show when camera is active)

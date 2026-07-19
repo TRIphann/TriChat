@@ -94,13 +94,12 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
   // ════════════════════════════════════════════════════════════════
   Widget _buildSlimSidebar(bool isDark) {
     return Container(
-      width: 72,
+      width: 86,
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : AppColors.neutralBlack,
+        color: isDark ? AppColors.darkSurface : AppColors.creamElevated,
         border: Border(
           right: BorderSide(
-            color:
-                isDark ? AppColors.darkDivider : AppColors.neutralGray800,
+            color: isDark ? AppColors.darkDivider : AppColors.creamTertiary,
             width: 1,
           ),
         ),
@@ -116,6 +115,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
             active: widget.currentNavIndex == 0,
             onTap: () => widget.onNavTap?.call(0),
             tooltip: 'Tin nhắn',
+            isDark: isDark,
           ),
           const SizedBox(height: AppSpacing.sm),
           _buildSlimIcon(
@@ -124,6 +124,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
             active: widget.currentNavIndex == 1,
             onTap: () => widget.onNavTap?.call(1),
             tooltip: 'Bạn bè',
+            isDark: isDark,
           ),
           const SizedBox(height: AppSpacing.sm),
           _buildSlimIcon(
@@ -132,6 +133,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
             active: widget.currentNavIndex == 2,
             onTap: () => widget.onNavTap?.call(2),
             tooltip: 'Bảng tin',
+            isDark: isDark,
           ),
           const SizedBox(height: AppSpacing.sm),
           _buildSlimIcon(
@@ -140,6 +142,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
             active: widget.currentNavIndex == 3,
             onTap: () => widget.onNavTap?.call(3),
             tooltip: 'Cá nhân',
+            isDark: isDark,
           ),
           const Spacer(),
           _buildSlimIcon(
@@ -149,6 +152,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
             size: 46,
             onTap: () => widget.onNavTap?.call(4),
             tooltip: 'Cài đặt',
+            isDark: isDark,
           ),
           const SizedBox(height: AppSpacing.lg),
         ],
@@ -170,9 +174,18 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
     double size = 46,
     VoidCallback? onTap,
     String? tooltip,
+    required bool isDark,
   }) {
-    final color =
-        active ? AppColors.neutralWhite : AppColors.neutralGray400;
+    final color = active
+        ? (isDark ? AppColors.neonRoyal : AppColors.primaryOrange)
+        : (isDark
+            ? AppColors.darkPremiumTextSecondary
+            : AppColors.neutralGray500);
+    final bg = active
+        ? (isDark
+            ? AppColors.neonRoyal.withValues(alpha: 0.18)
+            : AppColors.primaryOrangeLight)
+        : Colors.transparent;
     final iconWidget = Icon(
       active ? activeIcon : icon,
       color: color,
@@ -185,7 +198,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
         height: size,
         margin: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
-          color: active ? AppColors.neutralGray800 : Colors.transparent,
+          color: bg,
           borderRadius: BorderRadius.circular(AppRadius.md),
         ),
         alignment: Alignment.center,

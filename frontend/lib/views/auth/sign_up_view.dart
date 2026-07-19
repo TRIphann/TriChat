@@ -31,6 +31,7 @@ class _SignUpViewState extends State<SignUpView>
   final FocusNode _passwordFocusNode = FocusNode();
   final FocusNode _confirmFocusNode = FocusNode();
 
+  DateTime? _dateOfBirth;
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
   bool _isButtonEnabled = false;
@@ -153,6 +154,8 @@ class _SignUpViewState extends State<SignUpView>
             RegExp(r'[A-Z]').hasMatch(password) &&
             RegExp(r'[0-9]').hasMatch(password);
     final isConfirmValid = confirm.isNotEmpty && confirm == password;
+    final isDobValid = _dateOfBirth != null &&
+        _dateOfBirth!.isBefore(DateTime.now());
 
     setState(() {
       _isButtonEnabled = email.isNotEmpty &&
@@ -161,9 +164,38 @@ class _SignUpViewState extends State<SignUpView>
           isEmailValid &&
           isPasswordValid &&
           isConfirmValid &&
+          isDobValid &&
           _agreeTerms;
       if (_errorMessage != null) _errorMessage = null;
     });
+  }
+
+  Future<void> _pickDateOfBirth() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _dateOfBirth ??
+          DateTime(now.year - 18, now.month, now.day),
+      firstDate: DateTime(now.year - 100, 1, 1),
+      lastDate: DateTime(now.year - 13, now.month, now.day),
+      builder: (context, child) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+                  primary: AppColors.primaryOrange,
+                  onPrimary: Colors.white,
+                  surface: isDark ? AppColors.darkCard : AppColors.creamWhite,
+                  onSurface: isDark ? Colors.white : AppColors.accentBrown,
+                ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked == null) return;
+    setState(() => _dateOfBirth = picked);
+    _updateButtonState();
   }
 
   void _onAgreeTermsChanged(bool? value) {
@@ -186,6 +218,7 @@ class _SignUpViewState extends State<SignUpView>
       final password = _passwordController.text;
       final firstName = _firstNameController.text.trim();
       final lastName = _lastNameController.text.trim();
+      final dob = _dateOfBirth!;
 
       await AuthService.register(
         RegisterRequest(
@@ -193,6 +226,8 @@ class _SignUpViewState extends State<SignUpView>
           password: password,
           firstName: firstName,
           lastName: lastName,
+          dateOfBirth:
+              '${dob.year}-${dob.month.toString().padLeft(2, '0')}-${dob.day.toString().padLeft(2, '0')}',
         ),
       );
 
@@ -675,6 +710,9 @@ class _SignUpViewState extends State<SignUpView>
           },
         ),
         const SizedBox(height: AppSpacing.md),
+        // Ngày sinh
+        _buildDobField(isDark),
+        const SizedBox(height: AppSpacing.md),
         // Mật khẩu
         TriTextField(
           controller: _passwordController,
@@ -748,6 +786,64 @@ class _SignUpViewState extends State<SignUpView>
           isDark: isDark,
         ),
       ],
+    );
+  }
+
+  Widget _buildDobField(bool isDark) {
+    final dobText = _dateOfBirth == null
+        ? null
+        : '${_dateOfBirth!.day.toString().padLeft(2, '0')}/${_dateOfBirth!.month.toString().padLeft(2, '0')}/${_dateOfBirth!.year}';
+
+    return InkWell(
+      onTap: _pickDateOfBirth,
+      borderRadius: BorderRadius.circular(AppRadius.lg),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md + 4,
+          vertical: AppSpacing.md + 6,
+        ),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkCard : AppColors.creamWhite,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(
+            color: isDark ? AppColors.darkBorder : AppColors.neutralGray200,
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.cake_outlined, size: 20, color: AppColors.primaryAmber),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Text(
+                dobText ?? 'Ngày sinh (yyyy-MM-dd)',
+                style: TextStyle(
+                  fontSize: 15,
+                  color: dobText == null
+                      ? (isDark
+                          ? AppColors.darkPremiumTextHint
+                          : AppColors.textHint)
+                      : (isDark ? Colors.white : AppColors.accentBrown),
+                ),
+              ),
+            ),
+            if (_dateOfBirth != null)
+              GestureDetector(
+                onTap: () {
+                  setState(() => _dateOfBirth = null);
+                  _updateButtonState();
+                },
+                child: Icon(
+                  Icons.close_rounded,
+                  size: 18,
+                  color: isDark
+                      ? AppColors.darkPremiumTextSecondary
+                      : AppColors.textTertiary,
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 
