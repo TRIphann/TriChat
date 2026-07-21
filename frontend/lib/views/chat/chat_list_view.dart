@@ -377,13 +377,12 @@ class ChatListViewState extends State<ChatListView>
       width: 86,
       decoration: BoxDecoration(
         color: AppColors.darkPremiumSurface,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 20,
-            offset: const Offset(4, 0),
+        border: Border(
+          right: BorderSide(
+            color: AppColors.darkPremiumBorder,
+            width: 1,
           ),
-        ],
+        ),
       ),
       child: Column(
         children: [
@@ -391,34 +390,38 @@ class ChatListViewState extends State<ChatListView>
           _buildUserAvatar(),
           const SizedBox(height: AppSpacing.xl),
           _buildSidebarItem(
-            Icons.chat_bubble_rounded,
-            Icons.chat_bubble_outline_rounded,
+            Icons.forum_outlined,
+            Icons.forum_rounded,
             0,
             tooltip: 'Tin nhắn',
           ),
+          const SizedBox(height: AppSpacing.sm),
           _buildSidebarItem(
-            Icons.people_rounded,
-            Icons.people_outline_rounded,
+            Icons.contacts_outlined,
+            Icons.contacts_rounded,
             1,
             tooltip: 'Bạn bè',
           ),
+          const SizedBox(height: AppSpacing.sm),
           _buildSidebarItem(
-            Icons.auto_stories_rounded,
             Icons.auto_stories_outlined,
+            Icons.auto_stories_rounded,
             2,
             tooltip: 'Bảng tin',
           ),
+          const SizedBox(height: AppSpacing.sm),
           _buildSidebarItem(
-            Icons.person_rounded,
             Icons.person_outline_rounded,
+            Icons.person_rounded,
             3,
             tooltip: 'Cá nhân',
           ),
           const Spacer(),
           _buildSidebarItem(
-            Icons.settings_rounded,
             Icons.settings_outlined,
+            Icons.settings_rounded,
             4,
+            size: 46,
             tooltip: 'Cài đặt',
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -429,26 +432,9 @@ class ChatListViewState extends State<ChatListView>
 
   Widget _buildUserAvatar() {
     final firebaseUser = FirebaseAuth.instance.currentUser;
-    final avatarUrl = firebaseUser?.photoURL ?? '';
-    final displayName = firebaseUser?.displayName ?? 'U';
-    return Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: TriAvatar(
-        imageUrl: avatarUrl,
-        name: displayName,
-        size: 48,
-        elevated: true,
-      ),
-    );
+    final name = firebaseUser?.displayName ?? 'U';
+    final photo = firebaseUser?.photoURL ?? '';
+    return TriAvatar(imageUrl: photo, name: name, size: 44);
   }
 
   Widget _buildSidebarItem(
@@ -456,61 +442,40 @@ class ChatListViewState extends State<ChatListView>
     IconData inactiveIcon,
     int index, {
     String? tooltip,
+    double size = 46,
   }) {
     final isSelected = _selectedNavIndex == index;
-    final activeColor = AppColors.neonRoyal;
-    final inactiveColor = AppColors.darkPremiumTextSecondary;
-
-    Widget item = Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: AnimatedContainer(
-        duration: AppCurves.durationNormal,
+    final color = isSelected
+        ? AppColors.neonRoyal
+        : AppColors.darkPremiumTextSecondary;
+    final bg = isSelected
+        ? AppColors.neonRoyal.withValues(alpha: 0.18)
+        : Colors.transparent;
+    final iconWidget = Icon(
+      isSelected ? activeIcon : inactiveIcon,
+      color: color,
+      size: 22,
+    );
+    final Widget tap = GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedNavIndex = index;
+          _selectedConversation = null;
+        });
+      },
+      child: Container(
+        width: size,
+        height: size,
         margin: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.neonRoyal.withValues(alpha: 0.15)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
+          color: bg,
+          borderRadius: BorderRadius.circular(AppRadius.md),
         ),
-        child: Stack(
-          children: [
-                    if (isSelected)
-              Positioned(
-                left: 0,
-                top: 10,
-                bottom: 10,
-                child: AnimatedContainer(
-                  duration: AppCurves.durationNormal,
-                  width: 3,
-                  decoration: BoxDecoration(
-                    color: AppColors.neonRoyal,
-                    borderRadius: BorderRadius.circular(1.5),
-                  ),
-                ),
-              ),
-            IconButton(
-              onPressed: () {
-                setState(() {
-                  _selectedNavIndex = index;
-                  _selectedConversation = null;
-                });
-              },
-              icon: AnimatedSwitcher(
-                duration: AppCurves.durationFast,
-                child: Icon(
-                  isSelected ? activeIcon : inactiveIcon,
-                  key: ValueKey(isSelected),
-                  color: isSelected ? activeColor : inactiveColor,
-                  size: 24,
-                ),
-              ),
-            ),
-          ],
-        ),
+        alignment: Alignment.center,
+        child: iconWidget,
       ),
     );
-
-    return tooltip != null ? Tooltip(message: tooltip, child: item) : item;
+    return tooltip != null ? Tooltip(message: tooltip, child: tap) : tap;
   }
 
   // ════════════════════════════════════════════════════════════════

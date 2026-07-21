@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:frontend/services/dio_client.dart';
 import 'package:frontend/features/newfeed/models/post_model.dart';
 import 'package:frontend/features/friends/services/friend_service.dart';
@@ -55,17 +56,29 @@ class ProfileService {
   static Future<List<PostModel>> getUserPosts(String userId) async {
     try {
       final response = await _dio.get('/api/feed/user/$userId');
+      debugPrint('[ProfileService] getUserPosts response status: ${response.statusCode}');
+      debugPrint('[ProfileService] getUserPosts response data: ${response.data}');
 
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
         final result = data['result'] as List<dynamic>?;
-        if (result == null) return [];
+        if (result == null) {
+          debugPrint('[ProfileService] result is null, returning empty list');
+          return [];
+        }
+        debugPrint('[ProfileService] found ${result.length} posts');
         return result
             .map((e) => PostModel.fromJson(e as Map<String, dynamic>))
             .toList();
       }
+      debugPrint('[ProfileService] non-200 status code: ${response.statusCode}');
       return [];
-    } on DioException catch (_) {
+    } on DioException catch (e) {
+      debugPrint('[ProfileService] DioException: ${e.message}');
+      debugPrint('[ProfileService] DioException response: ${e.response?.data}');
+      return [];
+    } catch (e) {
+      debugPrint('[ProfileService] Unexpected error: $e');
       return [];
     }
   }

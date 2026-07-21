@@ -1803,10 +1803,9 @@ class _PostsTabState extends State<_PostsTab> {
   void initState() {
     super.initState();
     _mockTiles = _buildMockTiles();
-    // Trigger profile load so posts are fetched even if the parent hasn't
-    // loaded yet (e.g. tab visited before the profile header finishes).
     Future.microtask(() {
       if (!mounted) return;
+      debugPrint('[PostsTab] initState calling refreshProfile for userId: ${widget.targetUserId}');
       context.read<ProfileProvider>().refreshProfile(widget.targetUserId);
     });
   }
@@ -1844,6 +1843,8 @@ class _PostsTabState extends State<_PostsTab> {
   Widget build(BuildContext context) {
     return Consumer<ProfileProvider>(
       builder: (context, provider, _) {
+        debugPrint('[PostsTab] build called - isLoading: ${provider.isLoading}, posts count: ${provider.posts.length}');
+
         if (provider.isLoading && provider.posts.isEmpty && !_hasLoadedOnce) {
           return const Center(
             child: SizedBox(
@@ -1857,8 +1858,8 @@ class _PostsTabState extends State<_PostsTab> {
           );
         }
 
-        // Nếu có data thật → dùng data thật
         final realPosts = provider.posts;
+        debugPrint('[PostsTab] realPosts length: ${realPosts.length}');
         if (realPosts.isNotEmpty) {
           final displayed = realPosts.take(_displayedPostCount).toList();
           final hasMore = _displayedPostCount < realPosts.length;
