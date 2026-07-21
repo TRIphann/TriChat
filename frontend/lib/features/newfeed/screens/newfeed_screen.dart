@@ -23,6 +23,7 @@ class _NewfeedScreenState extends State<NewfeedScreen>
   String _currentUserId = '';
   String _currentUserName = '';
   String _currentUserAvatar = '';
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -96,6 +97,23 @@ class _NewfeedScreenState extends State<NewfeedScreen>
       context.read<FeedProvider>().loadFeed();
       context.read<StoryProvider>().loadStories();
     });
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.position.pixels;
+    if (maxScroll - currentScroll <= 200) {
+      context.read<FeedProvider>().loadMore();
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
   }
 
   void _openSearch() {
@@ -191,6 +209,7 @@ class _NewfeedScreenState extends State<NewfeedScreen>
             await context.read<StoryProvider>().loadStories();
           },
           child: CustomScrollView(
+            controller: _scrollController,
             physics: const AlwaysScrollableScrollPhysics(
               parent: BouncingScrollPhysics(),
             ),
@@ -1015,6 +1034,25 @@ class _NewfeedScreenState extends State<NewfeedScreen>
 
         return SliverList(
           delegate: SliverChildBuilderDelegate((context, index) {
+            if (index == provider.posts.length) {
+              // Bottom loading indicator when there are more posts to load
+              if (provider.hasMore) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.neonRoyal,
+                      ),
+                    ),
+                  ),
+                );
+              }
+              return const SizedBox(height: 32);
+            }
             final post = provider.posts[index];
             return ModernPostCard(
               post: post,
@@ -1022,7 +1060,7 @@ class _NewfeedScreenState extends State<NewfeedScreen>
                   ? () => context.push('/profile', extra: post.userId)
                   : null,
             );
-          }, childCount: provider.posts.length),
+          }, childCount: provider.posts.length + (provider.hasMore ? 1 : 0)),
         );
       },
     );

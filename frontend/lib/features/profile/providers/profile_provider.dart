@@ -188,46 +188,72 @@ class ProfileProvider extends ChangeNotifier {
   }
 
   Future<void> refreshProfile(String userId) async {
-    try {
-      // Independent fetches so a failure in one doesn't kill the rest.
-      final postsFuture = ProfileService.getUserPosts(userId)
-          .then<List<PostModel>>((p) => p)
-          .catchError((Object e) {
-        _errorMessage =
-            'Không thể tải bài viết: ${e.toString().replaceFirst('Exception: ', '')}';
-        return _posts;
-      });
-      final friendsFuture = ProfileService.getFriends(userId: userId)
-          .then<List<FriendSummaryModel>>((f) => f)
-          .catchError((Object e) {
-        _errorMessage =
-            'Không thể tải bạn bè: ${e.toString().replaceFirst('Exception: ', '')}';
-        return _friends;
-      });
+    // Independent fetches so a failure in one doesn't kill the rest.
+    final postsFuture = ProfileService.getUserPosts(userId)
+        .then<List<PostModel>>((p) => p)
+        .catchError((Object e) {
+      _errorMessage =
+          'Không thể tải bài viết: ${e.toString().replaceFirst('Exception: ', '')}';
+      return _posts;
+    });
+    final friendsFuture = ProfileService.getFriends(userId: userId)
+        .then<List<FriendSummaryModel>>((f) => f)
+        .catchError((Object e) {
+      _errorMessage =
+          '${_errorMessage ?? ''}\nKhông thể tải bạn bè: ${e.toString().replaceFirst('Exception: ', '')}';
+      return _friends;
+    });
+    final profileFuture = ProfileService.getCurrentUserProfile()
+        .then<UserProfileModel?>((p) => p)
+        .catchError((Object e) {
+      _errorMessage =
+          '${_errorMessage ?? ''}\nKhông thể tải hồ sơ: ${e.toString().replaceFirst('Exception: ', '')}';
+      return _userProfile; // Keep existing profile on failure
+    });
 
-      final results = await Future.wait([postsFuture, friendsFuture]);
+    final results = await Future.wait([postsFuture, friendsFuture, profileFuture]);
 
-      final fetchedPosts = results[0] as List<PostModel>;
+    final fetchedPosts = results[0] as List<PostModel>;
 
-      // Merge strategy: if the freshly fetched list is *shorter* than what
-      // we already had in cache (which happens right after creating a post
-      // when Firestore read-after-write hasn't caught up yet), preserve any
-      // cached posts whose IDs are missing from the response. This prevents
-      // the optimistic "just created" post from being wiped out by a stale
-      // empty fetch.
-      final fetchedIds = fetchedPosts.map((p) => p.id).toSet();
-      final missingFromFetch =
-          _posts.where((p) => !fetchedIds.contains(p.id)).toList();
-      if (missingFromFetch.isNotEmpty) {
-        _posts = [...fetchedPosts, ...missingFromFetch];
-      } else {
-        _posts = fetchedPosts;
-      }
-      _friends = results[1] as List<FriendSummaryModel>;
-      _errorMessage = null;
-    } catch (e) {
-      _errorMessage = e.toString();
+    // Merge strategy: preserve any cached posts whose IDs are missing from
+    // the freshly fetched list. This is critical right after creating a
+    // post, when the backend hasn't yet indexed the new doc (Firestore
+    // read-after-write semantics). Without this, the optimistic post would
+    // either be wiped (if we just replaced `_posts = fetchedPosts`) or
+    // pushed to the bottom (if we appended it after the fetched list —
+    // making it invisible when the user has more than `_displayedPostCount`
+    // existing posts).
+    //
+    // We keep the **relative order** of each list and interleave by ID:
+    // start with the fetched order, then insert any missing cached posts
+    // at the front (newest-first), so the just-created post stays at the
+    // top where the user expects it.
+    final fetchedIds = fetchedPosts.map((p) => p.id).toSet();
+    final missingFromFetch =
+        _posts.where((p) => !fetchedIds.contains(p.id)).toList();
+
+    // Posts that were in cache but missing from fetch are posts the backend
+    // doesn't know about yet (typically brand-new local optimistic posts).
+    // Keep them in the order they appear in the cache (newest first because
+    // addPost inserts at index 0).
+    final merged = <PostModel>[...missingFromFetch, ...fetchedPosts];
+
+    // Deduplicate by id, keeping the first occurrence (so a missing cache
+    // post wins over a stale fetched one with the same id).
+    final seen = <String>{};
+    _posts = merged.where((p) => seen.add(p.id)).toList();
+
+    _friends = results[1] as List<FriendSummaryModel>;
+    _userProfile = results[2] as UserProfileModel?;
+
+    userName = _userProfile?.fullName;
+    if (_userProfile?.dateOfBirth != null) {
+      final dob = _userProfile!.dateOfBirth!;
+      birthday = '${dob.year}-${dob.month.toString().padLeft(2, '0')}-${dob.day.toString().padLeft(2, '0')}';
+    } else {
+      birthday = null;
     }
+
     notifyListeners();
   }
 

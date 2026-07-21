@@ -282,20 +282,28 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.cream,
+        backgroundColor: useDarkSurface
+            ? AppColors.darkPremiumSurface
+            : AppColors.cream,
         resizeToAvoidBottomInset: true,
         appBar: _buildAppBar(),
         body: ValueListenableBuilder<bool>(
           valueListenable: isDarkModeNotifier,
           builder: (context, isDark, _) {
-            // Palette mặc định dùng tông ấm cream của brand. Dark mode
-            // chỉ dùng khi user bật — khi đó vẫn giữ bề mặt darkPremium cũ.
+            // Theme tokens. Light mode (default) uses the warm cream palette
+            // that matches the rest of the app (profile, feed, friends…).
+            // Dark mode is opt-in and uses the darkPremium palette.
             final useDarkSurface = isDark;
-            final backgroundColor =
-                useDarkSurface ? AppColors.darkPremiumSurface : AppColors.creamWhite;
+            final scheme = Theme.of(context).colorScheme;
+            final backgroundColor = useDarkSurface
+                ? AppColors.darkPremiumSurface
+                : scheme.surface;
             final chatBg = useDarkSurface
                 ? AppColors.darkChatSurfaceGradient.first
-                : AppColors.creamWhite;
+                : AppColors.cream;
+            final borderColor = useDarkSurface
+                ? AppColors.darkPremiumBorder
+                : AppColors.creamTertiary;
 
             return Container(
               color: backgroundColor,
@@ -313,9 +321,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         color: chatBg,
                         border: Border(
                           top: BorderSide(
-                            color: useDarkSurface
-                                ? AppColors.darkPremiumBorder
-                                : AppColors.creamTertiary,
+                            color: borderColor,
                             width: 1,
                           ),
                         ),
@@ -396,7 +402,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         valueListenable: isDarkModeNotifier,
         builder: (context, isDark, _) {
           final theme = Theme.of(context);
-          // Default: warm cream tones matching app brand. Dark mode is opt-in.
+          // Light mode (default) uses warm cream tones that match the rest
+          // of the app. Dark mode is opt-in.
           final useDarkSurface = isDark;
           final bg = useDarkSurface
               ? AppColors.darkPremiumSurface
@@ -406,7 +413,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               : AppColors.creamTertiary;
           final onSurface = useDarkSurface
               ? AppColors.darkPremiumTextPrimary
-              : AppColors.accentBrown;
+              : theme.colorScheme.onSurface;
           final hintColor = useDarkSurface
               ? AppColors.darkPremiumTextSecondary
               : AppColors.neutralGray500;
@@ -558,7 +565,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final accentColor = isDark ? AppColors.neonRoyalGlow : AppColors.primaryOrange;
     final secondaryText = isDark
         ? AppColors.darkPremiumTextSecondary
-        : AppColors.accentBrown;
+        : Theme.of(context).colorScheme.onSurfaceVariant;
     return Container(
       decoration: BoxDecoration(
         color: bg,
@@ -812,7 +819,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final accentColor = isDark ? AppColors.neonRoyalGlow : AppColors.primaryOrange;
     final secondaryText = isDark
         ? AppColors.darkPremiumTextSecondary
-        : AppColors.accentBrown;
+        : Theme.of(context).colorScheme.onSurfaceVariant;
     return Container(
       decoration: BoxDecoration(
         color: bg,
@@ -891,7 +898,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
     final hasText = _messageController.text.trim().isNotEmpty;
     final theme = Theme.of(context);
-    // Brand-aligned: warm cream tones by default. Dark surface reserved for opt-in dark mode.
+    // Light mode (default): warm cream tones matching the rest of the app.
     final useDarkSurface = isDark;
     final surface = useDarkSurface
         ? AppColors.darkPremiumSurface
@@ -904,7 +911,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         : AppColors.creamSurface;
     final onSurface = useDarkSurface
         ? AppColors.darkPremiumTextPrimary
-        : AppColors.accentBrown;
+        : theme.colorScheme.onSurface;
     final hintColor = useDarkSurface
         ? AppColors.darkPremiumTextHint
         : AppColors.neutralGray500;
@@ -1044,7 +1051,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             size: size,
             color: isDark
                 ? AppColors.darkPremiumTextSecondary
-                : AppColors.accentBrown,
+                : Theme.of(context).colorScheme.onSurface,
           ),
         ),
       ),
@@ -1420,7 +1427,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         : AppColors.creamSurface;
     final onSurface = isDark
         ? AppColors.darkPremiumTextPrimary
-        : AppColors.accentBrown;
+        : Theme.of(context).colorScheme.onSurface;
 
     return Container(
       decoration: BoxDecoration(

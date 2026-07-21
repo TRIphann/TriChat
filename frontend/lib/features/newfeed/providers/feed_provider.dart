@@ -121,11 +121,19 @@ class FeedProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void loadMore() {
-    if (_displayedCount < _allPosts.length) {
-      _displayedCount += 6;
-      notifyListeners();
-    }
+  Future<void> loadMore() async {
+    if (_displayedCount >= _allPosts.length) return;
+
+    final nextCount = (_displayedCount + 6).clamp(0, _allPosts.length);
+    final newlyLoaded = nextCount - _displayedCount;
+
+    if (newlyLoaded <= 0) return;
+
+    // Simulate network delay for realistic feel (remove in production)
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    _displayedCount = nextCount;
+    notifyListeners();
   }
 
   Future<PostModel?> createPost({
