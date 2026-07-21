@@ -152,6 +152,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     });
   }
 
+  bool get useDarkSurface => isDarkModeNotifier.value;
+
   void _setupSignalR() {
     // ChatProvider handles all SignalR events
   }
