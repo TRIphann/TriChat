@@ -62,6 +62,8 @@ class _NewfeedScreenState extends State<NewfeedScreen>
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -107,13 +109,6 @@ class _NewfeedScreenState extends State<NewfeedScreen>
     if (maxScroll - currentScroll <= 200) {
       context.read<FeedProvider>().loadMore();
     }
-  }
-
-  @override
-  void dispose() {
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
-    super.dispose();
   }
 
   void _openSearch() {

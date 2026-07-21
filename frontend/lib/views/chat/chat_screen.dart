@@ -274,6 +274,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     }
 
+    final isDark = isDarkModeNotifier.value;
     return PopScope(
       canPop: true,
       onPopInvokedWithResult: (didPop, _) {
@@ -282,26 +283,23 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         }
       },
       child: Scaffold(
-        backgroundColor: useDarkSurface
-            ? AppColors.darkPremiumSurface
-            : AppColors.cream,
+        backgroundColor: AppColors.darkPremiumSurface,
         resizeToAvoidBottomInset: true,
         appBar: _buildAppBar(),
         body: ValueListenableBuilder<bool>(
           valueListenable: isDarkModeNotifier,
           builder: (context, isDark, _) {
-            // Theme tokens. Light mode (default) uses the warm cream palette
-            // that matches the rest of the app (profile, feed, friends…).
-            // Dark mode is opt-in and uses the darkPremium palette.
-            final useDarkSurface = isDark;
+            // Theme tokens. Dark mode (default) uses the darkPremium palette
+            // matching the rest of the app (profile, feed, friends…).
+            // Light mode is opt-in and uses the warm cream palette.
             final scheme = Theme.of(context).colorScheme;
-            final backgroundColor = useDarkSurface
+            final backgroundColor = isDark
                 ? AppColors.darkPremiumSurface
                 : scheme.surface;
-            final chatBg = useDarkSurface
+            final chatBg = isDark
                 ? AppColors.darkChatSurfaceGradient.first
                 : AppColors.cream;
-            final borderColor = useDarkSurface
+            final borderColor = isDark
                 ? AppColors.darkPremiumBorder
                 : AppColors.creamTertiary;
 
