@@ -557,7 +557,7 @@ class ChatListViewState extends State<ChatListView>
           AppSpacing.lg,
           AppSpacing.md,
         ),
-        color: isDark ? AppColors.darkSurface : theme.scaffoldBackgroundColor,
+        color: AppColors.darkPremiumSurface,
         child: SafeArea(
           bottom: false,
           child: Column(
