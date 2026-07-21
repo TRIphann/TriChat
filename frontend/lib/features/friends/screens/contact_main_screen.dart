@@ -33,13 +33,12 @@ class _ContactsMainScreenState extends State<ContactsMainScreen>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: AppColors.darkPremiumBackground,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(64),
         child: Container(
-          color: theme.colorScheme.surface,
+          color: AppColors.darkPremiumSurface,
           child: SafeArea(
             bottom: false,
             child: Padding(
@@ -64,7 +63,7 @@ class _ContactsMainScreenState extends State<ContactsMainScreen>
                   IconButton(
                     icon: Icon(
                       Icons.person_add_alt_1_outlined,
-                      color: theme.colorScheme.onSurface,
+                      color: AppColors.darkPremiumTextPrimary,
                       size: 22,
                     ),
                     onPressed: () => Navigator.push(
@@ -81,12 +80,12 @@ class _ContactsMainScreenState extends State<ContactsMainScreen>
       body: Column(
         children: [
           Container(
-            color: theme.colorScheme.surface,
+            color: AppColors.darkPremiumSurface,
             child: TabBar(
               controller: _tabController,
-              labelColor: theme.colorScheme.onSurface,
-              unselectedLabelColor: theme.hintColor,
-              indicatorColor: theme.colorScheme.onSurface,
+              labelColor: AppColors.neonRoyal,
+              unselectedLabelColor: AppColors.darkPremiumTextSecondary,
+              indicatorColor: AppColors.neonRoyal,
               indicatorWeight: 2,
               labelStyle: AppTypography.labelLarge.copyWith(
                 fontWeight: FontWeight.w700,
@@ -98,7 +97,7 @@ class _ContactsMainScreenState extends State<ContactsMainScreen>
               ],
             ),
           ),
-          Divider(color: theme.dividerColor, height: 1),
+          Divider(color: AppColors.darkPremiumBorder, height: 1),
           Expanded(
             child: TabBarView(
               controller: _tabController,

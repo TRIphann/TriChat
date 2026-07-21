@@ -127,8 +127,8 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
     return InkWell(
       onTap: onTap,
       child: Container(
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: Color(0xFFEAEAEA))),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: AppColors.darkPremiumBorder)),
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -137,12 +137,12 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
               CircleAvatar(
                 radius: 24,
                 backgroundImage: avatar.isNotEmpty ? NetworkImage(avatar) : null,
-                backgroundColor: AppColors.primaryBlue.withValues(alpha: 0.1),
+                backgroundColor: AppColors.neonRoyal.withValues(alpha: 0.2),
                 child: avatar.isEmpty
                     ? Text(
                         name.isNotEmpty ? name[0].toUpperCase() : '?',
                         style: TextStyle(
-                          color: AppColors.primaryBlue,
+                          color: AppColors.neonRoyal,
                           fontWeight: FontWeight.bold,
                         ),
                       )
@@ -157,7 +157,11 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
                       name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.darkPremiumTextPrimary,
+                      ),
                     ),
                     if (subtitle != null) ...[
                       const SizedBox(height: 3),
@@ -165,7 +169,7 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
                         subtitle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                        style: TextStyle(fontSize: 12, color: AppColors.darkPremiumTextSecondary),
                       ),
                     ],
                   ],
@@ -195,11 +199,11 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
         width: 36,
         height: 36,
         decoration: BoxDecoration(
-          color: AppColors.primaryBlue,
+          color: AppColors.neonRoyal,
           borderRadius: BorderRadius.circular(18),
         ),
         child: IconButton(
-          icon: const Icon(Icons.chat_bubble_outline, color: Colors.white, size: 18),
+          icon: Icon(Icons.chat_bubble_outline, color: Colors.white, size: 18),
           onPressed: () async {
             final chatProvider = context.read<ChatProvider>();
             final conversation = await ChatService().createConversation(
@@ -233,15 +237,15 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
 
     Widget action;
 
-    if (isLoading) {
-      action = const SizedBox(
+      if (isLoading) {
+      action = SizedBox(
         width: 34,
         height: 34,
         child: Center(
           child: SizedBox(
             width: 16,
             height: 16,
-            child: CircularProgressIndicator(strokeWidth: 2),
+            child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.neonRoyal),
           ),
         ),
       );
@@ -250,7 +254,7 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
         width: 36,
         height: 36,
         decoration: BoxDecoration(
-          color: AppColors.primaryBlue,
+          color: AppColors.neonRoyal,
           borderRadius: BorderRadius.circular(18),
         ),
         child: IconButton(
@@ -268,7 +272,7 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
               ),
             );
           },
-          icon: const Icon(Icons.chat_bubble_outline, color: Colors.white, size: 18),
+          icon: Icon(Icons.chat_bubble_outline, color: Colors.white, size: 18),
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
           tooltip: 'Nhắn tin',
@@ -280,7 +284,7 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
         children: [
           IconButton(
             onPressed: () => provider.declineFriendRequest(user.id),
-            icon: Icon(Icons.close, color: Colors.grey.shade600, size: 18),
+            icon: Icon(Icons.close, color: AppColors.darkPremiumTextSecondary, size: 18),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
             tooltip: 'Từ chối',
@@ -289,12 +293,12 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: AppColors.primaryBlue,
+              color: AppColors.neonRoyal,
               borderRadius: BorderRadius.circular(18),
             ),
             child: IconButton(
               onPressed: () => provider.acceptFriendRequest(user.id),
-              icon: const Icon(Icons.check, color: Colors.white, size: 18),
+              icon: Icon(Icons.check, color: Colors.white, size: 18),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
               tooltip: 'Xác nhận',
@@ -307,12 +311,12 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
         width: 36,
         height: 36,
         decoration: BoxDecoration(
-          color: Colors.grey.shade300,
+          color: AppColors.darkCard,
           borderRadius: BorderRadius.circular(18),
         ),
         child: IconButton(
           onPressed: () => provider.cancelFriendRequest(user.id),
-          icon: Icon(Icons.close, color: Colors.grey.shade700, size: 18),
+          icon: Icon(Icons.close, color: AppColors.darkPremiumTextSecondary, size: 18),
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
           tooltip: 'Thu hồi',
@@ -323,12 +327,12 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
         width: 36,
         height: 36,
         decoration: BoxDecoration(
-          color: AppColors.primaryBlue,
+          color: AppColors.neonRoyal,
           borderRadius: BorderRadius.circular(18),
         ),
         child: IconButton(
           onPressed: () => provider.sendFriendRequest(user.id),
-          icon: const Icon(Icons.person_add, color: Colors.white, size: 20),
+          icon: Icon(Icons.person_add, color: Colors.white, size: 20),
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
           tooltip: 'Kết bạn',
@@ -355,32 +359,35 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
     final hasMoreFriends = _shownCount < allFriends.length;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.darkPremiumBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.primaryBlue,
+        backgroundColor: AppColors.darkPremiumSurface,
         elevation: 0,
         titleSpacing: 0,
-        leading: const BackButton(color: Colors.white),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: AppColors.darkPremiumTextPrimary),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Container(
           height: 40,
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.25),
+            color: AppColors.darkPremiumElevated,
             borderRadius: BorderRadius.circular(8),
           ),
           child: TextField(
             controller: _controller,
             autofocus: true,
-            style: const TextStyle(color: Colors.white),
-            cursorColor: Colors.white,
+            style: TextStyle(color: AppColors.darkPremiumTextPrimary),
+            cursorColor: AppColors.neonRoyal,
             decoration: InputDecoration(
               hintText: 'Tìm bạn bè, email...',
-              hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 14),
+              hintStyle: TextStyle(color: AppColors.darkPremiumTextSecondary, fontSize: 14),
               border: InputBorder.none,
-              prefixIcon: Icon(Icons.search, color: Colors.white.withValues(alpha: 0.8), size: 20),
+              prefixIcon: Icon(Icons.search, color: AppColors.darkPremiumTextSecondary, size: 20),
               suffixIcon: _controller.text.isNotEmpty
                   ? IconButton(
                       onPressed: _clear,
-                      icon: const Icon(Icons.close, size: 14, color: Colors.white70),
+                      icon: Icon(Icons.close, size: 14, color: AppColors.darkPremiumTextSecondary),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
                     )
@@ -389,16 +396,6 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
             onChanged: _onTextChanged,
           ),
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8, left: 8),
-            child: IconButton(
-              padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
-              icon: const Icon(Icons.qr_code_scanner, color: Colors.white, size: 20),
-              onPressed: () {},
-            ),
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -428,10 +425,10 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
                         children: [
                           Text(
                             'Bạn bè (${allFriends.length})',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
-                              color: Colors.grey,
+                              color: AppColors.darkPremiumTextSecondary,
                             ),
                           ),
                           if (hasMoreFriends)
@@ -441,7 +438,7 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
                                 'Xem thêm',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: AppColors.primaryBlue,
+                                  color: AppColors.neonRoyal,
                                 ),
                               ),
                             ),
@@ -473,10 +470,10 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
                       padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
                       child: Text(
                         'Kết quả tìm kiếm',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: Colors.grey,
+                          color: AppColors.darkPremiumTextSecondary,
                         ),
                       ),
                     ),
@@ -489,11 +486,11 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
                     const Center(
                       child: Column(
                         children: [
-                          Icon(Icons.search_off, size: 48, color: Colors.grey),
+                          Icon(Icons.search_off, size: 48, color: AppColors.darkPremiumTextSecondary),
                           SizedBox(height: 12),
                           Text(
                             'Không tìm thấy kết quả',
-                            style: TextStyle(color: Colors.grey, fontSize: 14),
+                            style: TextStyle(color: AppColors.darkPremiumTextSecondary, fontSize: 14),
                           ),
                         ],
                       ),
@@ -505,11 +502,11 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
                     const Center(
                       child: Column(
                         children: [
-                          Icon(Icons.error_outline, size: 48, color: Colors.red),
+                          Icon(Icons.error_outline, size: 48, color: AppColors.accentRed),
                           SizedBox(height: 12),
                           Text(
                             'Có lỗi xảy ra khi tìm kiếm',
-                            style: TextStyle(color: Colors.grey, fontSize: 14),
+                            style: TextStyle(color: AppColors.darkPremiumTextSecondary, fontSize: 14),
                           ),
                         ],
                       ),
@@ -526,12 +523,12 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
                           SizedBox(height: 12),
                           Text(
                             'Chưa có bạn bè nào',
-                            style: TextStyle(color: Colors.grey, fontSize: 14),
+                            style: TextStyle(color: AppColors.darkPremiumTextSecondary, fontSize: 14),
                           ),
                           SizedBox(height: 4),
                           Text(
                             'Tìm kiếm để kết bạn',
-                            style: TextStyle(color: Colors.grey, fontSize: 12),
+                            style: TextStyle(color: AppColors.darkPremiumTextSecondary, fontSize: 12),
                           ),
                         ],
                       ),

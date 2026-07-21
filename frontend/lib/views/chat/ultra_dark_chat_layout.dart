@@ -60,8 +60,6 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     return Container(
       color: AppColors.darkPremiumBackground,
       child: SafeArea(
@@ -77,7 +75,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
             return Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildSlimSidebar(isDark),
+                _buildSlimSidebar(),
                 _buildMessageListColumn(width: listWidth),
                 Expanded(child: _buildMainChatColumn()),
                 if (isWide) _buildDetailsColumn(width: detailsWidth),
@@ -92,14 +90,14 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
   // ════════════════════════════════════════════════════════════════
   // CỘT 1 — SLIM SIDEBAR
   // ════════════════════════════════════════════════════════════════
-  Widget _buildSlimSidebar(bool isDark) {
+  Widget _buildSlimSidebar() {
     return Container(
       width: 86,
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : AppColors.creamElevated,
+        color: AppColors.darkPremiumSurface,
         border: Border(
           right: BorderSide(
-            color: isDark ? AppColors.darkDivider : AppColors.creamTertiary,
+            color: AppColors.darkPremiumBorder,
             width: 1,
           ),
         ),
@@ -115,7 +113,6 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
             active: widget.currentNavIndex == 0,
             onTap: () => widget.onNavTap?.call(0),
             tooltip: 'Tin nhắn',
-            isDark: isDark,
           ),
           const SizedBox(height: AppSpacing.sm),
           _buildSlimIcon(
@@ -124,7 +121,6 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
             active: widget.currentNavIndex == 1,
             onTap: () => widget.onNavTap?.call(1),
             tooltip: 'Bạn bè',
-            isDark: isDark,
           ),
           const SizedBox(height: AppSpacing.sm),
           _buildSlimIcon(
@@ -133,7 +129,6 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
             active: widget.currentNavIndex == 2,
             onTap: () => widget.onNavTap?.call(2),
             tooltip: 'Bảng tin',
-            isDark: isDark,
           ),
           const SizedBox(height: AppSpacing.sm),
           _buildSlimIcon(
@@ -142,7 +137,6 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
             active: widget.currentNavIndex == 3,
             onTap: () => widget.onNavTap?.call(3),
             tooltip: 'Cá nhân',
-            isDark: isDark,
           ),
           const Spacer(),
           _buildSlimIcon(
@@ -152,7 +146,6 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
             size: 46,
             onTap: () => widget.onNavTap?.call(4),
             tooltip: 'Cài đặt',
-            isDark: isDark,
           ),
           const SizedBox(height: AppSpacing.lg),
         ],
@@ -174,18 +167,11 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
     double size = 46,
     VoidCallback? onTap,
     String? tooltip,
-    required bool isDark,
   }) {
     final color = active
-        ? (isDark ? AppColors.neonRoyal : AppColors.primaryOrange)
-        : (isDark
-            ? AppColors.darkPremiumTextSecondary
-            : AppColors.neutralGray500);
-    final bg = active
-        ? (isDark
-            ? AppColors.neonRoyal.withValues(alpha: 0.18)
-            : AppColors.primaryOrangeLight)
-        : Colors.transparent;
+        ? AppColors.neonRoyal
+        : AppColors.darkPremiumTextSecondary;
+    final bg = active ? AppColors.neonRoyal.withValues(alpha: 0.18) : Colors.transparent;
     final iconWidget = Icon(
       active ? activeIcon : icon,
       color: color,
@@ -277,31 +263,48 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
   }
 
   Widget _buildListHeader(ChatProvider chat) {
-    final theme = Theme.of(context);
     final unreadCount = chat.conversations
         .where((c) => c.unreadCount > 0)
         .fold<int>(0, (s, c) => s + c.unreadCount);
-    return Padding(
+    return Container(
       padding: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
         AppSpacing.xl,
+        AppSpacing.md,
         AppSpacing.lg,
         AppSpacing.sm,
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            'Tin nhắn',
-            style: AppTypography.headlineMedium.copyWith(
-              color: AppColors.darkPremiumTextPrimary,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.5,
-            ),
-          ),
           if (unreadCount > 0) ...[
-            const SizedBox(width: AppSpacing.sm),
-            UnreadBadge(count: unreadCount),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 4,
+              ),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: AppColors.darkBubbleMineGradient,
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.neonRoyal.withValues(alpha: 0.35),
+                    blurRadius: 12,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Text(
+                '$unreadCount',
+                style: AppTypography.labelMedium.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm + 2),
           ],
         ],
       ),
@@ -309,57 +312,17 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
   }
 
   Widget _buildSearchBar() {
-    final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        0,
+        AppSpacing.md,
+        AppSpacing.sm,
       ),
-      child: Container(
-        height: 40,
-        decoration: BoxDecoration(
-          color: AppColors.darkCard,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: AppColors.darkBorder, width: 1),
-        ),
-        child: Row(
-          children: [
-            const SizedBox(width: AppSpacing.md),
-            Icon(
-              Icons.search_rounded,
-              color: AppColors.darkPremiumTextSecondary,
-              size: 18,
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: TextField(
-                controller: _searchController,
-                style: AppTypography.bodyMedium.copyWith(
-                  color: AppColors.darkPremiumTextPrimary,
-                ),
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  isCollapsed: true,
-                  hintText: 'Tìm kiếm cuộc trò chuyện...',
-                  hintStyle: AppTypography.bodyMedium.copyWith(
-                    color: AppColors.darkPremiumTextSecondary,
-                  ),
-                ),
-              ),
-            ),
-            if (_searchQuery.isNotEmpty)
-              IconButton(
-                onPressed: () => _searchController.clear(),
-                icon: Icon(
-                  Icons.close_rounded,
-                  color: AppColors.darkPremiumTextSecondary,
-                  size: 16,
-                ),
-                visualDensity: VisualDensity.compact,
-              ),
-            const SizedBox(width: AppSpacing.xs),
-          ],
-        ),
+      child: TriSearchField(
+        hintText: 'Tìm kiếm cuộc trò chuyện...',
+        readOnly: true,
+        onTap: () {},
       ),
     );
   }

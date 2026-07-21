@@ -40,17 +40,17 @@ class _FriendTabViewState extends State<FriendTabView> {
         _buildActionTile(
           context,
           Icons.people_alt,
-          const Color.fromARGB(255, 255, 255, 255),
+          AppColors.darkPremiumTextPrimary,
           'Lời mời kết bạn',
           trailing: '${provider.pendingReceived.length + provider.pendingSent.length}',
         ),
         _buildActionTile(
           context,
           Icons.cake,
-          const Color.fromARGB(255, 255, 255, 255),
+          AppColors.darkPremiumTextPrimary,
           'Sinh nhật',
         ),
-        const Divider(thickness: 8, color: Color(0xFFF4F5F7)),
+        Divider(thickness: 8, color: AppColors.darkPremiumBorder),
 
         // Khu vực Filter Chips
         Padding(
@@ -92,7 +92,7 @@ class _FriendTabViewState extends State<FriendTabView> {
     String? trailing,
   }) {
     return Material(
-      color: Colors.white,
+      color: AppColors.darkPremiumSurface,
       child: InkWell(
         onTap: () {
           if (title == 'Lời mời kết bạn') {
@@ -115,18 +115,24 @@ class _FriendTabViewState extends State<FriendTabView> {
           leading: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.darkBlue,
+              color: AppColors.neonRoyal.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: color, size: 20),
+            child: Icon(icon, color: AppColors.neonRoyal, size: 20),
           ),
-          title: Text(title, style: const TextStyle(fontSize: 16)),
+          title: Text(
+            title,
+            style: TextStyle(
+              fontSize: 16,
+              color: AppColors.darkPremiumTextPrimary,
+            ),
+          ),
           trailing: trailing != null
               ? Text(
                   '($trailing)',
-                  style: const TextStyle(color: Colors.grey, fontSize: 14),
+                  style: TextStyle(color: AppColors.darkPremiumTextSecondary, fontSize: 14),
                 )
-              : const Icon(Icons.chevron_right),
+              : Icon(Icons.chevron_right, color: AppColors.darkPremiumTextSecondary),
         ),
       ),
     );
@@ -139,13 +145,13 @@ class _FriendTabViewState extends State<FriendTabView> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primaryBlue : const Color(0xFFF1F2F4),
+          color: isSelected ? AppColors.neonRoyal : AppColors.darkCard,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? Colors.white : Colors.black,
+            color: isSelected ? Colors.white : AppColors.darkPremiumTextSecondary,
             fontSize: 13,
             fontWeight: FontWeight.w500,
           ),
@@ -162,7 +168,7 @@ class _FriendTabViewState extends State<FriendTabView> {
             : 'Người dùng');
 
     return Material(
-      color: Colors.white,
+      color: AppColors.darkPremiumSurface,
       child: InkWell(
         onTap: () {
           Navigator.push(
@@ -178,12 +184,12 @@ class _FriendTabViewState extends State<FriendTabView> {
             children: [
               CircleAvatar(
                 radius: 22,
-                backgroundColor: AppColors.success,
+                backgroundColor: AppColors.neonRoyal.withValues(alpha: 0.3),
                 backgroundImage: friend.avatar.isNotEmpty ? NetworkImage(friend.avatar) : null,
                 child: friend.avatar.isEmpty
                     ? Text(
                         displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(color: AppColors.neonRoyal),
                       )
                     : null,
               ),
@@ -193,7 +199,11 @@ class _FriendTabViewState extends State<FriendTabView> {
                   displayName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.darkPremiumTextPrimary,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -216,7 +226,7 @@ class _FriendTabViewState extends State<FriendTabView> {
                   width: 34,
                   height: 34,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryBlue,
+                    color: AppColors.neonRoyal,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(

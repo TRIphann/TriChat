@@ -18,39 +18,42 @@ class GroupItemWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white,
+      color: AppColors.darkPremiumSurface,
       child: InkWell(
-        onTap: () {}, // Xử lý khi nhấn vào nhóm
+        onTap: () {},
         highlightColor: Colors.black.withValues(alpha: 0.05),
         splashColor: Colors.transparent,
         child: ListTile(
-          // Tăng padding vertical để đồng bộ với nút "Tạo nhóm"
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           leading: CircleAvatar(
-            radius: 26, 
-            backgroundColor: AppColors.borderGray,
-            // child: Icon(Icons.groups, color: Colors.white), // Có thể thêm icon mặc định
+            radius: 26,
+            backgroundColor: AppColors.darkCard,
+            child: Icon(Icons.groups, color: AppColors.darkPremiumTextSecondary),
           ),
           title: Text(
-            name, 
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
+            name,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: AppColors.darkPremiumTextPrimary,
+            ),
           ),
           subtitle: Text(
-            sub, 
-            maxLines: 1, 
+            sub,
+            maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: Colors.grey, fontSize: 14),
+            style: TextStyle(color: AppColors.darkPremiumTextSecondary, fontSize: 14),
           ),
           trailing: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              if (isMute) 
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 4),
-                  child: Icon(Icons.notifications_off_outlined, size: 16, color: Colors.grey),
+              if (isMute)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Icon(Icons.notifications_off_outlined, size: 16, color: AppColors.darkPremiumTextSecondary),
                 ),
-              Text(time, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+              Text(time, style: TextStyle(fontSize: 12, color: AppColors.darkPremiumTextSecondary)),
             ],
           ),
         ),

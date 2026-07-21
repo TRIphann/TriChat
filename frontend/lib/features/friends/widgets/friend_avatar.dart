@@ -51,7 +51,7 @@ class FriendAvatar extends StatelessWidget {
                     ? AppColors.success
                     : AppColors.neutralGray500,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 1.5),
+                border: Border.all(color: AppColors.darkBackground, width: 1.5),
               ),
             ),
           ),

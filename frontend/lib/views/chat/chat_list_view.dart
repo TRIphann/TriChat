@@ -322,12 +322,11 @@ class ChatListViewState extends State<ChatListView>
       );
     }
 
-    final theme = Theme.of(context);
     return Container(
-      color: isDark ? AppColors.darkBackground : AppColors.cream,
+      color: AppColors.darkPremiumBackground,
       child: Row(
         children: [
-          _buildSidebar(theme),
+          _buildSidebar(ThemeData.dark()),
           Expanded(
             child: Row(
               children: [
@@ -348,9 +347,8 @@ class ChatListViewState extends State<ChatListView>
   }
 
   Widget _buildMobileView(AppLocalizations t, bool isDark) {
-    final theme = Theme.of(context);
     return Container(
-      color: theme.scaffoldBackgroundColor,
+      color: AppColors.darkPremiumBackground,
       child: Column(
         children: [
           Expanded(
@@ -365,7 +363,7 @@ class ChatListViewState extends State<ChatListView>
               ],
             ),
           ),
-          _buildBottomNavigation(theme, isDark),
+          _buildBottomNavigation(isDark),
         ],
       ),
     );
@@ -375,13 +373,10 @@ class ChatListViewState extends State<ChatListView>
   // PREMIUM SIDEBAR
   // ════════════════════════════════════════════════════════════════
   Widget _buildSidebar(ThemeData theme) {
-    final isDark = theme.brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.darkPremiumSurface : AppColors.textPrimary;
-
     return Container(
-      width: 80,
+      width: 86,
       decoration: BoxDecoration(
-        color: bgColor,
+        color: AppColors.darkPremiumSurface,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.15),
@@ -393,38 +388,30 @@ class ChatListViewState extends State<ChatListView>
       child: Column(
         children: [
           const SizedBox(height: AppSpacing.lg),
-          _buildUserAvatar(isDark),
+          _buildUserAvatar(),
           const SizedBox(height: AppSpacing.xl),
           _buildSidebarItem(
             Icons.chat_bubble_rounded,
             Icons.chat_bubble_outline_rounded,
             0,
-            theme,
-            isDark,
             tooltip: 'Tin nhắn',
           ),
           _buildSidebarItem(
             Icons.people_rounded,
             Icons.people_outline_rounded,
             1,
-            theme,
-            isDark,
             tooltip: 'Bạn bè',
           ),
           _buildSidebarItem(
             Icons.auto_stories_rounded,
             Icons.auto_stories_outlined,
             2,
-            theme,
-            isDark,
             tooltip: 'Bảng tin',
           ),
           _buildSidebarItem(
             Icons.person_rounded,
             Icons.person_outline_rounded,
             3,
-            theme,
-            isDark,
             tooltip: 'Cá nhân',
           ),
           const Spacer(),
@@ -432,8 +419,6 @@ class ChatListViewState extends State<ChatListView>
             Icons.settings_rounded,
             Icons.settings_outlined,
             4,
-            theme,
-            isDark,
             tooltip: 'Cài đặt',
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -442,7 +427,7 @@ class ChatListViewState extends State<ChatListView>
     );
   }
 
-  Widget _buildUserAvatar(bool isDark) {
+  Widget _buildUserAvatar() {
     final firebaseUser = FirebaseAuth.instance.currentUser;
     final avatarUrl = firebaseUser?.photoURL ?? '';
     final displayName = firebaseUser?.displayName ?? 'U';
@@ -469,14 +454,12 @@ class ChatListViewState extends State<ChatListView>
   Widget _buildSidebarItem(
     IconData activeIcon,
     IconData inactiveIcon,
-    int index,
-    ThemeData theme,
-    bool isDark, {
+    int index, {
     String? tooltip,
   }) {
     final isSelected = _selectedNavIndex == index;
-    final activeColor = isDark ? AppColors.neonRoyal : AppColors.primaryOrange;
-    final inactiveColor = isDark ? AppColors.darkPremiumTextSecondary : AppColors.textTertiary;
+    final activeColor = AppColors.neonRoyal;
+    final inactiveColor = AppColors.darkPremiumTextSecondary;
 
     Widget item = Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -485,7 +468,7 @@ class ChatListViewState extends State<ChatListView>
         margin: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
           color: isSelected
-              ? (isDark ? AppColors.neonRoyal.withValues(alpha: 0.15) : AppColors.primaryOrangeLight)
+              ? AppColors.neonRoyal.withValues(alpha: 0.15)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
@@ -500,7 +483,7 @@ class ChatListViewState extends State<ChatListView>
                   duration: AppCurves.durationNormal,
                   width: 3,
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.neonRoyal : AppColors.primaryOrange,
+                    color: AppColors.neonRoyal,
                     borderRadius: BorderRadius.circular(1.5),
                   ),
                 ),
@@ -993,12 +976,12 @@ class ChatListViewState extends State<ChatListView>
   // ════════════════════════════════════════════════════════════════
   // PREMIUM BOTTOM NAVIGATION
   // ════════════════════════════════════════════════════════════════
-  Widget _buildBottomNavigation(ThemeData theme, bool isDark) {
+  Widget _buildBottomNavigation(bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: AppColors.darkPremiumSurface,
         border: Border(
-          top: BorderSide(color: theme.dividerColor, width: 1),
+          top: BorderSide(color: AppColors.darkPremiumBorder, width: 1),
         ),
       ),
       child: SafeArea(
@@ -1012,32 +995,24 @@ class ChatListViewState extends State<ChatListView>
                 Icons.chat_bubble_outline_rounded,
                 0,
                 'Tin nhắn',
-                theme,
-                isDark,
               ),
               _buildBottomNavItem(
                 Icons.people_rounded,
                 Icons.people_outline_rounded,
                 1,
                 'Bạn bè',
-                theme,
-                isDark,
               ),
               _buildBottomNavItem(
                 Icons.auto_stories_rounded,
                 Icons.auto_stories_outlined,
                 2,
                 'Bảng tin',
-                theme,
-                isDark,
               ),
               _buildBottomNavItem(
                 Icons.person_rounded,
                 Icons.person_outline_rounded,
                 3,
                 'Cá nhân',
-                theme,
-                isDark,
               ),
             ],
           ),
@@ -1051,12 +1026,10 @@ class ChatListViewState extends State<ChatListView>
     IconData inactiveIcon,
     int index,
     String label,
-    ThemeData theme,
-    bool isDark,
   ) {
     final isSelected = _selectedNavIndex == index;
-    final activeColor = AppColors.primaryOrange;
-    final inactiveColor = theme.hintColor;
+    final activeColor = AppColors.neonRoyal;
+    final inactiveColor = AppColors.darkPremiumTextSecondary;
     final color = isSelected ? activeColor : inactiveColor;
 
     return Expanded(
@@ -1075,7 +1048,7 @@ class ChatListViewState extends State<ChatListView>
                 ),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? AppColors.primaryOrangeLight
+                      ? AppColors.neonRoyal.withValues(alpha: 0.15)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(AppRadius.lg),
                 ),
