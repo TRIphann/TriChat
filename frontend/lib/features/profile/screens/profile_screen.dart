@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:frontend/config/app_colors.dart';
+import 'package:frontend/component/avatars.dart';
 import 'package:frontend/features/profile/providers/profile_provider.dart';
 import 'package:frontend/features/profile/services/profile_service.dart';
 import 'package:frontend/services/auth_service.dart';
@@ -923,11 +924,35 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   Widget _buildAvatar({double size = 112}) {
     final name = _isOwnProfile ? _currentUserName : _targetUserName;
-    final avatarColor = _avatarColor(name);
     final avatarUrl = _isOwnProfile ? _currentUserAvatar : _targetUserAvatar;
-    final initials = _getInitials(name);
 
-    Widget avatar = Container(
+    Widget avatar = TriAvatar(
+      imageUrl: _selectedAvatarBytes != null ? '' : avatarUrl,
+      name: name,
+      size: size - 8,
+    );
+
+    // Wrap with selected bytes preview
+    if (_selectedAvatarBytes != null) {
+      avatar = Container(
+        width: size - 8,
+        height: size - 8,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppColors.darkPremiumElevated,
+        ),
+        child: ClipOval(
+          child: Image.memory(
+            _selectedAvatarBytes!,
+            width: size - 8,
+            height: size - 8,
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    }
+
+    avatar = Container(
       width: size,
       height: size,
       padding: const EdgeInsets.all(4),
@@ -936,7 +961,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: avatarColor.withValues(alpha: 0.35),
+            color: AppColors.avatarColorFor(name).withValues(alpha: 0.35),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -945,48 +970,8 @@ class _ProfileScreenState extends State<ProfileScreen>
       child: Container(
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: LinearGradient(
-            colors: [avatarColor, avatarColor.withValues(alpha: 0.7)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
         ),
-        child: ClipOval(
-          child: _selectedAvatarBytes != null
-              ? Image.memory(
-                  _selectedAvatarBytes!,
-                  width: size - 8,
-                  height: size - 8,
-                  fit: BoxFit.cover,
-                )
-              : avatarUrl.isNotEmpty
-                  ? Image.network(
-                      avatarUrl,
-                      width: size - 8,
-                      height: size - 8,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Center(
-                        child: Text(
-                          initials,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontSize: size * 0.38,
-                          ),
-                        ),
-                      ),
-                    )
-                  : Center(
-                      child: Text(
-                        initials,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                          fontSize: size * 0.38,
-                        ),
-                      ),
-                    ),
-        ),
+        child: ClipOval(child: avatar),
       ),
     );
 
@@ -1818,6 +1803,12 @@ class _PostsTabState extends State<_PostsTab> {
   void initState() {
     super.initState();
     _mockTiles = _buildMockTiles();
+    // Trigger profile load so posts are fetched even if the parent hasn't
+    // loaded yet (e.g. tab visited before the profile header finishes).
+    Future.microtask(() {
+      if (!mounted) return;
+      context.read<ProfileProvider>().refreshProfile(widget.targetUserId);
+    });
   }
 
   List<_MockPostTile> _buildMockTiles() {

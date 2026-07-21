@@ -303,7 +303,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 : AppColors.cream;
             final borderColor = isDark
                 ? AppColors.darkPremiumBorder
-                : AppColors.creamTertiary;
+                : AppColors.darkBorder;
 
             return Container(
               color: backgroundColor,
@@ -347,7 +347,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                   decoration: BoxDecoration(
                                     color: useDarkSurface
                                         ? AppColors.darkPremiumSurface
-                                        : AppColors.creamWhite,
+                                        : AppColors.darkElevated,
                                     shape: BoxShape.circle,
                                     border: Border.all(
                                       color: useDarkSurface
@@ -407,16 +407,16 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           final useDarkSurface = isDark;
           final bg = useDarkSurface
               ? AppColors.darkPremiumSurface
-              : AppColors.creamWhite;
+              : AppColors.darkElevated;
           final border = useDarkSurface
               ? AppColors.darkPremiumBorder
-              : AppColors.creamTertiary;
+              : AppColors.darkBorder;
           final onSurface = useDarkSurface
               ? AppColors.darkPremiumTextPrimary
               : theme.colorScheme.onSurface;
           final hintColor = useDarkSurface
               ? AppColors.darkPremiumTextSecondary
-              : AppColors.neutralGray500;
+              : AppColors.darkTextTertiary;
           return Container(
             decoration: BoxDecoration(
               color: bg,
@@ -560,8 +560,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   Widget _buildPinnedMessage(Conversation conv) {
     final isDark = isDarkModeNotifier.value;
-    final bg = isDark ? AppColors.darkPremiumSurface : AppColors.creamWhite;
-    final border = isDark ? AppColors.darkPremiumBorder : AppColors.creamTertiary;
+    final bg = isDark ? AppColors.darkPremiumSurface : AppColors.darkElevated;
+    final border = isDark ? AppColors.darkPremiumBorder : AppColors.darkBorder;
     final accentColor = isDark ? AppColors.neonRoyalGlow : AppColors.primaryOrange;
     final secondaryText = isDark
         ? AppColors.darkPremiumTextSecondary
@@ -814,8 +814,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   Widget _buildReplyPreview() {
     final isDark = isDarkModeNotifier.value;
-    final bg = isDark ? AppColors.darkPremiumSurface : AppColors.creamWhite;
-    final border = isDark ? AppColors.darkPremiumBorder : AppColors.creamTertiary;
+    final bg = isDark ? AppColors.darkPremiumSurface : AppColors.darkElevated;
+    final border = isDark ? AppColors.darkPremiumBorder : AppColors.darkBorder;
     final accentColor = isDark ? AppColors.neonRoyalGlow : AppColors.primaryOrange;
     final secondaryText = isDark
         ? AppColors.darkPremiumTextSecondary
@@ -883,7 +883,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               child: Icon(
                 Icons.close_rounded,
                 size: 18,
-                color: AppColors.neutralGray500,
+                color: AppColors.darkTextTertiary,
               ),
             ),
           ),
@@ -902,19 +902,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final useDarkSurface = isDark;
     final surface = useDarkSurface
         ? AppColors.darkPremiumSurface
-        : AppColors.creamWhite;
+        : AppColors.darkElevated;
     final border = useDarkSurface
         ? AppColors.darkPremiumBorder
-        : AppColors.creamTertiary;
+        : AppColors.darkBorder;
     final fieldFill = useDarkSurface
         ? AppColors.darkPremiumElevated
-        : AppColors.creamSurface;
+        : AppColors.darkElevated;
     final onSurface = useDarkSurface
         ? AppColors.darkPremiumTextPrimary
         : theme.colorScheme.onSurface;
     final hintColor = useDarkSurface
         ? AppColors.darkPremiumTextHint
-        : AppColors.neutralGray500;
+        : AppColors.darkTextTertiary;
 
     Widget iconBtn(IconData icon, VoidCallback onTap, {double size = 22}) =>
         _buildDarkIconButton(icon, onTap, size: size, isDark: useDarkSurface);
@@ -1420,11 +1420,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
 
     final isDark = isDarkModeNotifier.value;
-    final bg = isDark ? AppColors.darkPremiumSurface : AppColors.creamWhite;
-    final border = isDark ? AppColors.darkPremiumBorder : AppColors.creamTertiary;
+    final bg = isDark ? AppColors.darkPremiumSurface : AppColors.darkElevated;
+    final border = isDark ? AppColors.darkPremiumBorder : AppColors.darkBorder;
     final elevated = isDark
         ? AppColors.darkPremiumElevated
-        : AppColors.creamSurface;
+        : AppColors.darkElevated;
     final onSurface = isDark
         ? AppColors.darkPremiumTextPrimary
         : Theme.of(context).colorScheme.onSurface;

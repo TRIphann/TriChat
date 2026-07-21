@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/config/app_colors.dart';
+import 'package:frontend/component/widgets.dart' show TriAvatar;
 import '../models/post_model.dart';
 import '../providers/feed_provider.dart';
 import 'comment_sheet.dart';
@@ -112,7 +113,11 @@ class _ModernPostCardState extends State<ModernPostCard>
         children: [
           GestureDetector(
             onTap: widget.onProfileTap,
-            child: _Avatar(name: p.userName, url: p.userAvatar, size: 44),
+            child: TriAvatar(
+              imageUrl: p.userAvatar,
+              name: p.userName,
+              size: 44,
+            ),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -626,70 +631,6 @@ class _LikeBadge extends StatelessWidget {
   }
 }
 
-/// Avatar widget có fallback màu + initials
-class _Avatar extends StatelessWidget {
-  final String name;
-  final String url;
-  final double size;
-
-  const _Avatar({required this.name, required this.url, this.size = 40});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = _avatarColor(name);
-    final initials = _initials(name);
-    final useNet = url.isNotEmpty;
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          colors: [color, color.withValues(alpha: 0.7)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.25),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: useNet
-          ? ClipOval(
-              child: Image.network(
-                url,
-                width: size,
-                height: size,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Center(
-                  child: Text(
-                    initials,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: size * 0.38,
-                    ),
-                  ),
-                ),
-              ),
-            )
-          : Center(
-              child: Text(
-                initials,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: size * 0.38,
-                ),
-              ),
-            ),
-    );
-  }
-}
-
 /// Network image với loading indicator đẹp
 class _NetworkImageWithLoader extends StatelessWidget {
   final String url;
@@ -730,30 +671,4 @@ class _NetworkImageWithLoader extends StatelessWidget {
       ),
     );
   }
-}
-
-Color _avatarColor(String name) {
-  final colors = [
-    AppColors.success,
-    AppColors.primaryOrange,
-    AppColors.primaryOrangeLight,
-    AppColors.accentBrown,
-    AppColors.accentRed,
-    AppColors.accentBrown,
-    AppColors.accentBrown,
-    AppColors.neutralGray700,
-    AppColors.primaryOrange,
-    const Color(0xFFFF5722),
-  ];
-  if (name.isEmpty) return colors[0];
-  return colors[name.codeUnitAt(0) % colors.length];
-}
-
-String _initials(String name) {
-  if (name.isEmpty) return '?';
-  final parts = name.trim().split(' ');
-  if (parts.length >= 2) {
-    return '${parts[0][0]}${parts[parts.length - 1][0]}'.toUpperCase();
-  }
-  return name[0].toUpperCase();
 }
