@@ -63,7 +63,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     return Container(
-      color: theme.scaffoldBackgroundColor,
+      color: AppColors.darkPremiumBackground,
       child: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -243,9 +243,9 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
         return Container(
           width: width,
           decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
+            color: AppColors.darkPremiumSurface,
             border: Border(
-              right: BorderSide(color: theme.dividerColor, width: 1),
+              right: BorderSide(color: AppColors.darkPremiumBorder, width: 1),
             ),
           ),
           child: Column(
@@ -294,7 +294,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
           Text(
             'Tin nhắn',
             style: AppTypography.headlineMedium.copyWith(
-              color: theme.colorScheme.onSurface,
+              color: AppColors.darkPremiumTextPrimary,
               fontWeight: FontWeight.w800,
               letterSpacing: -0.5,
             ),
@@ -318,18 +318,16 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
       child: Container(
         height: 40,
         decoration: BoxDecoration(
-          color: theme.brightness == Brightness.dark
-              ? AppColors.darkCard
-              : AppColors.neutralGray100,
+          color: AppColors.darkCard,
           borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: theme.dividerColor, width: 1),
+          border: Border.all(color: AppColors.darkBorder, width: 1),
         ),
         child: Row(
           children: [
             const SizedBox(width: AppSpacing.md),
             Icon(
               Icons.search_rounded,
-              color: theme.hintColor,
+              color: AppColors.darkPremiumTextSecondary,
               size: 18,
             ),
             const SizedBox(width: AppSpacing.sm),
@@ -337,14 +335,14 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
               child: TextField(
                 controller: _searchController,
                 style: AppTypography.bodyMedium.copyWith(
-                  color: theme.colorScheme.onSurface,
+                  color: AppColors.darkPremiumTextPrimary,
                 ),
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   isCollapsed: true,
                   hintText: 'Tìm kiếm cuộc trò chuyện...',
                   hintStyle: AppTypography.bodyMedium.copyWith(
-                    color: theme.hintColor,
+                    color: AppColors.darkPremiumTextSecondary,
                   ),
                 ),
               ),
@@ -354,7 +352,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
                 onPressed: () => _searchController.clear(),
                 icon: Icon(
                   Icons.close_rounded,
-                  color: theme.hintColor,
+                  color: AppColors.darkPremiumTextSecondary,
                   size: 16,
                 ),
                 visualDensity: VisualDensity.compact,
@@ -412,11 +410,11 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
           ),
           decoration: BoxDecoration(
             color: active
-                ? theme.colorScheme.onSurface
+                ? AppColors.darkPremiumTextPrimary
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(AppRadius.xs),
             border: Border.all(
-              color: active ? theme.colorScheme.onSurface : theme.dividerColor,
+              color: active ? AppColors.darkPremiumTextPrimary : AppColors.darkBorder,
               width: 1,
             ),
           ),
@@ -424,8 +422,8 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
             label,
             style: AppTypography.labelMedium.copyWith(
               color: active
-                  ? theme.colorScheme.surface
-                  : theme.colorScheme.onSurface,
+                  ? AppColors.darkPremiumSurface
+                  : AppColors.darkPremiumTextPrimary,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -447,16 +445,14 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
               height: 80,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: theme.brightness == Brightness.dark
-                    ? AppColors.darkCard
-                    : AppColors.neutralGray100,
+                color: AppColors.darkCard,
               ),
               child: Icon(
                 unreadMode
                     ? Icons.mark_chat_read_outlined
                     : Icons.chat_bubble_outline_rounded,
                 size: 36,
-                color: theme.colorScheme.onSurface,
+                color: AppColors.darkPremiumTextPrimary,
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -467,7 +463,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
               textAlign: TextAlign.center,
               style: AppTypography.titleMedium.copyWith(
                 fontWeight: FontWeight.w700,
-                color: theme.colorScheme.onSurface,
+                color: AppColors.darkPremiumTextPrimary,
               ),
             ),
             const SizedBox(height: AppSpacing.xs),
@@ -477,7 +473,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
                   : 'Hãy kết bạn để bắt đầu nhắn tin — cuộc trò chuyện sẽ xuất hiện ở đây.',
               textAlign: TextAlign.center,
               style: AppTypography.bodySmall.copyWith(
-                color: theme.hintColor,
+                color: AppColors.darkPremiumTextSecondary,
                 height: 1.5,
               ),
             ),
@@ -563,7 +559,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
                       color: AppColors.success,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: theme.colorScheme.surface,
+                        color: AppColors.darkPremiumSurface,
                         width: 2,
                       ),
                     ),
@@ -589,7 +585,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
                           fontWeight: c.unreadCount > 0
                               ? FontWeight.w700
                               : FontWeight.w600,
-                          color: theme.colorScheme.onSurface,
+                          color: AppColors.darkPremiumTextPrimary,
                         ),
                       ),
                     ),
@@ -598,8 +594,8 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
                       lastTime,
                       style: AppTypography.timestamp.copyWith(
                         color: c.unreadCount > 0
-                            ? theme.colorScheme.onSurface
-                            : theme.hintColor,
+                            ? AppColors.darkPremiumTextPrimary
+                            : AppColors.darkPremiumTextSecondary,
                         fontWeight: c.unreadCount > 0
                             ? FontWeight.w700
                             : FontWeight.w500,
@@ -621,8 +617,8 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
                         overflow: TextOverflow.ellipsis,
                         style: AppTypography.bodySmall.copyWith(
                           color: c.unreadCount > 0
-                              ? theme.colorScheme.onSurface
-                              : theme.hintColor,
+                              ? AppColors.darkPremiumTextPrimary
+                              : AppColors.darkPremiumTextSecondary,
                           fontWeight: c.unreadCount > 0
                               ? FontWeight.w500
                               : FontWeight.w400,
@@ -659,11 +655,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 2),
       decoration: BoxDecoration(
-        color: isSelected
-            ? (theme.brightness == Brightness.dark
-                ? AppColors.darkCard
-                : AppColors.neutralGray100)
-            : Colors.transparent,
+        color: isSelected ? AppColors.darkCard : Colors.transparent,
         borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: inner,
@@ -717,7 +709,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
   Widget _buildWelcomeDark() {
     final theme = Theme.of(context);
     return Container(
-      color: theme.scaffoldBackgroundColor,
+      color: AppColors.darkPremiumBackground,
       child: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(
@@ -732,18 +724,16 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
                 height: 110,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: theme.brightness == Brightness.dark
-                      ? AppColors.darkCard
-                      : AppColors.neutralGray100,
+                  color: AppColors.darkCard,
                   border: Border.all(
-                    color: theme.dividerColor,
+                    color: AppColors.darkBorder,
                     width: 1,
                   ),
                 ),
                 child: Icon(
                   Icons.forum_outlined,
                   size: 44,
-                  color: theme.colorScheme.onSurface,
+                  color: AppColors.darkPremiumTextPrimary,
                 ),
               ),
               const SizedBox(height: AppSpacing.xl),
@@ -751,7 +741,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
                 'Chọn một cuộc trò chuyện',
                 textAlign: TextAlign.center,
                 style: AppTypography.headlineSmall.copyWith(
-                  color: theme.colorScheme.onSurface,
+                  color: AppColors.darkPremiumTextPrimary,
                   fontWeight: FontWeight.w800,
                 ),
               ),
@@ -760,7 +750,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
                 'Trò chuyện với bạn bè ngay bây giờ — chọn một hội thoại ở danh sách bên trái để bắt đầu.',
                 textAlign: TextAlign.center,
                 style: AppTypography.bodyMedium.copyWith(
-                  color: theme.hintColor,
+                  color: AppColors.darkPremiumTextSecondary,
                   height: 1.6,
                 ),
               ),
@@ -783,9 +773,9 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
     return Container(
       width: width,
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: AppColors.darkPremiumSurface,
         border: Border(
-          left: BorderSide(color: theme.dividerColor, width: 1),
+          left: BorderSide(color: AppColors.darkBorder, width: 1),
         ),
       ),
       child: conv == null
@@ -833,7 +823,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
           Text(
             'Chi tiết',
             style: AppTypography.titleLarge.copyWith(
-              color: theme.colorScheme.onSurface,
+              color: AppColors.darkPremiumTextPrimary,
               fontWeight: FontWeight.w800,
               letterSpacing: -0.3,
             ),
@@ -860,7 +850,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: AppTypography.titleMedium.copyWith(
-              color: theme.colorScheme.onSurface,
+              color: AppColors.darkPremiumTextPrimary,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -871,18 +861,16 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
               vertical: 4,
             ),
             decoration: BoxDecoration(
-              color: theme.brightness == Brightness.dark
-                  ? AppColors.darkCard
-                  : AppColors.neutralGray100,
+              color: AppColors.darkCard,
               borderRadius: BorderRadius.circular(AppRadius.xs),
-              border: Border.all(color: theme.dividerColor),
+              border: Border.all(color: AppColors.darkBorder),
             ),
             child: Text(
               conv.type == 'group'
                   ? 'Nhóm · ${conv.participants.length} thành viên'
                   : 'Tin nhắn trực tiếp',
               style: AppTypography.labelSmall.copyWith(
-                color: theme.hintColor,
+                color: AppColors.darkPremiumTextSecondary,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.5,
               ),
@@ -906,7 +894,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
               Text(
                 'THÀNH VIÊN',
                 style: AppTypography.labelSmall.copyWith(
-                  color: theme.hintColor,
+                  color: AppColors.darkPremiumTextSecondary,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 1.0,
                 ),
@@ -915,7 +903,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
               Text(
                 '($memberCount)',
                 style: AppTypography.labelSmall.copyWith(
-                  color: theme.hintColor,
+                  color: AppColors.darkPremiumTextSecondary,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -931,7 +919,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
             child: Text(
               '+ ${members.length - 8} thành viên khác',
               style: AppTypography.bodySmall.copyWith(
-                color: theme.colorScheme.onSurface,
+                color: AppColors.darkPremiumTextPrimary,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -959,7 +947,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTypography.bodyMedium.copyWith(
-                    color: theme.colorScheme.onSurface,
+                    color: AppColors.darkPremiumTextPrimary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -971,7 +959,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
                             ? 'Trưởng nhóm'
                             : 'Thành viên',
                     style: AppTypography.labelSmall.copyWith(
-                      color: theme.hintColor,
+                      color: AppColors.darkPremiumTextSecondary,
                     ),
                   ),
               ],
@@ -979,7 +967,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
           ),
           Icon(
             Icons.call_outlined,
-            color: theme.hintColor,
+            color: AppColors.darkPremiumTextSecondary,
             size: 18,
           ),
         ],
@@ -997,7 +985,7 @@ class _UltraDarkChatLayoutState extends State<UltraDarkChatLayout> {
           child: Text(
             'LOẠI FILE',
             style: AppTypography.labelSmall.copyWith(
-              color: theme.hintColor,
+              color: AppColors.darkPremiumTextSecondary,
               fontWeight: FontWeight.w800,
               letterSpacing: 1.0,
             ),
@@ -1058,7 +1046,7 @@ class _LabelRow extends StatelessWidget {
       child: Text(
         text,
         style: AppTypography.labelSmall.copyWith(
-          color: theme.hintColor,
+          color: AppColors.darkPremiumTextSecondary,
           fontWeight: FontWeight.w800,
           letterSpacing: 1.0,
         ),
@@ -1088,27 +1076,25 @@ class _FileTypeTile extends StatelessWidget {
           horizontal: AppSpacing.xs,
         ),
         decoration: BoxDecoration(
-          color: theme.brightness == Brightness.dark
-              ? AppColors.darkCard
-              : AppColors.neutralGray100,
+          color: AppColors.darkCard,
           borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: theme.dividerColor, width: 1),
+          border: Border.all(color: AppColors.darkBorder, width: 1),
         ),
         child: Column(
           children: [
-            Icon(icon, color: theme.colorScheme.onSurface, size: 18),
+            Icon(icon, color: AppColors.darkPremiumTextPrimary, size: 18),
             const SizedBox(height: AppSpacing.xs),
             Text(
               '$count',
               style: AppTypography.titleSmall.copyWith(
-                color: theme.colorScheme.onSurface,
+                color: AppColors.darkPremiumTextPrimary,
                 fontWeight: FontWeight.w800,
               ),
             ),
             Text(
               label,
               style: AppTypography.labelSmall.copyWith(
-                color: theme.hintColor,
+                color: AppColors.darkPremiumTextSecondary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -1178,7 +1164,7 @@ class _ListErrorState extends StatelessWidget {
             textAlign: TextAlign.center,
             style: AppTypography.titleMedium.copyWith(
               fontWeight: FontWeight.w700,
-              color: theme.colorScheme.onSurface,
+              color: AppColors.darkPremiumTextPrimary,
             ),
           ),
           const SizedBox(height: AppSpacing.xs),
@@ -1186,7 +1172,7 @@ class _ListErrorState extends StatelessWidget {
             'Kết nối mạng có vấn đề, bạn có thể thử lại hoặc kết bạn để tạo cuộc trò chuyện mới.',
             textAlign: TextAlign.center,
             style: AppTypography.bodySmall.copyWith(
-              color: theme.hintColor,
+              color: AppColors.darkPremiumTextSecondary,
               height: 1.5,
             ),
           ),
@@ -1214,7 +1200,7 @@ class _DetailsIdleState extends StatelessWidget {
           children: [
             Icon(
               Icons.info_outline_rounded,
-              color: theme.hintColor,
+              color: AppColors.darkPremiumTextSecondary,
               size: 36,
             ),
             const SizedBox(height: AppSpacing.md),
@@ -1222,7 +1208,7 @@ class _DetailsIdleState extends StatelessWidget {
               'Chọn một cuộc trò chuyện để xem thông tin chi tiết.',
               textAlign: TextAlign.center,
               style: AppTypography.bodySmall.copyWith(
-                color: theme.hintColor,
+                color: AppColors.darkPremiumTextSecondary,
                 height: 1.5,
               ),
             ),

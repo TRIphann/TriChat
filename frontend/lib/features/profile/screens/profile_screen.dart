@@ -2526,14 +2526,14 @@ class _ImagesTab extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.neutralBlack,
+                      color: AppColors.darkPremiumTextPrimary,
                     ),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     'Hãy đăng ảnh để hiển thị trong album',
                     style: TextStyle(
-                      color: Colors.grey.shade600,
+                      color: AppColors.darkPremiumTextSecondary,
                       fontSize: 13,
                     ),
                   ),
@@ -2566,10 +2566,10 @@ class _ImagesTab extends StatelessWidget {
                             firstImage,
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => Container(
-                              color: Colors.grey.shade300,
+                              color: AppColors.darkCard,
                               child: Icon(
                                 Icons.broken_image,
-                                color: Colors.grey.shade400,
+                                color: AppColors.darkTextTertiary,
                               ),
                             ),
                           ),

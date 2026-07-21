@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:frontend/config/app_colors.dart';
 import '../../models/chat/conversation.dart';
 
 class ConversationTile extends StatelessWidget {
@@ -34,14 +35,14 @@ class ConversationTile extends StatelessWidget {
       },
       child: InkWell(
         onTap: onTap,
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: conversation.isPinned ? Colors.grey[100] : Colors.white,
-            border: Border(
-              bottom: BorderSide(color: Colors.grey[200]!, width: 0.5),
-            ),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.darkPremiumSurface,
+          border: Border(
+            bottom: BorderSide(color: AppColors.darkPremiumBorder, width: 0.5),
           ),
+        ),
           child: Row(
             children: [
               // Avatar
@@ -57,9 +58,9 @@ class ConversationTile extends StatelessWidget {
                         width: 14,
                         height: 14,
                         decoration: BoxDecoration(
-                          color: Colors.green,
+                          color: AppColors.success,
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
+                          border: Border.all(color: AppColors.darkBackground, width: 2),
                         ),
                       ),
                     ),
@@ -82,6 +83,7 @@ class ConversationTile extends StatelessWidget {
                               fontWeight: conversation.unreadCount > 0
                                   ? FontWeight.bold
                                   : FontWeight.w500,
+                              color: AppColors.darkPremiumTextPrimary,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -91,7 +93,7 @@ class ConversationTile extends StatelessWidget {
                           Icon(
                             Icons.push_pin,
                             size: 16,
-                            color: Colors.grey[600],
+                            color: AppColors.darkPremiumTextSecondary,
                           ),
                         if (conversation.isMuted)
                           Padding(
@@ -99,7 +101,7 @@ class ConversationTile extends StatelessWidget {
                             child: Icon(
                               Icons.volume_off,
                               size: 16,
-                              color: Colors.grey[600],
+                              color: AppColors.darkPremiumTextSecondary,
                             ),
                           ),
                       ],
@@ -113,8 +115,8 @@ class ConversationTile extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 14,
                               color: conversation.unreadCount > 0
-                                  ? Colors.black87
-                                  : Colors.grey[600],
+                                  ? AppColors.darkPremiumTextPrimary
+                                  : AppColors.darkPremiumTextSecondary,
                               fontWeight: conversation.unreadCount > 0
                                   ? FontWeight.w500
                                   : FontWeight.normal,
@@ -140,8 +142,8 @@ class ConversationTile extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12,
                       color: conversation.unreadCount > 0
-                          ? Theme.of(context).primaryColor
-                          : Colors.grey[600],
+                          ? AppColors.neonRoyal
+                          : AppColors.darkPremiumTextSecondary,
                       fontWeight: conversation.unreadCount > 0
                           ? FontWeight.bold
                           : FontWeight.normal,
@@ -177,24 +179,56 @@ class ConversationTile extends StatelessWidget {
 
   Widget _buildAvatar() {
     if (conversation.displayAvatar.isEmpty) {
-      return CircleAvatar(
-        radius: 28,
-        backgroundColor: Colors.blue[100],
-        child: Text(
-          conversation.displayName[0].toUpperCase(),
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.blue[700],
+      return Container(
+        width: 56,
+        height: 56,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppColors.avatarColorFor(conversation.displayName),
+        ),
+        child: Center(
+          child: Text(
+            conversation.displayName.isNotEmpty
+                ? conversation.displayName[0].toUpperCase()
+                : '?',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
           ),
         ),
       );
     }
 
-    return CircleAvatar(
-      radius: 28,
-      backgroundImage: NetworkImage(conversation.displayAvatar),
-      backgroundColor: Colors.grey[200],
+    return Container(
+      width: 56,
+      height: 56,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.darkBackground,
+      ),
+      child: ClipOval(
+        child: Image.network(
+          conversation.displayAvatar,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => Container(
+            color: AppColors.avatarColorFor(conversation.displayName),
+            child: Center(
+              child: Text(
+                conversation.displayName.isNotEmpty
+                    ? conversation.displayName[0].toUpperCase()
+                    : '?',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 

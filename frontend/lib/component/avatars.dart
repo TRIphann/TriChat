@@ -63,11 +63,10 @@ class TriAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final double inner = size;
     final double ringWidth = storyRing ? size * 0.055 : 0;
     final double outerSize = inner + ringWidth * 2 + 4;
-    final borderColor = isDark ? AppColors.darkBackground : AppColors.cream;
+    final borderColor = AppColors.darkBackground;
 
     Widget avatarContent = Container(
       width: inner,
@@ -146,8 +145,8 @@ class TriAvatar extends StatelessWidget {
             end: Alignment.bottomRight,
             colors: storySeen
                 ? [
-                    isDark ? AppColors.darkBorder : AppColors.borderStrong,
-                    isDark ? AppColors.darkTextTertiary : AppColors.textTertiary,
+                    AppColors.darkBorder,
+                    AppColors.darkTextTertiary,
                   ]
                 : [
                     AppColors.primaryAmber,
