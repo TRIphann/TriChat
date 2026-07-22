@@ -125,13 +125,16 @@ namespace backend.Services
 
             var friendIds = friendIdsTask.Result;
 
+            // Filter is_enable in memory to avoid composite indexes
+            // (WhereEqualTo + OrderByDescending on different fields requires one).
             var posts = await QueryFeedsByBatchAsync(db, new List<string> { targetUserId }, "post",
-                (col, _) => col
+                (col, batch) => col
                     .WhereEqualTo("type", "post")
-                    .WhereEqualTo("user_id", targetUserId)
-                    .OrderByDescending("create_at"));
+                    .WhereIn("user_id", batch));
 
             var filtered = posts
+                .Where(p => p.IsEnable)
+                .OrderByDescending(p => p.CreatedAt)
                 .Where(p => CanViewPost(p, currentUserId, friendIds))
                 .ToList();
 

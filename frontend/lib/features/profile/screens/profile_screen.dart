@@ -2730,42 +2730,10 @@ class _ImagePostSheet extends StatelessWidget {
                       padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
                       child: Row(
                         children: [
-                          Container(
-                            width: 42,
-                            height: 42,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                colors: [color, color.withValues(alpha: 0.7)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                            ),
-                            child: ClipOval(
-                              child: post.userAvatar.isNotEmpty
-                                  ? Image.network(
-                                      post.userAvatar,
-                                      width: 42,
-                                      height: 42,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => Center(
-                                        child: Text(
-                                          initials,
-                                          style: const TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                      ),
-                                    )
-                                  : Center(
-                                      child: Text(
-                                        initials,
-                                        style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                            ),
+                          TriAvatar(
+                            imageUrl: post.userAvatar,
+                            name: post.userName,
+                            size: 42,
                           ),
                           const SizedBox(width: 10),
                           Expanded(
@@ -3201,93 +3169,64 @@ class _SettingsTabState extends State<SettingsTab> {
               ),
             ],
           ),
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(16),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildThemeOption('Chế độ sáng', false, Icons.light_mode_rounded, [AppColors.primaryOrangeLight, AppColors.primaryOrange]),
-              const SizedBox(height: 6),
-              _buildThemeOption('Chế độ tối', true, Icons.dark_mode_rounded, [AppColors.accentBrown, AppColors.accentBrown]),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.neonRoyal.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(Icons.dark_mode_rounded, color: AppColors.neonRoyal, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Chế độ tối',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.neutralGray900,
+                          ),
+                        ),
+                        Text(
+                          'Đang phát triển',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.neutralGray500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.neonRoyal.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      'Soon',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.neonRoyal,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildThemeOption(
-    String title,
-    bool isDarkOption,
-    IconData icon,
-    List<Color> colors,
-  ) {
-    final isSelected = _isDark == isDarkOption;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => setState(() => _isDark = isDarkOption),
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            gradient: isSelected
-                ? LinearGradient(
-                    colors: [
-                      AppColors.primaryBlue.withValues(alpha: 0.06),
-                      AppColors.primaryBlue.withValues(alpha: 0.02),
-                    ],
-                  )
-                : null,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isSelected
-                  ? AppColors.primaryBlue
-                  : Colors.grey.shade200,
-              width: isSelected ? 2 : 1,
-            ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: colors,
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, color: Colors.white, size: 18),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: isSelected
-                        ? AppColors.primaryBlue
-                        : AppColors.neutralBlack,
-                  ),
-                ),
-              ),
-              if (isSelected)
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryBlue,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.check_rounded,
-                      color: Colors.white, size: 14),
-                ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 

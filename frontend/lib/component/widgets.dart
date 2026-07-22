@@ -21,7 +21,6 @@ export 'app_bar.dart';
 export 'confirm_phone_sheet.dart';
 export 'friend_search_appbar.dart';
 export 'friend_search_page.dart';
-export 'friend_search_screen.dart';
 export 'loading_dialog.dart';
 export 'ripple_aminimation.dart';
 export 'success_dialog.dart';

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/config/app_colors.dart';
+import 'package:frontend/component/avatars.dart';
 import 'package:frontend/features/friends/providers/friend_provider.dart';
 import 'package:frontend/features/profile/providers/profile_provider.dart';
 import 'package:frontend/services/auth_service.dart';
@@ -499,40 +500,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       child: Row(
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: _avatarColor,
-            ),
-            child: Center(
-              child: widget.currentUserAvatar.isNotEmpty
-                  ? ClipOval(
-                      child: Image.network(
-                        widget.currentUserAvatar,
-                        width: 40,
-                        height: 40,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Text(
-                          _userInitials,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    )
-                  : Text(
-                      _userInitials,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                    ),
-            ),
+          TriAvatar(
+            imageUrl: widget.currentUserAvatar,
+            name: widget.currentUserName,
+            size: 40,
           ),
           const SizedBox(width: 10),
           Column(

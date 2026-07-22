@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/config/app_colors.dart';
 import 'package:frontend/config/app_spacing.dart';
+import 'package:frontend/component/avatars.dart';
 import 'package:frontend/widgets/search_overlay_screen.dart';
 import '../providers/feed_provider.dart';
 import '../providers/story_provider.dart';
@@ -444,18 +445,11 @@ class _NewfeedScreenState extends State<NewfeedScreen>
       ),
       child: Row(
         children: [
-          if (_currentUserAvatar.isNotEmpty)
-            ClipOval(
-              child: Image.network(
-                _currentUserAvatar,
-                width: 46,
-                height: 46,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _buildAvatarFallback(),
-              ),
-            )
-          else
-            _buildAvatarFallback(),
+          TriAvatar(
+            imageUrl: _currentUserAvatar,
+            name: FirebaseAuth.instance.currentUser?.displayName ?? 'U',
+            size: 46,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: GestureDetector(
