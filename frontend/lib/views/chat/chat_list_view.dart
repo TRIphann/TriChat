@@ -390,39 +390,39 @@ class ChatListViewState extends State<ChatListView>
           _buildUserAvatar(),
           const SizedBox(height: AppSpacing.xl),
           _buildSidebarItem(
-            Icons.forum_outlined,
-            Icons.forum_rounded,
             0,
+            Icons.forum_rounded,
+            Icons.forum_outlined,
             tooltip: 'Tin nhắn',
           ),
           const SizedBox(height: AppSpacing.sm),
           _buildSidebarItem(
-            Icons.contacts_outlined,
-            Icons.contacts_rounded,
             1,
+            Icons.contacts_rounded,
+            Icons.contacts_outlined,
             tooltip: 'Bạn bè',
           ),
           const SizedBox(height: AppSpacing.sm),
           _buildSidebarItem(
-            Icons.auto_stories_outlined,
-            Icons.auto_stories_rounded,
             2,
+            Icons.auto_stories_rounded,
+            Icons.auto_stories_outlined,
             tooltip: 'Bảng tin',
           ),
           const SizedBox(height: AppSpacing.sm),
           _buildSidebarItem(
-            Icons.person_outline_rounded,
-            Icons.person_rounded,
             3,
+            Icons.person_rounded,
+            Icons.person_outline_rounded,
             tooltip: 'Cá nhân',
           ),
           const Spacer(),
           _buildSidebarItem(
-            Icons.settings_outlined,
-            Icons.settings_rounded,
             4,
-            size: 46,
+            Icons.settings_rounded,
+            Icons.settings_outlined,
             tooltip: 'Cài đặt',
+            size: 46,
           ),
           const SizedBox(height: AppSpacing.lg),
         ],
@@ -438,9 +438,9 @@ class ChatListViewState extends State<ChatListView>
   }
 
   Widget _buildSidebarItem(
+    int index,
     IconData activeIcon,
-    IconData inactiveIcon,
-    int index, {
+    IconData inactiveIcon, {
     String? tooltip,
     double size = 46,
   }) {

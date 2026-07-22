@@ -375,7 +375,6 @@ class _SearchOverlayScreenState extends State<SearchOverlayScreen> {
         final user = _results[index];
         return _SearchResultTile(
           user: user,
-          isDark: isDark,
           onTap: () => _onSearchResultTap(user),
         );
       },
@@ -421,7 +420,7 @@ class _RecentContactChip extends StatelessWidget {
                     color: AppColors.success,
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: AppColors.creamWhite,
+                      color: AppColors.darkPremiumSurface,
                       width: 2,
                     ),
                   ),
@@ -451,22 +450,28 @@ class _RecentContactChip extends StatelessWidget {
 /// Dòng kết quả tìm kiếm.
 class _SearchResultTile extends StatelessWidget {
   final UserSearchModel user;
-  final bool isDark;
   final VoidCallback onTap;
 
   const _SearchResultTile({
     required this.user,
-    required this.isDark,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.creamWhite,
+      color: AppColors.darkPremiumSurface,
       child: InkWell(
         onTap: onTap,
-        child: Padding(
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: AppColors.darkPremiumBorder,
+                width: 0.5,
+              ),
+            ),
+          ),
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.lg,
             vertical: AppSpacing.md,
@@ -487,7 +492,7 @@ class _SearchResultTile extends StatelessWidget {
                     Text(
                       user.fullName.isNotEmpty ? user.fullName : user.email,
                       style: AppTypography.titleSmall.copyWith(
-                        color: AppColors.getTextPrimary(isDark),
+                        color: AppColors.darkPremiumTextPrimary,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -497,7 +502,7 @@ class _SearchResultTile extends StatelessWidget {
                       Text(
                         user.email,
                         style: AppTypography.bodySmall.copyWith(
-                          color: AppColors.getTextSecondary(isDark),
+                          color: AppColors.darkPremiumTextSecondary,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -511,9 +516,13 @@ class _SearchResultTile extends StatelessWidget {
                 Container(
                   width: 10,
                   height: 10,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: AppColors.success,
                     shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.darkPremiumSurface,
+                      width: 2,
+                    ),
                   ),
                 ),
               ],

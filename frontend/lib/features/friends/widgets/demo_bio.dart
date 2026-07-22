@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/features/friends/friends.dart';
+import 'package:frontend/component/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/config/app_colors.dart';
 
@@ -20,11 +21,6 @@ class UserProfileScreen extends StatefulWidget {
 }
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
-  static final Color primaryColor = AppColors.primaryOrange;
-  static final Color lightBlue = Color(0xFFE5EFFF);
-  static final Color backgroundColor = Color(0xFFF1F2F4);
-  static final Color greyText = Color(0xFF767E89);
-
   RelationStatus _getRelationshipStatus(FriendProvider provider) {
     final userId = widget.user.id;
 
@@ -50,7 +46,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final isFriend = status == RelationStatus.friend;
 
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: AppColors.darkPremiumBackground,
       extendBodyBehindAppBar: true,
       appBar: _buildAppBar(),
       body: SingleChildScrollView(
@@ -97,18 +93,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         Container(
           height: 250,
           width: double.infinity,
-          decoration: const BoxDecoration(
-            image: DecorationImage(
-              image: NetworkImage('https://picsum.photos/800/500'),
-              fit: BoxFit.cover,
-            ),
+          decoration: BoxDecoration(
+            color: AppColors.darkCard,
           ),
         ),
-        const Positioned(
+        Positioned(
           bottom: -40,
-          child: CircleAvatar(
-            radius: 60,
-            backgroundImage: NetworkImage('https://picsum.photos/200'),
+          child: TriAvatar(
+            imageUrl: widget.user.avatar,
+            name: widget.user.fullName,
+            size: 120,
           ),
         ),
       ],
@@ -128,13 +122,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           children: [
             Text(
               widget.user.fullName,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
+                color: AppColors.darkPremiumTextPrimary,
               ),
             ),
             const SizedBox(width: 8),
-            const Icon(Icons.edit_outlined, size: 20),
+            Icon(Icons.edit_outlined, size: 20, color: AppColors.darkPremiumTextSecondary),
           ],
         ),
 
@@ -146,7 +141,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               "Bạn chưa thể xem nhật ký của đối phương khi chưa là bạn bè",
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: greyText,
+                color: AppColors.darkPremiumTextSecondary,
                 fontSize: 14,
               ),
             ),
@@ -182,8 +177,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             child: _buildButton(
               text: "Nhắn tin",
               icon: Icons.chat_bubble_outline,
-              bgColor: lightBlue,
-              textColor: primaryColor,
+              bgColor: AppColors.neonRoyal,
+              textColor: Colors.white,
             ),
           ),
           const SizedBox(width: 12),
@@ -230,7 +225,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               },
               child: _buildButton(
                 text: "Từ chối",
-                bgColor: backgroundColor,
+                bgColor: AppColors.darkCard,
                 textColor: Colors.black,
               ),
             ),
@@ -245,7 +240,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               },
               child: _buildButton(
                 text: "Đồng ý",
-                bgColor: primaryColor,
+                bgColor: AppColors.neonRoyal,
                 textColor: Colors.white,
               ),
             ),
@@ -266,8 +261,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             child: _buildButton(
               text: "Nhắn tin",
               icon: Icons.chat_bubble_outline,
-              bgColor: lightBlue,
-              textColor: primaryColor,
+              bgColor: AppColors.neonRoyal,
+              textColor: Colors.white,
             ),
           ),
           const SizedBox(width: 12),
@@ -389,12 +384,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             height: 48,
             decoration: BoxDecoration(
               color: isHovered
-                  ? primaryColor.withValues(alpha: 0.15)
-                  : backgroundColor,
+                  ? AppColors.neonRoyal.withValues(alpha: 0.15)
+                  : AppColors.darkCard,
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
                 color: isHovered
-                    ? primaryColor.withValues(alpha: 0.4)
+                    ? AppColors.neonRoyal.withValues(alpha: 0.4)
                     : Colors.transparent,
               ),
             ),
@@ -405,7 +400,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 onTap: onTap,
                 child: Icon(
                   icon,
-                  color: isHovered ? primaryColor : Colors.black87,
+                  color: isHovered ? AppColors.neonRoyal : Colors.black87,
                 ),
               ),
             ),
