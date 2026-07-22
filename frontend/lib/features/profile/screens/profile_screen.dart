@@ -1845,6 +1845,47 @@ class _PostsTabState extends State<_PostsTab> {
       builder: (context, provider, _) {
         debugPrint('[PostsTab] build called - isLoading: ${provider.isLoading}, posts count: ${provider.posts.length}');
 
+        // Debug: show error if any
+        if (provider.errorMessage != null && provider.posts.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 48, color: AppColors.accentRed),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Lỗi tải bài viết',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.darkPremiumTextPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    provider.errorMessage!,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.darkPremiumTextSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => provider.refreshProfile(widget.targetUserId),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.neonRoyal,
+                    ),
+                    child: const Text('Thử lại'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
         if (provider.isLoading && provider.posts.isEmpty && !_hasLoadedOnce) {
           return const Center(
             child: SizedBox(

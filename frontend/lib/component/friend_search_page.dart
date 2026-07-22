@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:frontend/config/app_colors.dart';
+import 'package:frontend/component/avatars.dart';
 import 'package:frontend/features/friends/providers/friend_provider.dart';
 import 'package:frontend/features/friends/services/friend_service.dart';
 import 'package:frontend/providers/chat_provider.dart';
@@ -134,19 +135,10 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           child: Row(
             children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundImage: avatar.isNotEmpty ? NetworkImage(avatar) : null,
-                backgroundColor: AppColors.neonRoyal.withValues(alpha: 0.2),
-                child: avatar.isEmpty
-                    ? Text(
-                        name.isNotEmpty ? name[0].toUpperCase() : '?',
-                        style: TextStyle(
-                          color: AppColors.neonRoyal,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      )
-                    : null,
+              TriAvatar(
+                imageUrl: avatar,
+                name: name,
+                size: 48,
               ),
               const SizedBox(width: 12),
               Expanded(

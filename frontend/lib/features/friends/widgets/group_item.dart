@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/config/app_colors.dart';
+import 'package:frontend/component/avatars.dart';
 
 class GroupItemWidget extends StatelessWidget {
   final String name;
@@ -25,10 +26,14 @@ class GroupItemWidget extends StatelessWidget {
         splashColor: Colors.transparent,
         child: ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          leading: CircleAvatar(
-            radius: 26,
-            backgroundColor: AppColors.darkCard,
-            child: Icon(Icons.groups, color: AppColors.darkPremiumTextSecondary),
+          leading: Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: AppColors.neonRoyal.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.groups, color: AppColors.neonRoyal, size: 28),
           ),
           title: Text(
             name,

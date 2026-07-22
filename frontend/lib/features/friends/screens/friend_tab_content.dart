@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:frontend/config/app_colors.dart';
+import 'package:frontend/component/avatars.dart';
 import 'package:frontend/features/friends/friends.dart';
 import 'package:frontend/features/friends/screens/friend_birthday.dart';
 import 'package:frontend/features/friends/screens/friend_request_screen.dart';
@@ -182,16 +183,10 @@ class _FriendTabViewState extends State<FriendTabView> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Row(
             children: [
-              CircleAvatar(
-                radius: 22,
-                backgroundColor: AppColors.neonRoyal.withValues(alpha: 0.3),
-                backgroundImage: friend.avatar.isNotEmpty ? NetworkImage(friend.avatar) : null,
-                child: friend.avatar.isEmpty
-                    ? Text(
-                        displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
-                        style: TextStyle(color: AppColors.neonRoyal),
-                      )
-                    : null,
+              TriAvatar(
+                imageUrl: friend.avatar,
+                name: displayName,
+                size: 44,
               ),
               const SizedBox(width: 12),
               Expanded(

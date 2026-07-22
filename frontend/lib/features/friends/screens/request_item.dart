@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/config/app_colors.dart';
+import 'package:frontend/component/avatars.dart';
 
 class RequestItemWidget extends StatelessWidget {
   final String name;
@@ -70,27 +71,10 @@ class RequestItemWidget extends StatelessWidget {
                 CrossAxisAlignment.center,
             children: [
               // AVATAR
-              CircleAvatar(
-                radius: 28,
-                backgroundColor:
-                    AppColors.neonRoyal.withValues(alpha: 0.3),
-
-                backgroundImage:
-                    avatar.isNotEmpty
-                        ? NetworkImage(avatar)
-                        : null,
-
-                child:
-                    avatar.isEmpty
-                        ? Text(
-                          name.isNotEmpty ? name[0].toUpperCase() : '?',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight:
-                                FontWeight.bold,
-                          ),
-                        )
-                        : null,
+              TriAvatar(
+                imageUrl: avatar,
+                name: name,
+                size: 56,
               ),
 
               const SizedBox(width: 12),
