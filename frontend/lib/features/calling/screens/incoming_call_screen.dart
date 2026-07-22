@@ -6,6 +6,7 @@ import '../../../providers/call_provider.dart';
 import '../../../providers/chat_provider.dart';
 import 'call_screen.dart';
 import 'package:frontend/config/app_colors.dart';
+import 'package:frontend/component/avatars.dart';
 
 class IncomingCallScreen extends StatefulWidget {
   final CallModel call;
@@ -106,23 +107,10 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
 
             Column(
               children: [
-                CircleAvatar(
-                  radius: 56,
-                  backgroundColor: Colors.white24,
-                  backgroundImage: call.remoteAvatar.isNotEmpty
-                      ? NetworkImage(call.remoteAvatar)
-                      : null,
-                  child: call.remoteAvatar.isEmpty
-                      ? Text(
-                          call.remoteName.isNotEmpty
-                              ? call.remoteName[0].toUpperCase()
-                              : '?',
-                          style: const TextStyle(
-                              fontSize: 40,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold),
-                        )
-                      : null,
+                TriAvatar(
+                  imageUrl: call.remoteAvatar,
+                  name: call.remoteName,
+                  size: 112,
                 ),
                 const SizedBox(height: 20),
                 Text(

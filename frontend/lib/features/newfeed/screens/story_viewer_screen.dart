@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/config/app_colors.dart';
+import 'package:frontend/component/avatars.dart';
 import '../models/story_model.dart';
 import '../providers/story_provider.dart';
 
@@ -305,22 +306,10 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
       right: 12,
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: _avatarColor(userStory.userName),
-            backgroundImage: userStory.userAvatar.isNotEmpty
-                ? NetworkImage(userStory.userAvatar)
-                : null,
-            child: userStory.userAvatar.isEmpty
-                ? Text(
-                    _initials(userStory.userName),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  )
-                : null,
+          TriAvatar(
+            imageUrl: userStory.userAvatar,
+            name: userStory.userName,
+            size: 36,
           ),
           const SizedBox(width: 10),
           Expanded(

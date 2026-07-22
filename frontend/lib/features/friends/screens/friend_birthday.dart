@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:frontend/config/app_colors.dart';
+import 'package:frontend/component/avatars.dart';
 import '../providers/friend_provider.dart'; 
 
 class BirthdayModel {
@@ -660,15 +661,10 @@ class _FriendBirthdayScreenState extends State<FriendBirthdayScreen> {
       leading: Stack(
         clipBehavior: Clip.none,
         children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundColor: Colors.grey.shade300,
-            backgroundImage: user.avatarUrl.isNotEmpty
-                ? NetworkImage(user.avatarUrl)
-                : null,
-            child: user.avatarUrl.isEmpty
-                ? const Icon(Icons.person, color: Colors.white)
-                : null,
+          TriAvatar(
+            imageUrl: user.avatarUrl,
+            name: user.name,
+            size: 48,
           ),
           Positioned(
             bottom: -2,
@@ -678,7 +674,7 @@ class _FriendBirthdayScreenState extends State<FriendBirthdayScreen> {
               decoration: BoxDecoration(
                 color: const Color(0xFFFF7A93),
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
+                border: Border.all(color: AppColors.darkPremiumSurface, width: 2),
               ),
               child: const Icon(Icons.cake, size: 10, color: Colors.white),
             ),

@@ -8,6 +8,7 @@ import 'fullscreen_image_viewer.dart';
 import 'audio_message_player.dart';
 import 'package:frontend/config/app_colors.dart';
 import 'package:frontend/config/app_spacing.dart';
+import 'package:frontend/component/avatars.dart';
 import 'package:frontend/config/app_typography.dart';
 
 class MessageBubble extends StatelessWidget {
@@ -56,15 +57,19 @@ class MessageBubble extends StatelessWidget {
     this.onRetry,
   });
 
-  // Ultra-Dark "Premium Glass" palette
-  static const _accentMine = AppColors.neonRoyal; // Royal Blue
-  static const _accentMineBright = AppColors.neonRoyalGlow;
-  static const _receivedBg = AppColors.darkPremiumBubbleTheirs;
-  static const _receivedBorder = AppColors.darkPremiumBubbleTheirsBorder;
-  static const _textOnDark = AppColors.darkPremiumTextPrimary;
+  // Theme-aware palette resolved from Theme.of(context) inside build.
+  // Keep these as helpers instead of static constants so light/dark modes
+  // share the same widget tree but render with consistent brand surfaces.
+  static const _highlightColor = AppColors.primaryAmber;
+
+  // _accentMine / _accentMineBright / _receivedBg / _receivedBorder /
+  // _textOnDark / _accent / _avatarPalette are now resolved from the theme
+  // inside each build method via the _Palette helper below.
 
   @override
   Widget build(BuildContext context) {
+    final palette = _Palette.of(context);
+
     // Spacing dày hơn khi bắt đầu nhóm mới, mỏng khi cùng nhóm
     final topPad = (isGroupBottom || isGroupMiddle) ? 1.0 : 6.0;
     final bottomPad = showMeta ? 1.0 : 1.0;
@@ -74,7 +79,7 @@ class MessageBubble extends StatelessWidget {
       curve: Curves.easeOut,
       decoration: BoxDecoration(
         color: highlighted
-            ? _accentMine.withValues(alpha: 0.10)
+            ? _highlightColor.withValues(alpha: 0.10)
             : Colors.transparent,
       ),
       child: GestureDetector(
@@ -94,7 +99,7 @@ class MessageBubble extends StatelessWidget {
             children: [
               if (!message.isMine) ...[
                 // Avatar chỉ hiện ở tin CUỐI nhóm
-                showAvatar ? _buildAvatar() : const SizedBox(width: 30),
+                showAvatar ? _buildAvatar(palette) : const SizedBox(width: 30),
                 const SizedBox(width: AppSpacing.xs + 2),
               ],
               Flexible(
@@ -112,15 +117,15 @@ class MessageBubble extends StatelessWidget {
                         child: Text(
                           message.senderName,
                           style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.darkPremiumTextSecondary,
+                            color: palette.mutedText,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
-                    _buildBubble(),
+                    _buildBubble(palette),
                     if (showMeta) ...[
                       const SizedBox(height: 3),
-                      _buildMetaRow(),
+                      _buildMetaRow(palette),
                     ],
                     if (message.reactions != null &&
                         message.reactions!.isNotEmpty)
@@ -136,12 +141,11 @@ class MessageBubble extends StatelessWidget {
     );
   }
 
-  Widget _buildAvatar() {
+  Widget _buildAvatar(_Palette palette) {
     final colorIdx = message.senderName.isEmpty
         ? 0
-        : message.senderName.codeUnitAt(0) %
-            AppColors.darkPremiumAvatarPalette.length;
-    final accent = AppColors.darkPremiumAvatarPalette[colorIdx];
+        : message.senderName.codeUnitAt(0) % palette.avatarPalette.length;
+    final accent = palette.avatarPalette[colorIdx];
     return Container(
       width: 28,
       height: 28,
@@ -154,29 +158,15 @@ class MessageBubble extends StatelessWidget {
           ),
         ],
       ),
-      child: CircleAvatar(
-        radius: 14,
-        backgroundColor: accent,
-        backgroundImage: message.senderAvatar.isNotEmpty
-            ? NetworkImage(message.senderAvatar)
-            : null,
-        child: message.senderAvatar.isEmpty
-            ? Text(
-                message.senderName.isNotEmpty
-                    ? message.senderName[0].toUpperCase()
-                    : '?',
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              )
-            : null,
+      child: TriAvatar(
+        imageUrl: message.senderAvatar,
+        name: message.senderName,
+        size: 28,
       ),
     );
   }
 
-  Widget _buildBubble() {
+  Widget _buildBubble(_Palette palette) {
     final isMine = message.isMine;
 
     const r = Radius.circular(AppRadius.xl);
@@ -201,10 +191,9 @@ class MessageBubble extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
-          color: AppColors.darkPremiumBubbleTheirs,
+          color: palette.receivedBg,
           borderRadius: radius,
-          border: Border.all(
-              color: AppColors.darkPremiumBubbleTheirsBorder, width: 0.5),
+          border: Border.all(color: palette.receivedBorder, width: 0.5),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -212,13 +201,13 @@ class MessageBubble extends StatelessWidget {
             Icon(
               Icons.remove_circle_outline_rounded,
               size: 14,
-              color: AppColors.darkPremiumTextHint,
+              color: palette.hintText,
             ),
             const SizedBox(width: 5),
             Text(
               'Tin nhắn đã được thu hồi',
               style: AppTypography.bodySmall.copyWith(
-                color: AppColors.darkPremiumTextHint,
+                color: palette.hintText,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -234,7 +223,7 @@ class MessageBubble extends StatelessWidget {
             : CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (message.replyToMessageId != null) _buildReplyPreview(),
+          if (message.replyToMessageId != null) _buildReplyPreview(palette),
           LocationMessageBubble(
             latitude: message.latitude ?? 0,
             longitude: message.longitude ?? 0,
@@ -250,8 +239,8 @@ class MessageBubble extends StatelessWidget {
         message.type == 'video' ||
         message.type == 'sticker';
 
-    final mineGradient = const LinearGradient(
-      colors: AppColors.darkBubbleMineGradient,
+    final mineGradient = LinearGradient(
+      colors: palette.mineGradient,
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
     );
@@ -260,27 +249,27 @@ class MessageBubble extends StatelessWidget {
       decoration: BoxDecoration(
         color: isMediaOrSticker
             ? Colors.transparent
-            : (isMine ? null : _receivedBg),
+            : (isMine ? null : palette.receivedBg),
         gradient: isMediaOrSticker || !isMine ? null : mineGradient,
         borderRadius: radius,
         border: isMediaOrSticker
             ? null
             : (isMine
                 ? null
-                : Border.all(color: _receivedBorder, width: 0.5)),
+                : Border.all(color: palette.receivedBorder, width: 0.5)),
         boxShadow: isMediaOrSticker
             ? null
             : [
                 if (isMine)
                   BoxShadow(
-                    color: _accentMine.withValues(alpha: 0.30),
+                    color: palette.accentMine.withValues(alpha: 0.30),
                     blurRadius: 14,
                     spreadRadius: -2,
                     offset: const Offset(0, 4),
                   )
                 else
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.35),
+                    color: Colors.black.withValues(alpha: 0.06),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -289,39 +278,39 @@ class MessageBubble extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (message.replyToMessageId != null) _buildReplyPreview(),
-          _buildContent(),
+          if (message.replyToMessageId != null) _buildReplyPreview(palette),
+          _buildContent(palette),
         ],
       ),
     );
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(_Palette palette) {
     switch (message.type) {
       case 'image':
         return _buildImageContent();
       case 'video':
         return _buildVideoContent();
       case 'audio':
-        return _buildAudioContent();
+        return _buildAudioContent(palette);
       case 'file':
-        return _buildFileContent();
+        return _buildFileContent(palette);
       case 'sticker':
         return _buildStickerContent();
       case 'call':
-        return _buildCallContent();
+        return _buildCallContent(palette);
       default:
-        return _buildTextContent();
+        return _buildTextContent(palette);
     }
   }
 
-  Widget _buildTextContent() {
+  Widget _buildTextContent(_Palette palette) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Text(
         message.content,
         style: AppTypography.messageBody.copyWith(
-          color: message.isMine ? Colors.white : AppColors.darkPremiumTextPrimary,
+          color: message.isMine ? palette.primaryText : palette.receivedText,
         ),
       ),
     );
@@ -452,7 +441,7 @@ class MessageBubble extends StatelessWidget {
     );
   }
 
-  Widget _buildAudioContent() {
+  Widget _buildAudioContent(_Palette palette) {
     final hasRemote = message.mediaUrl != null && message.mediaUrl!.isNotEmpty;
     final hasLocal = message.localFilePath != null;
 
@@ -464,9 +453,9 @@ class MessageBubble extends StatelessWidget {
       );
     } else if (hasLocal && message.status == 'sending') {
       final iconColor =
-          message.isMine ? Colors.white : _accentMineBright;
+          message.isMine ? Colors.white : palette.accentMineBright;
       final textColor =
-          message.isMine ? Colors.white : AppColors.darkPremiumTextPrimary;
+          message.isMine ? Colors.white : palette.receivedText;
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         child: Row(
@@ -494,9 +483,9 @@ class MessageBubble extends StatelessWidget {
       );
     } else {
       final iconColor =
-          message.isMine ? Colors.white : _accentMineBright;
+          message.isMine ? Colors.white : palette.accentMineBright;
       final textColor =
-          message.isMine ? Colors.white : AppColors.darkPremiumTextPrimary;
+          message.isMine ? Colors.white : palette.receivedText;
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         child: Row(
@@ -518,16 +507,16 @@ class MessageBubble extends StatelessWidget {
     }
   }
 
-  Widget _buildFileContent() {
+  Widget _buildFileContent(_Palette palette) {
     final iconBg = message.isMine
         ? Colors.white.withValues(alpha: 0.2)
-        : _accentMine.withValues(alpha: 0.15);
-    final iconColor = message.isMine ? Colors.white : _accentMineBright;
+        : palette.accentMine.withValues(alpha: 0.15);
+    final iconColor = message.isMine ? Colors.white : palette.accentMineBright;
     final textColor =
-        message.isMine ? Colors.white : AppColors.darkPremiumTextPrimary;
+        message.isMine ? Colors.white : palette.receivedText;
     final subColor = message.isMine
         ? Colors.white70
-        : AppColors.darkPremiumTextSecondary;
+        : palette.receivedSecondary;
     return Padding(
       padding: const EdgeInsets.all(12),
       child: Row(
@@ -573,13 +562,13 @@ class MessageBubble extends StatelessWidget {
     );
   }
 
-  Widget _buildCallContent() {
+  Widget _buildCallContent(_Palette palette) {
     final isMissed =
         message.content.contains('nhỡ') || message.content.contains('từ chối');
     final isVideo = message.content.contains('video');
 
-    // Sender (gradient Royal Blue): trắng cho tất cả
-    // Receiver (bubble xám đậm): đỏ neon cho nhỡ/từ chối, Royal Blue cho bt
+    // Sender (gradient Royal Blue / Amber): trắng cho tất cả
+    // Receiver (bubble cream / dark): đỏ neon cho nhỡ/từ chối, accent cho bt
     final Color iconColor;
     final Color textColor;
     if (message.isMine) {
@@ -587,9 +576,9 @@ class MessageBubble extends StatelessWidget {
       textColor = Colors.white;
     } else {
       iconColor =
-          isMissed ? AppColors.neonRed : _accentMineBright;
+          isMissed ? AppColors.neonRed : palette.accentMineBright;
       textColor =
-          isMissed ? AppColors.neonRed : AppColors.darkPremiumTextPrimary;
+          isMissed ? AppColors.neonRed : palette.receivedText;
     }
 
     return Padding(
@@ -627,25 +616,27 @@ class MessageBubble extends StatelessWidget {
     );
   }
 
-  Widget _buildReplyPreview() {
+  Widget _buildReplyPreview(_Palette palette) {
     return GestureDetector(
       onTap: onReplyPreviewTap,
-      child: _buildReplyPreviewContent(),
+      child: _buildReplyPreviewContent(palette),
     );
   }
 
-  Widget _buildReplyPreviewContent() {
-    // Sender (gradient xanh): preview nền trắng mờ, viền trắng
-    // Receiver (bubble xám): preview nền tối, viền Royal Blue
+  Widget _buildReplyPreviewContent(_Palette palette) {
+    // Sender (gradient amber/dark): preview nền trắng mờ, viền trắng
+    // Receiver (bubble cream/dark): preview nền tối nhẹ, viền accent
     final bgColor = message.isMine
         ? Colors.white.withValues(alpha: 0.20)
-        : AppColors.darkPremiumElevated;
+        : palette.receivedBg == AppColors.creamSurface
+            ? AppColors.creamTertiary
+            : palette.receivedBg;
     final borderColor =
-        message.isMine ? Colors.white60 : _accentMine;
-    final nameColor = message.isMine ? Colors.white : _accentMineBright;
+        message.isMine ? Colors.white60 : palette.accentMine;
+    final nameColor = message.isMine ? Colors.white : palette.accentMineBright;
     final bodyColor = message.isMine
         ? Colors.white70
-        : AppColors.darkPremiumTextSecondary;
+        : palette.receivedSecondary;
 
     return Container(
       margin: const EdgeInsets.fromLTRB(10, 8, 10, 0),
@@ -677,7 +668,7 @@ class MessageBubble extends StatelessWidget {
     );
   }
 
-  Widget _buildMetaRow() {
+  Widget _buildMetaRow(_Palette palette) {
     return Padding(
       padding: EdgeInsets.only(
         left: message.isMine ? 0 : 4,
@@ -689,19 +680,19 @@ class MessageBubble extends StatelessWidget {
           Text(
             DateFormat('HH:mm').format(message.createdAt),
             style: AppTypography.messageMeta.copyWith(
-              color: AppColors.darkPremiumTextHint,
+              color: palette.hintText,
             ),
           ),
           if (message.isMine) ...[
             const SizedBox(width: 3),
-            _buildStatusIcon(),
+            _buildStatusIcon(palette),
           ],
           if (message.isEdited) ...[
             const SizedBox(width: 4),
             Text(
               '• đã sửa',
               style: AppTypography.messageMeta.copyWith(
-                color: AppColors.darkPremiumTextHint,
+                color: palette.hintText,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -711,25 +702,25 @@ class MessageBubble extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusIcon() {
+  Widget _buildStatusIcon(_Palette palette) {
     switch (message.status) {
       case 'read':
         return Icon(
           Icons.done_all_rounded,
           size: 13,
-          color: _accentMineBright,
+          color: palette.accentMineBright,
         );
       case 'delivered':
         return Icon(
           Icons.done_all_rounded,
           size: 13,
-          color: AppColors.darkPremiumTextHint,
+          color: palette.hintText,
         );
       case 'sending':
         return Icon(
           Icons.access_time_rounded,
           size: 12,
-          color: AppColors.darkPremiumTextHint,
+          color: palette.hintText,
         );
       case 'failed':
         return GestureDetector(
@@ -744,7 +735,7 @@ class MessageBubble extends StatelessWidget {
         return Icon(
           Icons.done_rounded,
           size: 13,
-          color: AppColors.darkPremiumTextHint,
+          color: palette.hintText,
         );
     }
   }
@@ -951,5 +942,81 @@ class MessageBubble extends StatelessWidget {
     if (bytes < 1024) return '$bytes B';
     if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
     return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+}
+
+/// Resolves all colors used by [MessageBubble] from the current [ThemeData].
+/// Keeping this in one place ensures the bubble follows the active theme
+/// instead of being hard-coded to a single dark/light palette.
+class _Palette {
+  final bool isDark;
+  final Color accentMine; // CTA / mine bubble accent
+  final Color accentMineBright; // Hover / online dot accent
+  final Color receivedBg; // bubble color for received messages
+  final Color receivedBorder; // hairline around received bubble
+  final Color primaryText; // text on dark / mine background
+  final Color secondaryText; // secondary text inside dark / mine bubble
+  final Color mutedText; // sender-name + meta text on chat background
+  final Color hintText; // meta timestamp + dim labels
+  final Color receivedText; // body text on received bubble
+  final Color receivedSecondary; // subtitle / file meta on received bubble
+  final Color shadow; // subtle shadow under received bubble
+  final List<Color> avatarPalette;
+  final List<Color> mineGradient;
+
+  const _Palette({
+    required this.isDark,
+    required this.accentMine,
+    required this.accentMineBright,
+    required this.receivedBg,
+    required this.receivedBorder,
+    required this.primaryText,
+    required this.secondaryText,
+    required this.mutedText,
+    required this.hintText,
+    required this.receivedText,
+    required this.receivedSecondary,
+    required this.shadow,
+    required this.avatarPalette,
+    required this.mineGradient,
+  });
+
+  factory _Palette.of(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    if (isDark) {
+      return _Palette(
+        isDark: true,
+        accentMine: AppColors.neonRoyal,
+        accentMineBright: AppColors.neonRoyalGlow,
+        receivedBg: AppColors.darkPremiumBubbleTheirs,
+        receivedBorder: AppColors.darkPremiumBubbleTheirsBorder,
+        primaryText: AppColors.darkPremiumTextPrimary,
+        secondaryText: AppColors.darkPremiumTextBody,
+        mutedText: AppColors.darkPremiumTextSecondary,
+        hintText: AppColors.darkPremiumTextHint,
+        receivedText: AppColors.darkPremiumTextPrimary,
+        receivedSecondary: AppColors.darkPremiumTextSecondary,
+        shadow: const Color(0x59000000),
+        avatarPalette: AppColors.darkPremiumAvatarPalette,
+        mineGradient: AppColors.darkBubbleMineGradient,
+      );
+    }
+    // Light mode — warm brand palette aligned with the rest of the app.
+    return _Palette(
+      isDark: false,
+      accentMine: AppColors.primaryAmber,
+      accentMineBright: AppColors.primaryAmberDark,
+      receivedBg: AppColors.creamSurface,
+      receivedBorder: AppColors.borderDefault,
+      primaryText: Colors.white,
+      secondaryText: Colors.white.withValues(alpha: 0.85),
+      mutedText: AppColors.textSecondary,
+      hintText: AppColors.textTertiary,
+      receivedText: AppColors.textPrimary,
+      receivedSecondary: AppColors.textSecondary,
+      shadow: const Color(0x14000000),
+      avatarPalette: AppColors.avatarPalette,
+      mineGradient: AppColors.lightBubbleMineGradient,
+    );
   }
 }

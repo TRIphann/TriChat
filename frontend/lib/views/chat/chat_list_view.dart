@@ -486,7 +486,11 @@ class ChatListViewState extends State<ChatListView>
     return Column(
       children: [
         _buildSearchHeader(t, isDark, isMobile: true),
-        Expanded(child: _buildConversationList(t, isDark)),
+        Expanded(
+          child: _showInlineSearch
+              ? _buildInlineSearchResults()
+              : _buildConversationList(t, isDark),
+        ),
       ],
     );
   }
@@ -638,8 +642,6 @@ class ChatListViewState extends State<ChatListView>
                   ],
                 ],
               ),
-              if (_showInlineSearch && _inlineSearchResults.isNotEmpty)
-                _buildInlineSearchResults(),
             ],
           ),
         ),

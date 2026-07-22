@@ -55,6 +55,7 @@ class ProfileService {
 
   static Future<List<PostModel>> getUserPosts(String userId) async {
     try {
+      debugPrint('[ProfileService] getUserPosts called for userId: $userId');
       final response = await _dio.get('/api/feed/user/$userId');
       debugPrint('[ProfileService] getUserPosts response status: ${response.statusCode}');
       debugPrint('[ProfileService] getUserPosts response data: ${response.data}');
@@ -72,14 +73,14 @@ class ProfileService {
             .toList();
       }
       debugPrint('[ProfileService] non-200 status code: ${response.statusCode}');
-      return [];
+      throw Exception('Lỗi server: ${response.statusCode}');
     } on DioException catch (e) {
       debugPrint('[ProfileService] DioException: ${e.message}');
       debugPrint('[ProfileService] DioException response: ${e.response?.data}');
-      return [];
+      throw Exception(_handleError(e));
     } catch (e) {
       debugPrint('[ProfileService] Unexpected error: $e');
-      return [];
+      rethrow;
     }
   }
 
