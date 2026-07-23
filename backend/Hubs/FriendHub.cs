@@ -6,7 +6,10 @@ namespace backend.Hubs;
 /// <summary>
 /// SignalR Hub cho realtime kết bạn.
 ///
-/// Client kết nối bằng cách gửi token Firebase qua query string:
+/// Client kết nối với token Firebase qua Authorization header:
+///   Authorization: Bearer &lt;firebase_id_token&gt;
+///
+/// Hoặc có thể dùng query string nếu header không khả dụng:
 ///   ?access_token=&lt;firebase_id_token&gt;
 ///
 /// Mỗi user được join vào group riêng tên "user_{uid}" để nhận push.
@@ -22,12 +25,12 @@ public class FriendHub : Hub
 
     /// <summary>
     /// Khi client kết nối → xác thực token → join group cá nhân.
-    /// Token được gửi qua query param "access_token" (vì SignalR WebSocket
-    /// không support custom headers tiêu chuẩn).
+    /// Hỗ trợ cả Authorization header (Bearer token) và query string access_token.
+    /// Ưu tiên header vì bảo mật hơn (không bị log trong URL).
     /// </summary>
     public override async Task OnConnectedAsync()
     {
-        var token = Context.GetHttpContext()?.Request.Query["access_token"].ToString();
+        var token = ExtractToken();
 
         if (string.IsNullOrWhiteSpace(token))
         {
@@ -57,6 +60,27 @@ public class FriendHub : Hub
         }
 
         await base.OnConnectedAsync();
+    }
+
+    /// <summary>
+    /// Trích xuất token từ Authorization header (Bearer) hoặc query string.
+    /// Header được ưu tiên vì bảo mật hơn.
+    /// </summary>
+    private string? ExtractToken()
+    {
+        var httpContext = Context.GetHttpContext();
+        if (httpContext == null) return null;
+
+        // Ưu tiên Authorization header (Bearer token)
+        var authHeader = httpContext.Request.Headers["Authorization"].FirstOrDefault();
+        if (!string.IsNullOrWhiteSpace(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+        {
+            return authHeader.Substring(7).Trim();
+        }
+
+        // Fallback: query string access_token (duy trì tương thích ngược)
+        var queryToken = httpContext.Request.Query["access_token"].FirstOrDefault();
+        return queryToken;
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)

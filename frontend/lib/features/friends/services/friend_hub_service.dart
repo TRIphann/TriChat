@@ -36,7 +36,7 @@ class FriendHubService {
     final token = await _getToken();
     if (token == null) return;
 
-    final url = '${ApiConfig.baseUrl}$_hubPath?access_token=$token';
+    final url = '${ApiConfig.baseUrl}$_hubPath';
 
     _connection = HubConnectionBuilder()
         .withUrl(
@@ -44,6 +44,7 @@ class FriendHubService {
           options: HttpConnectionOptions(
             transport: HttpTransportType.WebSockets,
             skipNegotiation: true,
+            accessTokenFactory: () async => token,
           ),
         )
         .withAutomaticReconnect(retryDelays: [2000, 5000, 10000, 30000]).build();

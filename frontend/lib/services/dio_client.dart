@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:frontend/config/api_config.dart';
 
 /// Separate Dio client for public endpoints (no Firebase auth required).
@@ -105,8 +106,20 @@ class DioClient {
 
     dio.interceptors.add(_AuthInterceptor());
 
-    // (Tuỳ chọn) log request/response khi debug
-    dio.interceptors.add(LogInterceptor(requestBody: true, responseBody: true));
+    // Chỉ log request/response khi debug mode để tránh lộ sensitive data trong production
+    if (kDebugMode) {
+      dio.interceptors.add(LogInterceptor(
+        requestBody: true,
+        responseBody: true,
+        logPrint: (o) => debugPrint('[Dio] $o'),
+        // Filter out sensitive headers
+        requestHeaderFilter: (key, value) {
+          if (key.toLowerCase() == 'authorization') return 'Bearer ***';
+          return value;
+        },
+        responseHeaderFilter: (key, value) => value,
+      ));
+    }
 
     return dio;
   }

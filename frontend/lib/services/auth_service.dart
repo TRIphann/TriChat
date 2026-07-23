@@ -173,8 +173,10 @@ class AuthService {
         final result = data['result'] as Map?;
         if (result != null && result['otp'] != null) {
           _lastFallbackOtp = result['otp'] as String;
+          _otpCacheTime = DateTime.now();
         } else {
           _lastFallbackOtp = null;
+          _otpCacheTime = null;
         }
       }
     } on DioException catch (e) {
@@ -187,8 +189,22 @@ class AuthService {
   /// Stores the most recent fallback OTP so verifyOtp can pass it to the
   /// backend as a hint when Redis/email is unavailable.
   static String? _lastFallbackOtp;
+  static DateTime? _otpCacheTime;
 
-  static String? get lastFallbackOtp => _lastFallbackOtp;
+  /// OTP expires after 5 minutes to prevent replay attacks
+  static const _otpExpirationMinutes = 5;
+
+  static String? get lastFallbackOtp {
+    if (_lastFallbackOtp == null || _otpCacheTime == null) return null;
+    final elapsed = DateTime.now().difference(_otpCacheTime!);
+    if (elapsed.inMinutes >= _otpExpirationMinutes) {
+      // Expired - clear and return null
+      _lastFallbackOtp = null;
+      _otpCacheTime = null;
+      return null;
+    }
+    return _lastFallbackOtp;
+  }
 
   static Future<bool> verifyOtp(String email, String otp) async {
     try {
@@ -207,18 +223,24 @@ class AuthService {
         '/api/otp/verify',
         data: body,
       );
+
+      // Always clear cached OTP after verification attempt to prevent replay attacks
+      _lastFallbackOtp = null;
+
       if (response.statusCode == 200) {
-        // Clear cached OTP after successful verification
-        _lastFallbackOtp = null;
         return true;
       }
       return false;
     } on DioException catch (e) {
+      // Clear cached OTP on error too
+      _lastFallbackOtp = null;
       if (e.response?.statusCode == 401) {
         throw Exception('Mã OTP không đúng hoặc đã hết hạn');
       }
       throw Exception(_extractErrorMessage(e, 'Mã OTP không hợp lệ'));
     } catch (e) {
+      // Clear cached OTP on any error
+      _lastFallbackOtp = null;
       throw Exception('Lỗi xác thực: $e');
     }
   }

@@ -57,9 +57,7 @@ class SignalRService {
   SignalRService({required this.baseUrl, required this.userId});
 
   Future<void> connect({String? accessToken}) async {
-    final url = accessToken != null
-        ? '$baseUrl/hubs/chat?userId=$userId&access_token=$accessToken'
-        : '$baseUrl/hubs/chat?userId=$userId';
+    final url = '$baseUrl/hubs/chat?userId=$userId';
 
     _hubConnection = HubConnectionBuilder()
         .withUrl(
@@ -67,6 +65,7 @@ class SignalRService {
           options: HttpConnectionOptions(
             transport: HttpTransportType.WebSockets,
             skipNegotiation: true,
+            accessTokenFactory: accessToken != null ? () async => accessToken : null,
           ),
         )
         .withAutomaticReconnect(retryDelays: [2000, 5000, 10000, 30000])
