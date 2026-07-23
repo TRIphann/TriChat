@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:frontend/component/avatars.dart';
 import 'package:frontend/config/app_colors.dart';
+import 'package:frontend/config/app_spacing.dart';
 import '../../models/chat/conversation.dart';
 
 class ConversationTile extends StatelessWidget {
@@ -178,57 +180,10 @@ class ConversationTile extends StatelessWidget {
   }
 
   Widget _buildAvatar() {
-    if (conversation.displayAvatar.isEmpty) {
-      return Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: AppColors.avatarColorFor(conversation.displayName),
-        ),
-        child: Center(
-          child: Text(
-            conversation.displayName.isNotEmpty
-                ? conversation.displayName[0].toUpperCase()
-                : '?',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Container(
-      width: 56,
-      height: 56,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: AppColors.darkBackground,
-      ),
-      child: ClipOval(
-        child: Image.network(
-          conversation.displayAvatar,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => Container(
-            color: AppColors.avatarColorFor(conversation.displayName),
-            child: Center(
-              child: Text(
-                conversation.displayName.isNotEmpty
-                    ? conversation.displayName[0].toUpperCase()
-                    : '?',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
+    return TriAvatar(
+      imageUrl: conversation.displayAvatar,
+      name: conversation.displayName,
+      size: 52,
     );
   }
 

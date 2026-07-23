@@ -27,6 +27,7 @@ import 'package:frontend/services/chat/chat_service.dart';
 import 'package:frontend/utils/app_localizations.dart';
 import 'package:frontend/views/chat/chat_screen.dart';
 import 'package:frontend/views/chat/new_conversation_screen.dart';
+import 'package:frontend/views/chat/chat_content_panel.dart';
 import 'package:frontend/views/contacts/contacts_view.dart';
 import 'package:provider/provider.dart';
 
@@ -333,6 +334,10 @@ class ChatListViewState extends State<ChatListView>
     bool isDark,
     bool isVeryWideScreen,
   ) {
+    // Ultra wide screen (>= 1200px): Show 3 columns
+    // Wide screen (900-1199px): Show 2 columns (chat list + messages)
+    final showThreeColumns = isVeryWideScreen;
+
     return Container(
       color: AppColors.darkPremiumBackground,
       child: Row(
@@ -341,8 +346,34 @@ class ChatListViewState extends State<ChatListView>
           Expanded(
             child: Row(
               children: [
-                if (_selectedNavIndex == 0)
-                  Expanded(child: _buildChatListPanel(t, isDark))
+                if (_selectedNavIndex == 0) ...[
+                  if (showThreeColumns) ...[
+                    // 3 Column Layout: Chat List | Messages | Profile/Details
+                    SizedBox(
+                      width: 320,
+                      child: _buildChatListPanel(t, isDark),
+                    ),
+                    Container(width: 1, color: AppColors.darkPremiumBorder),
+                    Expanded(
+                      child: _buildMessageContentPanel(t, isDark),
+                    ),
+                    Container(width: 1, color: AppColors.darkPremiumBorder),
+                    SizedBox(
+                      width: 340,
+                      child: _buildRightPanel(t, isDark),
+                    ),
+                  ] else ...[
+                    // 2 Column Layout: Chat List | Messages
+                    SizedBox(
+                      width: 320,
+                      child: _buildChatListPanel(t, isDark),
+                    ),
+                    Container(width: 1, color: AppColors.darkPremiumBorder),
+                    Expanded(
+                      child: _buildMessageContentPanel(t, isDark),
+                    ),
+                  ],
+                ]
                 else if (_selectedNavIndex == 1)
                   const Expanded(child: ContactsView(isWideScreen: true))
                 else if (_selectedNavIndex == 2)
@@ -489,6 +520,128 @@ class ChatListViewState extends State<ChatListView>
       ),
     );
     return tooltip != null ? Tooltip(message: tooltip, child: tap) : tap;
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // MESSAGE CONTENT PANEL (Middle Column)
+  // ════════════════════════════════════════════════════════════════
+  Widget _buildMessageContentPanel(AppLocalizations t, bool isDark) {
+    return Consumer<ChatProvider>(
+      builder: (context, chat, _) {
+        final conversation = chat.activeConversation ?? _selectedConversation;
+
+        if (conversation == null) {
+          return _buildNoConversationSelected(t, isDark);
+        }
+
+        return ChatContentPanel(
+          conversation: conversation,
+          onOpenChatScreen: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ChatScreen(conversation: conversation),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildNoConversationSelected(AppLocalizations t, bool isDark) {
+    return Container(
+      color: AppColors.darkPremiumSurface,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppColors.darkElevated,
+                    AppColors.darkSurface,
+                  ],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.chat_bubble_outline_rounded,
+                size: 44,
+                color: AppColors.darkTextSecondary,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            Text(
+              'Chọn một cuộc trò chuyện',
+              style: AppTypography.titleLarge.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppColors.darkTextPrimary,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Chọn cuộc trò chuyện từ danh sách bên trái\nđể bắt đầu nhắn tin.',
+              textAlign: TextAlign.center,
+              style: AppTypography.bodyMedium.copyWith(
+                color: AppColors.darkTextSecondary,
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // RIGHT PANEL (Profile & Details Tabs)
+  // ════════════════════════════════════════════════════════════════
+  Widget _buildRightPanel(AppLocalizations t, bool isDark) {
+    return Consumer<ChatProvider>(
+      builder: (context, chat, _) {
+        final conversation = chat.activeConversation ?? _selectedConversation;
+
+        if (conversation == null) {
+          return Container(
+            color: AppColors.darkPremiumSurface,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.info_outline_rounded,
+                    size: 48,
+                    color: AppColors.darkTextSecondary,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    'Không có cuộc trò chuyện được chọn',
+                    style: AppTypography.bodyMedium.copyWith(
+                      color: AppColors.darkTextSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return ConversationDetailPanel(conversation: conversation);
+      },
+    );
   }
 
   // ════════════════════════════════════════════════════════════════

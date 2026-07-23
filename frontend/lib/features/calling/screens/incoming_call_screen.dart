@@ -211,9 +211,13 @@ class _CallButton extends StatelessWidget {
       children: [
         GestureDetector(
           onTap: onTap,
-          child: CircleAvatar(
-            radius: 36,
-            backgroundColor: color,
+          child: Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: color,
+            ),
             child: Icon(icon, color: Colors.white, size: 32),
           ),
         ),
