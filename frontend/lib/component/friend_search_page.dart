@@ -395,8 +395,7 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
           Expanded(
             child: NotificationListener<ScrollNotification>(
               onNotification: (notification) {
-                // Load more friends when not searching and scrolled to bottom
-                if (!_isEmptyQuery) return false;
+                // Load more friends when scrolled to bottom
                 if (!notification.metrics.atEdge) return false;
                 if (notification.metrics.pixels < notification.metrics.maxScrollExtent - 100) return false;
                 if (!hasMoreFriends) return false;
@@ -408,8 +407,8 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
               },
               child: ListView(
                 children: [
-                  // ===== SECTION: FRIENDS (only when search is empty) =====
-                  if (_isEmptyQuery && shownFriends.isNotEmpty) ...[
+                  // ===== SECTION: FRIENDS (always visible) =====
+                  if (shownFriends.isNotEmpty) ...[
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
                       child: Row(
@@ -456,73 +455,78 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
                       ),
                   ],
 
-                  // ===== SECTION: SEARCH RESULTS (only when searching) =====
-                  if (!_isEmptyQuery && _searchResults.isNotEmpty) ...[
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
-                      child: Text(
-                        'Kết quả tìm kiếm',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.darkPremiumTextSecondary,
+                  // ===== SECTION: SEARCH RESULTS (show below friends when searching) =====
+                  if (!_isEmptyQuery) ...[
+                    if (_searchResults.isNotEmpty) ...[
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+                        child: Text(
+                          'Kết quả tìm kiếm',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.darkPremiumTextSecondary,
+                          ),
                         ),
                       ),
-                    ),
-                    ..._searchResults.map(_searchTile),
+                      ..._searchResults.map(_searchTile),
+                    ] else if (_hasSearched && !_isSearching && !_hasError) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 24),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              Icon(Icons.search_off, size: 48, color: AppColors.darkPremiumTextSecondary),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Không tìm thấy kết quả',
+                                style: TextStyle(color: AppColors.darkPremiumTextSecondary, fontSize: 14),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
 
                   // ===== EMPTY STATES =====
-                  if (_hasSearched && _searchResults.isEmpty && !_isSearching && !_hasError) ...[
-                    const SizedBox(height: 60),
-                    const Center(
-                      child: Column(
-                        children: [
-                          Icon(Icons.search_off, size: 48, color: AppColors.darkPremiumTextSecondary),
-                          SizedBox(height: 12),
-                          Text(
-                            'Không tìm thấy kết quả',
-                            style: TextStyle(color: AppColors.darkPremiumTextSecondary, fontSize: 14),
-                          ),
-                        ],
+                  if (_hasSearched && _searchResults.isEmpty && !_isSearching && !_hasError && _isEmptyQuery && allFriends.isEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 24),
+                      child: Center(
+                        child: Column(
+                          children: [
+                            Icon(Icons.person_add_alt_1, size: 48, color: Colors.grey),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Chưa có bạn bè nào',
+                              style: TextStyle(color: AppColors.darkPremiumTextSecondary, fontSize: 14),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Tìm kiếm để kết bạn',
+                              style: TextStyle(color: AppColors.darkPremiumTextSecondary, fontSize: 12),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
 
                   if (_hasError) ...[
-                    const SizedBox(height: 60),
-                    const Center(
-                      child: Column(
-                        children: [
-                          Icon(Icons.error_outline, size: 48, color: AppColors.accentRed),
-                          SizedBox(height: 12),
-                          Text(
-                            'Có lỗi xảy ra khi tìm kiếm',
-                            style: TextStyle(color: AppColors.darkPremiumTextSecondary, fontSize: 14),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-
-                  // ===== NO FRIENDS STATE =====
-                  if (_isEmptyQuery && allFriends.isEmpty && !_isSearching) ...[
-                    const SizedBox(height: 60),
-                    const Center(
-                      child: Column(
-                        children: [
-                          Icon(Icons.person_add_alt_1, size: 48, color: Colors.grey),
-                          SizedBox(height: 12),
-                          Text(
-                            'Chưa có bạn bè nào',
-                            style: TextStyle(color: AppColors.darkPremiumTextSecondary, fontSize: 14),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Tìm kiếm để kết bạn',
-                            style: TextStyle(color: AppColors.darkPremiumTextSecondary, fontSize: 12),
-                          ),
-                        ],
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 24),
+                      child: Center(
+                        child: Column(
+                          children: [
+                            Icon(Icons.error_outline, size: 48, color: AppColors.accentRed),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Có lỗi xảy ra khi tìm kiếm',
+                              style: TextStyle(color: AppColors.darkPremiumTextSecondary, fontSize: 14),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],

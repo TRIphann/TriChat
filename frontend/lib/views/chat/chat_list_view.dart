@@ -739,10 +739,24 @@ class ChatListViewState extends State<ChatListView>
     );
   }
 
+  // Track friend IDs for local filtering
+  Set<String> _friendIds = {};
+  bool _friendIdsLoaded = false;
+
+  Future<void> _loadFriendIds() async {
+    if (_friendIdsLoaded) return;
+    try {
+      final provider = context.read<FriendProvider>();
+      _friendIds = provider.friends.map((f) => f.friendId).toSet();
+      _friendIdsLoaded = true;
+    } catch (_) {}
+  }
+
   Future<void> _performInlineSearch(String query) async {
     _searchDebounce?.cancel();
+    final trimmed = query.trim();
 
-    if (query.trim().isEmpty) {
+    if (trimmed.isEmpty) {
       setState(() {
         _inlineSearchResults = [];
         _isInlineSearching = false;
@@ -750,17 +764,46 @@ class ChatListViewState extends State<ChatListView>
       return;
     }
 
+    // Load friend IDs for local filtering
+    await _loadFriendIds();
+
     setState(() => _isInlineSearching = true);
 
     _searchDebounce = Timer(const Duration(milliseconds: 300), () async {
       try {
-        final results = await FriendService.searchUsers(query.trim());
-        if (mounted) {
-          setState(() {
-            _inlineSearchResults = results;
-            _isInlineSearching = false;
-            _showInlineSearchDropdown = true;
-          });
+        // For queries >= 3 chars, search API
+        // For < 3 chars, filter locally from friends
+        if (trimmed.length >= 3) {
+          final results = await FriendService.searchUsers(trimmed);
+          if (mounted) {
+            setState(() {
+              _inlineSearchResults = results;
+              _isInlineSearching = false;
+              _showInlineSearchDropdown = true;
+            });
+          }
+        } else {
+          // Local filter: match friends by name prefix (case-insensitive)
+          final provider = context.read<FriendProvider>();
+          final queryLower = trimmed.toLowerCase();
+          final filtered = provider.friends.where((f) {
+            final name = f.fullName.toLowerCase();
+            return name.startsWith(queryLower);
+          }).map((f) => UserSearchModel(
+            id: f.friendId,
+            fullName: f.fullName,
+            email: '',
+            avatar: f.avatar,
+            status: true,
+          )).toList();
+
+          if (mounted) {
+            setState(() {
+              _inlineSearchResults = filtered;
+              _isInlineSearching = false;
+              _showInlineSearchDropdown = true;
+            });
+          }
         }
       } catch (e) {
         if (mounted) {
@@ -779,15 +822,18 @@ class ChatListViewState extends State<ChatListView>
         participantIds: [user.id],
       );
       if (!mounted) return;
+
+      // Open conversation in ChatProvider (for real-time)
+      await context.read<ChatProvider>().openConversation(conversation);
+
+      // Set as selected conversation to show in middle + right panels
       setState(() {
+        _selectedConversation = conversation;
         _showInlineSearchDropdown = false;
         _inlineSearchController.clear();
         _inlineSearchResults = [];
       });
       _inlineSearchFocus.unfocus();
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => ChatScreen(conversation: conversation)),
-      );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
