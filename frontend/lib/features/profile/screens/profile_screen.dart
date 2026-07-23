@@ -1530,8 +1530,6 @@ class _FriendRowItem extends StatelessWidget {
         : (friend.firstName.isNotEmpty || friend.lastName.isNotEmpty
             ? '${friend.firstName} ${friend.lastName}'.trim()
             : 'Người dùng');
-    final avatarColor = _avatarColor(displayName);
-    final initials = _initials(displayName);
 
     return Material(
       color: Colors.transparent,
@@ -1546,49 +1544,10 @@ class _FriendRowItem extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [
-                      avatarColor,
-                      avatarColor.withValues(alpha: 0.7),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: ClipOval(
-                  child: friend.avatar.isNotEmpty
-                      ? Image.network(
-                          friend.avatar,
-                          width: 46,
-                          height: 46,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Center(
-                            child: Text(
-                              initials,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 15,
-                              ),
-                            ),
-                          ),
-                        )
-                      : Center(
-                          child: Text(
-                            initials,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 15,
-                            ),
-                          ),
-                        ),
-                ),
+              TriAvatar(
+                imageUrl: friend.avatar,
+                name: displayName,
+                size: 46,
               ),
               const SizedBox(width: 12),
               Expanded(
