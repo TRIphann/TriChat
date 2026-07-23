@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/story_model.dart';
 import 'story_ring.dart';
-import 'package:frontend/config/app_colors.dart';
+import 'package:frontend/component/avatars.dart';
 
 class StoryAvatar extends StatelessWidget {
   final UserStory userStory;
@@ -66,13 +66,11 @@ class StoryAvatar extends StatelessWidget {
                   hasUnseen: userStory.hasUnseenStories,
                   isOwner: userStory.isOwner,
                   size: 48,
-                  child: userStory.userAvatar.isNotEmpty
-                      ? Image.network(
-                          userStory.userAvatar,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _buildInitials(),
-                        )
-                      : _buildInitials(),
+                  child: TriAvatar(
+                    imageUrl: userStory.userAvatar,
+                    name: userStory.userName,
+                    size: 44,
+                  ),
                 ),
               ),
             ),
@@ -102,22 +100,6 @@ class StoryAvatar extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInitials() {
-    final name = userStory.userName.isNotEmpty ? userStory.userName : '?';
-    return Container(
-      color: AppColors.primaryOrange,
-      alignment: Alignment.center,
-      child: Text(
-        name[0].toUpperCase(),
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
         ),
       ),
     );

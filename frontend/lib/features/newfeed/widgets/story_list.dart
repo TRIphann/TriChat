@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/config/app_colors.dart';
+import 'package:frontend/component/avatars.dart';
 import '../providers/story_provider.dart';
 import 'story_avatar.dart';
 
@@ -226,9 +227,9 @@ class StoryList extends StatelessWidget {
               right: 0,
               child: Center(
                 child: Container(
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: const LinearGradient(
+                    gradient: LinearGradient(
                       colors: [
                         AppColors.neonOrange,
                         AppColors.neonPink,
@@ -237,22 +238,10 @@ class StoryList extends StatelessWidget {
                     ),
                   ),
                   padding: const EdgeInsets.all(3),
-                  child: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.darkPremiumSurface,
-                    ),
-                    child: ClipOval(
-                      child: hasAvatar
-                          ? Image.network(
-                              currentUserAvatar,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => _buildInitialsBig(),
-                            )
-                          : _buildInitialsBig(),
-                    ),
+                  child: TriAvatar(
+                    imageUrl: currentUserAvatar,
+                    name: currentUserName,
+                    size: 44,
                   ),
                 ),
               ),
@@ -315,22 +304,6 @@ class StoryList extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInitialsBig() {
-    final name = currentUserName.isNotEmpty ? currentUserName : '?';
-    return Container(
-      color: AppColors.neonOrange,
-      alignment: Alignment.center,
-      child: Text(
-        name[0].toUpperCase(),
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 18,
-          fontWeight: FontWeight.w800,
         ),
       ),
     );

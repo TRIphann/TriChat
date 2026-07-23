@@ -407,8 +407,8 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
               },
               child: ListView(
                 children: [
-                  // ===== SECTION: FRIENDS (always visible) =====
-                  if (shownFriends.isNotEmpty) ...[
+                  // ===== SECTION: FRIENDS (only when search is empty) =====
+                  if (_isEmptyQuery && shownFriends.isNotEmpty) ...[
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
                       child: Row(
@@ -455,7 +455,29 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
                       ),
                   ],
 
-                  // ===== SECTION: SEARCH RESULTS (show below friends when searching) =====
+                  // ===== SECTION: EMPTY STATE (no search, no friends) =====
+                  if (_isEmptyQuery && allFriends.isEmpty && !_isSearching) ...[
+                    const SizedBox(height: 60),
+                    Center(
+                      child: Column(
+                        children: [
+                          Icon(Icons.person_add_alt_1, size: 48, color: Colors.grey),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Chưa có bạn bè nào',
+                            style: TextStyle(color: AppColors.darkPremiumTextSecondary, fontSize: 14),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Tìm kiếm để kết bạn',
+                            style: TextStyle(color: AppColors.darkPremiumTextSecondary, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  // ===== SECTION: SEARCH RESULTS (only when searching) =====
                   if (!_isEmptyQuery) ...[
                     if (_searchResults.isNotEmpty) ...[
                       Padding(
@@ -471,62 +493,35 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
                       ),
                       ..._searchResults.map(_searchTile),
                     ] else if (_hasSearched && !_isSearching && !_hasError) ...[
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 24),
-                        child: Center(
-                          child: Column(
-                            children: [
-                              Icon(Icons.search_off, size: 48, color: AppColors.darkPremiumTextSecondary),
-                              const SizedBox(height: 12),
-                              Text(
-                                'Không tìm thấy kết quả',
-                                style: TextStyle(color: AppColors.darkPremiumTextSecondary, fontSize: 14),
-                              ),
-                            ],
-                          ),
+                      const SizedBox(height: 60),
+                      Center(
+                        child: Column(
+                          children: [
+                            Icon(Icons.search_off, size: 48, color: AppColors.darkPremiumTextSecondary),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Không tìm thấy kết quả',
+                              style: TextStyle(color: AppColors.darkPremiumTextSecondary, fontSize: 14),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ],
 
-                  // ===== EMPTY STATES =====
-                  if (_hasSearched && _searchResults.isEmpty && !_isSearching && !_hasError && _isEmptyQuery && allFriends.isEmpty) ...[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 24),
-                      child: Center(
-                        child: Column(
-                          children: [
-                            Icon(Icons.person_add_alt_1, size: 48, color: Colors.grey),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Chưa có bạn bè nào',
-                              style: TextStyle(color: AppColors.darkPremiumTextSecondary, fontSize: 14),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Tìm kiếm để kết bạn',
-                              style: TextStyle(color: AppColors.darkPremiumTextSecondary, fontSize: 12),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-
+                  // ===== SECTION: ERROR STATE =====
                   if (_hasError) ...[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 24),
-                      child: Center(
-                        child: Column(
-                          children: [
-                            Icon(Icons.error_outline, size: 48, color: AppColors.accentRed),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Có lỗi xảy ra khi tìm kiếm',
-                              style: TextStyle(color: AppColors.darkPremiumTextSecondary, fontSize: 14),
-                            ),
-                          ],
-                        ),
+                    const SizedBox(height: 60),
+                    Center(
+                      child: Column(
+                        children: [
+                          Icon(Icons.error_outline, size: 48, color: AppColors.accentRed),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Có lỗi xảy ra khi tìm kiếm',
+                            style: TextStyle(color: AppColors.darkPremiumTextSecondary, fontSize: 14),
+                          ),
+                        ],
                       ),
                     ),
                   ],

@@ -24,6 +24,7 @@ class TriAvatar extends StatelessWidget {
   final int? overlayCount;
   final bool online;
   final bool elevated;
+  final Color? borderColor;
 
   const TriAvatar({
     super.key,
@@ -36,6 +37,7 @@ class TriAvatar extends StatelessWidget {
     this.overlayCount,
     this.online = false,
     this.elevated = false,
+    this.borderColor,
   });
 
   String get _initials {
@@ -66,7 +68,7 @@ class TriAvatar extends StatelessWidget {
     final double inner = size;
     final double ringWidth = storyRing ? size * 0.055 : 0;
     final double outerSize = inner + ringWidth * 2 + 4;
-    final borderColor = AppColors.darkBackground;
+    final effectiveBorderColor = borderColor ?? AppColors.darkBackground;
 
     Widget avatarContent = Container(
       width: inner,
@@ -159,7 +161,7 @@ class TriAvatar extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: borderColor,
+              color: effectiveBorderColor,
             ),
             padding: const EdgeInsets.all(2),
             child: avatarContent,
@@ -181,7 +183,7 @@ class TriAvatar extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.primaryAmber,
               borderRadius: BorderRadius.circular(AppRadius.pill),
-              border: Border.all(color: borderColor, width: 2.5),
+              border: Border.all(color: effectiveBorderColor, width: 2.5),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.15),
@@ -216,7 +218,7 @@ class TriAvatar extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.primaryAmber,
               shape: BoxShape.circle,
-              border: Border.all(color: borderColor, width: 2.5),
+              border: Border.all(color: effectiveBorderColor, width: 2.5),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.15),
@@ -246,7 +248,7 @@ class TriAvatar extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.success,
               shape: BoxShape.circle,
-              border: Border.all(color: borderColor, width: 2.5),
+              border: Border.all(color: effectiveBorderColor, width: 2.5),
               boxShadow: [
                 BoxShadow(
                   color: AppColors.success.withValues(alpha: 0.3),

@@ -957,7 +957,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       height: size,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppColors.darkPremiumSurface,
+        color: Colors.white,
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
@@ -968,7 +968,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         ],
       ),
       child: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           shape: BoxShape.circle,
         ),
         child: ClipOval(child: avatar),
