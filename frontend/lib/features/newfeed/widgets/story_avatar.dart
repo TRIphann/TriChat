@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/config/app_colors.dart';
 import '../models/story_model.dart';
 import 'story_ring.dart';
 import 'package:frontend/component/avatars.dart';
@@ -16,8 +17,10 @@ class StoryAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final latestStory = userStory.stories.isNotEmpty ? userStory.stories.first : null;
-    final bgUrl = latestStory?.imageUrl ??
-        'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800';
+    // Use the user's avatar as the story background fallback, falling back to
+    // a solid dark gradient if neither is available — never an external default
+    // photo, which looks like a placeholder bug.
+    final bgUrl = latestStory?.imageUrl ?? userStory.userAvatar;
 
     return GestureDetector(
       onTap: onTap,
@@ -26,10 +29,23 @@ class StoryAvatar extends StatelessWidget {
         height: 152,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
-          image: DecorationImage(
-            image: NetworkImage(bgUrl),
-            fit: BoxFit.cover,
-          ),
+          image: bgUrl.isNotEmpty
+              ? DecorationImage(
+                  image: NetworkImage(bgUrl),
+                  fit: BoxFit.cover,
+                  onError: (_, __) {},
+                )
+              : const BoxDecoration(),
+          gradient: bgUrl.isEmpty
+              ? LinearGradient(
+                  colors: [
+                    AppColors.darkPremiumSurface,
+                    AppColors.darkPremiumElevated,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+              : null,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.12),
