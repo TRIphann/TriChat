@@ -112,12 +112,6 @@ class DioClient {
         requestBody: true,
         responseBody: true,
         logPrint: (o) => debugPrint('[Dio] $o'),
-        // Filter out sensitive headers
-        requestHeaderFilter: (key, value) {
-          if (key.toLowerCase() == 'authorization') return 'Bearer ***';
-          return value;
-        },
-        responseHeaderFilter: (key, value) => value,
       ));
     }
 
