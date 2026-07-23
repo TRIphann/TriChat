@@ -5,6 +5,7 @@ import 'package:frontend/config/app_spacing.dart';
 import 'package:frontend/config/app_typography.dart';
 import 'package:frontend/models/chat/conversation.dart';
 import 'package:frontend/models/chat/message.dart';
+import 'package:frontend/models/chat/participant.dart';
 import 'package:frontend/providers/chat_provider.dart';
 import 'package:frontend/widgets/chat/message_bubble.dart';
 import 'package:frontend/widgets/chat/typing_indicator.dart';
@@ -489,8 +490,8 @@ class _ProfileTab extends StatelessWidget {
       child: Row(
         children: [
           TriAvatar(
-            imageUrl: p.avatar ?? '',
-            name: p.displayName ?? 'U',
+            imageUrl: p.avatar,
+            name: p.displayName,
             size: 36,
           ),
           const SizedBox(width: AppSpacing.sm),
@@ -499,7 +500,7 @@ class _ProfileTab extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  p.displayName ?? 'Người dùng',
+                  p.displayName,
                   style: AppTypography.bodyMedium.copyWith(
                     color: AppColors.darkPremiumTextPrimary,
                     fontWeight: FontWeight.w500,
