@@ -20,7 +20,18 @@ class StoryProvider extends ChangeNotifier {
   bool get isCreating => _isCreating;
   bool get hasMore => _displayedCount < _allUserStories.length;
 
+  DateTime? _lastLoadedAt;
+  static const Duration _cacheDuration = Duration(minutes: 2);
+
   Future<void> loadStories() async {
+    // Avoid re-fetching on cold start if cache is fresh
+    if (_allUserStories.isNotEmpty &&
+        _lastLoadedAt != null &&
+        DateTime.now().difference(_lastLoadedAt!) < _cacheDuration &&
+        _state == StoryLoadingState.success) {
+      return;
+    }
+
     _state = StoryLoadingState.loading;
     _errorMessage = null;
     _displayedCount = 6;
@@ -29,6 +40,7 @@ class StoryProvider extends ChangeNotifier {
     try {
       _allUserStories = await StoryService.getStories();
       _state = StoryLoadingState.success;
+      _lastLoadedAt = DateTime.now();
     } catch (e) {
       _state = StoryLoadingState.error;
       _errorMessage = e.toString();

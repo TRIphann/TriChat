@@ -97,8 +97,15 @@ class _NewfeedScreenState extends State<NewfeedScreen>
 
   void _loadData() {
     Future.microtask(() {
-      context.read<FeedProvider>().loadFeed();
-      context.read<StoryProvider>().loadStories();
+      final feed = context.read<FeedProvider>();
+      // Only load if we don't already have cached data
+      if (feed.allPosts.isEmpty) {
+        feed.loadFeed();
+      }
+      final stories = context.read<StoryProvider>();
+      if (stories.allUserStories.isEmpty) {
+        stories.loadStories();
+      }
     });
     _scrollController.addListener(_onScroll);
   }

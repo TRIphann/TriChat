@@ -16,6 +16,10 @@ class FeedProvider extends ChangeNotifier {
   final Map<String, List<CommentModel>> _commentsMap = {};
   bool _isLoadingComments = false;
 
+  // Simple in-memory cache: avoid re-fetching on second open
+  DateTime? _lastLoadedAt;
+  static const Duration _cacheDuration = Duration(minutes: 2);
+
   List<PostModel> get posts => List.unmodifiable(_allPosts.take(_displayedCount).toList());
   List<PostModel> get allPosts => List.unmodifiable(_allPosts);
   FeedLoadingState get state => _state;
@@ -93,6 +97,14 @@ class FeedProvider extends ChangeNotifier {
   }
 
   Future<void> loadFeed() async {
+    // If we already have posts and cache is fresh, skip refetch on cold start
+    if (_allPosts.isNotEmpty &&
+        _lastLoadedAt != null &&
+        DateTime.now().difference(_lastLoadedAt!) < _cacheDuration &&
+        _state == FeedLoadingState.success) {
+      return;
+    }
+
     _state = FeedLoadingState.loading;
     _errorMessage = null;
     _displayedCount = 6;
@@ -101,6 +113,7 @@ class FeedProvider extends ChangeNotifier {
     try {
       _allPosts = await FeedService.getFeed();
       _state = FeedLoadingState.success;
+      _lastLoadedAt = DateTime.now();
     } catch (e) {
       _state = FeedLoadingState.error;
       _errorMessage = e.toString();
@@ -110,11 +123,13 @@ class FeedProvider extends ChangeNotifier {
   }
 
   Future<void> refreshFeed() async {
+    _lastLoadedAt = null; // force reload
     try {
       _allPosts = await FeedService.getFeed();
       _displayedCount = 6;
       _state = FeedLoadingState.success;
       _errorMessage = null;
+      _lastLoadedAt = DateTime.now();
     } catch (e) {
       _errorMessage = e.toString();
     }
@@ -128,9 +143,6 @@ class FeedProvider extends ChangeNotifier {
     final newlyLoaded = nextCount - _displayedCount;
 
     if (newlyLoaded <= 0) return;
-
-    // Simulate network delay for realistic feel (remove in production)
-    await Future.delayed(const Duration(milliseconds: 300));
 
     _displayedCount = nextCount;
     notifyListeners();

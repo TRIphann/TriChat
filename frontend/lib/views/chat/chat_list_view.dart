@@ -115,22 +115,6 @@ class ChatListViewState extends State<ChatListView>
     if (CallNotificationService.acceptedCall.value != null) {
       Future.microtask(_onCallAcceptedNotifier);
     }
-
-    _inlineSearchController.addListener(() {
-      if (_inlineSearchController.text.isNotEmpty &&
-          !_showInlineSearchDropdown) {
-        if (mounted) setState(() => _showInlineSearchDropdown = true);
-      }
-      if (_inlineSearchController.text.isEmpty &&
-          _showInlineSearchDropdown) {
-        if (mounted) setState(() => _showInlineSearchDropdown = false);
-      }
-    });
-    _inlineSearchFocus.addListener(() {
-      if (!_inlineSearchFocus.hasFocus && _showInlineSearchDropdown) {
-        if (mounted) setState(() => _showInlineSearchDropdown = false);
-      }
-    });
   }
 
   @override
@@ -139,9 +123,6 @@ class ChatListViewState extends State<ChatListView>
     _callProvider.removeListener(_onCallStateChanged);
     CallNotificationService.acceptedCall.removeListener(_onCallAcceptedNotifier);
     CallNotificationService.declinedCall.removeListener(_onCallDeclinedNotifier);
-    _searchDebounce?.cancel();
-    _inlineSearchController.dispose();
-    _inlineSearchFocus.dispose();
     _fadeController.dispose();
     super.dispose();
   }
@@ -652,299 +633,45 @@ class ChatListViewState extends State<ChatListView>
       children: [
         _buildSearchHeader(t, isDark, isMobile: true),
         Expanded(
-          child: Stack(
-            children: [
-              _buildConversationList(t, isDark),
-              if (_showInlineSearchDropdown)
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: _buildInlineSearchResults(),
-                ),
-            ],
-          ),
+          child: _buildConversationList(t, isDark),
         ),
       ],
     );
   }
 
   // ════════════════════════════════════════════════════════════════
-  // INLINE SEARCH IN CHAT LIST
+  // SEARCH FIELD IN CHAT LIST — opens FriendSearchPage full screen
   // ════════════════════════════════════════════════════════════════
-  final TextEditingController _inlineSearchController = TextEditingController();
-  final FocusNode _inlineSearchFocus = FocusNode();
-  List<UserSearchModel> _inlineSearchResults = [];
-  bool _isInlineSearching = false;
-  bool _showInlineSearchDropdown = false;
-  Timer? _searchDebounce;
 
   Widget _buildInlineSearchField() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.darkPremiumElevated,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: AppColors.darkPremiumBorder, width: 0.5),
-      ),
-      child: Row(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Icon(
+    return GestureDetector(
+      onTap: () => _openSearchOverlay(),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.darkPremiumElevated,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(color: AppColors.darkPremiumBorder, width: 0.5),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        child: Row(
+          children: [
+            Icon(
               Icons.search_rounded,
               color: AppColors.darkPremiumTextHint,
               size: 20,
             ),
-          ),
-          Expanded(
-            child: TextField(
-              controller: _inlineSearchController,
-              focusNode: _inlineSearchFocus,
-              style: const TextStyle(
-                color: AppColors.darkPremiumTextPrimary,
+            const SizedBox(width: 10),
+            Text(
+              'Tìm kiếm bạn bè...',
+              style: TextStyle(
+                color: AppColors.darkPremiumTextHint,
                 fontSize: 14,
               ),
-              decoration: InputDecoration(
-                hintText: 'Tìm kiếm trong chat...',
-                hintStyle: TextStyle(
-                  color: AppColors.darkPremiumTextHint,
-                  fontSize: 14,
-                ),
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-              onChanged: _performInlineSearch,
             ),
-          ),
-          if (_inlineSearchController.text.isNotEmpty)
-            IconButton(
-              icon: Icon(
-                Icons.close,
-                color: AppColors.darkPremiumTextSecondary,
-                size: 18,
-              ),
-              onPressed: () {
-                _inlineSearchController.clear();
-                setState(() {
-                  _inlineSearchResults = [];
-                  _showInlineSearchDropdown = false;
-                });
-              },
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-            ),
-        ],
+          ],
+        ),
       ),
     );
-  }
-
-  // Track friend IDs for local filtering
-  Set<String> _friendIds = {};
-  bool _friendIdsLoaded = false;
-
-  Future<void> _loadFriendIds() async {
-    if (_friendIdsLoaded) return;
-    try {
-      final provider = context.read<FriendProvider>();
-      _friendIds = provider.friends.map((f) => f.friendId).toSet();
-      _friendIdsLoaded = true;
-    } catch (_) {}
-  }
-
-  Future<void> _performInlineSearch(String query) async {
-    _searchDebounce?.cancel();
-    final trimmed = query.trim();
-
-    if (trimmed.isEmpty) {
-      setState(() {
-        _inlineSearchResults = [];
-        _isInlineSearching = false;
-      });
-      return;
-    }
-
-    // Load friend IDs for local filtering
-    await _loadFriendIds();
-
-    setState(() => _isInlineSearching = true);
-
-    _searchDebounce = Timer(const Duration(milliseconds: 300), () async {
-      try {
-        // For queries >= 3 chars, search API
-        // For < 3 chars, filter locally from friends
-        if (trimmed.length >= 3) {
-          final results = await FriendService.searchUsers(trimmed);
-          if (mounted) {
-            setState(() {
-              _inlineSearchResults = results;
-              _isInlineSearching = false;
-              _showInlineSearchDropdown = true;
-            });
-          }
-        } else {
-          // Local filter: match friends by name prefix (case-insensitive)
-          final provider = context.read<FriendProvider>();
-          final queryLower = trimmed.toLowerCase();
-          final filtered = provider.friends.where((f) {
-            final name = f.fullName.toLowerCase();
-            return name.startsWith(queryLower);
-          }).map((f) => UserSearchModel(
-            id: f.friendId,
-            fullName: f.fullName,
-            email: '',
-            avatar: f.avatar,
-            status: true,
-          )).toList();
-
-          if (mounted) {
-            setState(() {
-              _inlineSearchResults = filtered;
-              _isInlineSearching = false;
-              _showInlineSearchDropdown = true;
-            });
-          }
-        }
-      } catch (e) {
-        if (mounted) {
-          setState(() {
-            _isInlineSearching = false;
-          });
-        }
-      }
-    });
-  }
-
-  Future<void> _openConversationFromSearch(UserSearchModel user) async {
-    try {
-      final conversation = await ChatService().createConversation(
-        type: 'private',
-        participantIds: [user.id],
-      );
-      if (!mounted) return;
-
-      // Open conversation in ChatProvider (for real-time)
-      await context.read<ChatProvider>().openConversation(conversation);
-
-      // Set as selected conversation to show in middle + right panels
-      setState(() {
-        _selectedConversation = conversation;
-        _showInlineSearchDropdown = false;
-        _inlineSearchController.clear();
-        _inlineSearchResults = [];
-      });
-      _inlineSearchFocus.unfocus();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Không thể mở cuộc trò chuyện'),
-            backgroundColor: AppColors.accentRed,
-          ),
-        );
-      }
-    }
-  }
-
-  Widget _buildInlineSearchResults() {
-    return Container(
-      constraints: const BoxConstraints(maxHeight: 380),
-      decoration: BoxDecoration(
-        color: AppColors.darkPremiumSurface,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: AppColors.darkPremiumBorder, width: 0.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      margin: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.md),
-      child: _isInlineSearching
-          ? const Padding(
-              padding: EdgeInsets.all(AppSpacing.xl),
-              child: Center(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: AppColors.primaryAmber,
-                  ),
-                ),
-              ),
-            )
-          : _inlineSearchResults.isEmpty
-              ? const Padding(
-                  padding: EdgeInsets.all(AppSpacing.xl),
-                  child: Center(
-                    child: Text(
-                      'Không tìm thấy kết quả',
-                      style: TextStyle(
-                        color: AppColors.darkPremiumTextHint,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                )
-              : ListView.separated(
-                  shrinkWrap: true,
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  itemCount: _inlineSearchResults.length,
-                  separatorBuilder: (_, __) => const Divider(
-                    height: 1,
-                    color: AppColors.darkPremiumBorder,
-                    indent: 68,
-                  ),
-                  itemBuilder: (context, index) {
-                    final user = _inlineSearchResults[index];
-                    return ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 4,
-                      ),
-                      leading: TriAvatar(
-                        imageUrl: user.avatar,
-                        name: user.fullName.isNotEmpty
-                            ? user.fullName
-                            : user.email,
-                        size: 44,
-                      ),
-                      title: Text(
-                        user.fullName.isNotEmpty
-                            ? user.fullName
-                            : user.email,
-                        style: const TextStyle(
-                          color: AppColors.darkPremiumTextPrimary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      subtitle: user.email.isNotEmpty &&
-                              user.fullName.isNotEmpty
-                          ? Text(
-                              user.email,
-                              style: const TextStyle(
-                                color: AppColors.darkPremiumTextHint,
-                                fontSize: 12,
-                              ),
-                            )
-                          : null,
-                      trailing: const Icon(
-                        Icons.chat_bubble_outline_rounded,
-                        color: AppColors.darkPremiumTextHint,
-                        size: 18,
-                      ),
-                      onTap: () => _openConversationFromSearch(user),
-                    );
-                  },
-                ),
-      );
-    }
-
-  void _onInlineSearchResultTap(UserSearchModel user) async {
-    await _openConversationFromSearch(user);
   }
 
   Widget _buildSearchHeader(
@@ -1035,7 +762,7 @@ class ChatListViewState extends State<ChatListView>
             TriSearchField(
               hintText: t.get('searchPlaceholder'),
               readOnly: true,
-              onTap: () => _openSearchOverlay(context),
+              onTap: _openSearchOverlay,
             ),
             const SizedBox(height: AppSpacing.md),
             Row(
@@ -1105,7 +832,7 @@ class ChatListViewState extends State<ChatListView>
     return tooltip != null ? Tooltip(message: tooltip, child: btn) : btn;
   }
 
-  void _openSearchOverlay(BuildContext context) {
+  void _openSearchOverlay() {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const FriendSearchPage()),
     );
@@ -1209,7 +936,7 @@ class ChatListViewState extends State<ChatListView>
               PrimaryButton(
                 label: 'Tìm bạn bè ngay',
                 icon: Icons.person_search_rounded,
-                onPressed: () => _openSearchOverlay(context),
+                onPressed: _openSearchOverlay,
               ),
             ],
           ],

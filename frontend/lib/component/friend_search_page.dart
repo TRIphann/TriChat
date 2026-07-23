@@ -198,9 +198,9 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
         // Open chat conversation directly
         final chatProvider = context.read<ChatProvider>();
         await chatProvider.openChatWithUser(f.friendId);
-        // Pop back to chat list to see the conversation
+        // Pop back to chat list (only one route above us)
         if (context.mounted) {
-          Navigator.of(context).popUntil((route) => route.isFirst);
+          Navigator.of(context).pop();
         }
       },
       trailing: Container(
@@ -216,7 +216,7 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
             final chatProvider = context.read<ChatProvider>();
             await chatProvider.openChatWithUser(f.friendId);
             if (!context.mounted) return;
-            Navigator.of(context).popUntil((route) => route.isFirst);
+            Navigator.of(context).pop();
           },
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
@@ -262,7 +262,7 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
             final chatProvider = context.read<ChatProvider>();
             await chatProvider.openChatWithUser(user.id);
             if (!context.mounted) return;
-            Navigator.of(context).popUntil((route) => route.isFirst);
+            Navigator.of(context).pop();
           },
           icon: Icon(Icons.chat_bubble_outline, color: Colors.white, size: 18),
           padding: EdgeInsets.zero,
@@ -342,7 +342,7 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
         await chatProvider.openChatWithUser(user.id);
         // Pop back to chat list to see the conversation
         if (context.mounted) {
-          Navigator.of(context).popUntil((route) => route.isFirst);
+          Navigator.of(context).pop();
         }
       },
       trailing: action,
