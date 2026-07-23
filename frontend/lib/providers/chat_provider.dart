@@ -205,6 +205,29 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
     await loadMessages(conv.id);
   }
 
+  /// Open a conversation with a specific user (creates one if not exists)
+  /// Used for opening chat from friend search
+  Future<void> openChatWithUser(String userId) async {
+    // Check if conversation already exists
+    final existing = _conversations.where((c) =>
+      c.type == 'private' && c.otherUserId == userId
+    ).firstOrNull;
+
+    if (existing != null) {
+      await openConversation(existing);
+    } else {
+      // Create new conversation
+      final conversation = await _chatService.createConversation(
+        type: 'private',
+        participantIds: [userId],
+      );
+      // Add to local list
+      _conversations = [conversation, ..._conversations];
+      notifyListeners();
+      await openConversation(conversation);
+    }
+  }
+
   void _resetUnreadCount(String conversationId) {
     final idx = _conversations.indexWhere((c) => c.id == conversationId);
     if (idx == -1 || _conversations[idx].unreadCount == 0) return;

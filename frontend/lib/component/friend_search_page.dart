@@ -6,9 +6,6 @@ import 'package:frontend/component/avatars.dart';
 import 'package:frontend/features/friends/providers/friend_provider.dart';
 import 'package:frontend/features/friends/services/friend_service.dart';
 import 'package:frontend/providers/chat_provider.dart';
-import 'package:frontend/services/chat/chat_service.dart';
-import 'package:frontend/views/chat/chat_screen.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 class FriendSearchPage extends StatefulWidget {
@@ -32,8 +29,6 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
   bool _isSearching = false;
   bool _hasSearched = false;
   bool _hasError = false;
-
-  bool get _isEmptyQuery => _controller.text.trim().isEmpty;
 
   @override
   void initState() {
@@ -77,12 +72,25 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
   }
 
   Future<void> _performSearch(String query) async {
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) return;
+
+    // For queries >= 3 chars, search API (matches friends by name or strangers by full email)
+    // For < 3 chars, we only show filtered friends locally
+    if (trimmed.length < 3) {
+      setState(() {
+        _searchResults = [];
+        _isSearching = false;
+        _hasSearched = true;
+      });
+      return;
+    }
+
     try {
-      final results = await FriendService.searchUsers(query.trim());
+      final results = await FriendService.searchUsers(trimmed);
 
       if (!mounted) return;
 
-      final provider = context.read<FriendProvider>();
       // Filter out only current user (friends still show with "Nhắn tin" button)
       final filtered = results
           .where((u) => u.id != FirebaseAuth.instance.currentUser?.uid)
@@ -186,7 +194,15 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
       name: f.fullName,
       avatar: f.avatar,
       subtitle: 'Bạn bè',
-      onTap: () => context.push('/profile', extra: f.friendId),
+      onTap: () async {
+        // Open chat conversation directly
+        final chatProvider = context.read<ChatProvider>();
+        await chatProvider.openChatWithUser(f.friendId);
+        // Pop back to chat list to see the conversation
+        if (context.mounted) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        }
+      },
       trailing: Container(
         width: 36,
         height: 36,
@@ -336,7 +352,15 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
       name: user.fullName.isNotEmpty ? user.fullName : user.email,
       avatar: user.avatar,
       subtitle: user.email,
-      onTap: () => context.push('/profile', extra: user.id),
+      onTap: () async {
+        // Open chat conversation directly with this user
+        final chatProvider = context.read<ChatProvider>();
+        await chatProvider.openChatWithUser(user.id);
+        // Pop back to chat list to see the conversation
+        if (context.mounted) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        }
+      },
       trailing: action,
     );
   }
@@ -349,9 +373,13 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
     final allFriends = provider.friends;
     final shownFriends = allFriends.take(_shownCount).toList();
     final hasMoreFriends = _shownCount < allFriends.length;
+    final query = _controller.text.trim();
+
+    // Determine if we should show friends list (empty query)
+    final showFriendsList = query.isEmpty;
 
     return Scaffold(
-      backgroundColor: AppColors.darkPremiumBackground,
+      backgroundColor: AppColors.darkPremiumSurface,
       appBar: AppBar(
         backgroundColor: AppColors.darkPremiumSurface,
         elevation: 0,
@@ -408,7 +436,7 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
               child: ListView(
                 children: [
                   // ===== SECTION: FRIENDS (only when search is empty) =====
-                  if (_isEmptyQuery && shownFriends.isNotEmpty) ...[
+                  if (showFriendsList && shownFriends.isNotEmpty) ...[
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
                       child: Row(
@@ -456,7 +484,7 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
                   ],
 
                   // ===== SECTION: EMPTY STATE (no search, no friends) =====
-                  if (_isEmptyQuery && allFriends.isEmpty && !_isSearching) ...[
+                  if (showFriendsList && allFriends.isEmpty && !_isSearching) ...[
                     const SizedBox(height: 60),
                     Center(
                       child: Column(
@@ -478,7 +506,7 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
                   ],
 
                   // ===== SECTION: SEARCH RESULTS (only when searching) =====
-                  if (!_isEmptyQuery) ...[
+                  if (!showFriendsList) ...[
                     if (_searchResults.isNotEmpty) ...[
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
