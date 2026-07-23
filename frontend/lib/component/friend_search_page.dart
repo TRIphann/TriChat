@@ -214,17 +214,9 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
           icon: Icon(Icons.chat_bubble_outline, color: Colors.white, size: 18),
           onPressed: () async {
             final chatProvider = context.read<ChatProvider>();
-            final conversation = await ChatService().createConversation(
-              type: 'private',
-              participantIds: [f.friendId],
-            );
+            await chatProvider.openChatWithUser(f.friendId);
             if (!context.mounted) return;
-            unawaited(chatProvider.openConversation(conversation));
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => ChatScreen(conversation: conversation),
-              ),
-            );
+            Navigator.of(context).popUntil((route) => route.isFirst);
           },
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
@@ -268,17 +260,9 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
         child: IconButton(
           onPressed: () async {
             final chatProvider = context.read<ChatProvider>();
-            final conversation = await ChatService().createConversation(
-              type: 'private',
-              participantIds: [user.id],
-            );
+            await chatProvider.openChatWithUser(user.id);
             if (!context.mounted) return;
-            unawaited(chatProvider.openConversation(conversation));
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => ChatScreen(conversation: conversation),
-              ),
-            );
+            Navigator.of(context).popUntil((route) => route.isFirst);
           },
           icon: Icon(Icons.chat_bubble_outline, color: Colors.white, size: 18),
           padding: EdgeInsets.zero,
