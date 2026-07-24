@@ -78,6 +78,13 @@ public class ChatService
             if (request.ParticipantIds.Count != 1)
                 throw new AppException(ErrorCode.CANNOT_SELF_MESSAGE);
 
+            // Defensive: if the client passes the current user as the only
+            // participant, treat it as a self-chat attempt and reject it
+            // with a clear error instead of silently creating a 1-member
+            // "conversation" in Firestore.
+            if (string.Equals(request.ParticipantIds[0], currentUserId, StringComparison.Ordinal))
+                throw new AppException(ErrorCode.CANNOT_SELF_MESSAGE);
+
             var existing = await FindPrivateConversationAsync(currentUserId, request.ParticipantIds[0]);
             if (existing != null)
                 return await MapConversationToResponse(existing, currentUserId);
