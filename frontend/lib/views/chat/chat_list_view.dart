@@ -323,7 +323,7 @@ class ChatListViewState extends State<ChatListView>
     final showThreeColumns = isVeryWideScreen;
 
     return Container(
-      color: AppColors.darkPremiumBackground,
+      color: AppColors.darkPremiumSurface,
       child: Row(
         children: [
           _buildSidebar(ThemeData.dark()),
@@ -376,7 +376,7 @@ class ChatListViewState extends State<ChatListView>
 
   Widget _buildMobileView(AppLocalizations t, bool isDark) {
     return Container(
-      color: AppColors.darkPremiumBackground,
+      color: AppColors.darkPremiumSurface,
       child: Column(
         children: [
           Expanded(
@@ -632,9 +632,9 @@ class ChatListViewState extends State<ChatListView>
   // PREMIUM CHAT LIST PANEL
   // ════════════════════════════════════════════════════════════════
   Widget _buildChatListPanel(AppLocalizations t, bool isDark) {
-    // Chat list panel: darkPremiumBackground (matches other tabs)
+    // Chat list panel: darkPremiumSurface (matches sidebar and other tabs)
     return Container(
-      color: AppColors.darkPremiumBackground,
+      color: AppColors.darkPremiumSurface,
       child: Column(
         children: [
           _buildSearchHeader(t, isDark, isMobile: true),
@@ -650,9 +650,9 @@ class ChatListViewState extends State<ChatListView>
   /// otherwise shows the conversation list. No dropdown overlay, no
   /// navigation to another screen.
   Widget _buildChatListBody(AppLocalizations t, bool isDark) {
-    // Chat list panel: darkPremiumBackground (matches other tabs)
+    // Chat list panel: darkPremiumSurface (matches sidebar and other tabs)
     return Container(
-      color: AppColors.darkPremiumBackground,
+      color: AppColors.darkPremiumSurface,
       child: _isShowingSearchResults
           ? _buildInlineSearchResults()
           : _buildConversationList(t, isDark),
@@ -670,10 +670,10 @@ class ChatListViewState extends State<ChatListView>
   Timer? _searchDebounce;
 
   Widget _buildInlineSearchField() {
-    // Search field: darkElevated bg (slightly lighter than tabs)
+    // Search field: darkPremiumBackground bg (darker than panel darkPremiumSurface)
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.darkElevated,
+        color: AppColors.darkPremiumBackground,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(
           color: AppColors.darkBorder,
@@ -978,7 +978,7 @@ class ChatListViewState extends State<ChatListView>
           AppSpacing.lg,
           AppSpacing.md,
         ),
-        color: AppColors.darkElevated,
+        // No bg color — panel color (darkPremiumSurface) shows through
         child: SafeArea(
           bottom: false,
           child: Column(
