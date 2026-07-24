@@ -632,8 +632,9 @@ class ChatListViewState extends State<ChatListView>
   // PREMIUM CHAT LIST PANEL
   // ════════════════════════════════════════════════════════════════
   Widget _buildChatListPanel(AppLocalizations t, bool isDark) {
+    // Chat list panel: pure black darkPremiumBackground
     return Container(
-      color: AppColors.darkElevated,
+      color: AppColors.darkPremiumBackground,
       child: Column(
         children: [
           _buildSearchHeader(t, isDark, isMobile: true),
@@ -649,8 +650,9 @@ class ChatListViewState extends State<ChatListView>
   /// otherwise shows the conversation list. No dropdown overlay, no
   /// navigation to another screen.
   Widget _buildChatListBody(AppLocalizations t, bool isDark) {
+    // Chat list panel: pure black darkPremiumBackground
     return Container(
-      color: AppColors.darkElevated,
+      color: AppColors.darkPremiumBackground,
       child: _isShowingSearchResults
           ? _buildInlineSearchResults()
           : _buildConversationList(t, isDark),
@@ -668,10 +670,10 @@ class ChatListViewState extends State<ChatListView>
   Timer? _searchDebounce;
 
   Widget _buildInlineSearchField() {
+    // Search field: darkElevated bg + creamSurface text (dark input box)
     return Container(
       decoration: BoxDecoration(
-        // Outer ring: darkest dark background
-        color: AppColors.darkPremiumBackground,
+        color: AppColors.darkElevated,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(
           color: AppColors.darkBorder,
@@ -685,46 +687,38 @@ class ChatListViewState extends State<ChatListView>
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Icon(
               Icons.search_rounded,
-              color: AppColors.darkPremiumTextHint,
+              color: AppColors.creamSurface,
               size: 20,
             ),
           ),
           const SizedBox(width: 4),
           Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                // Inner area: warm cream — same as the search bar design in web Zalo
+            child: TextField(
+              controller: _inlineSearchController,
+              focusNode: _inlineSearchFocus,
+              style: const TextStyle(
                 color: AppColors.creamSurface,
-                borderRadius: BorderRadius.circular(AppRadius.sm),
+                fontSize: 14,
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              child: TextField(
-                controller: _inlineSearchController,
-                focusNode: _inlineSearchFocus,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
+              decoration: InputDecoration(
+                hintText: 'Tìm kiếm bạn bè...',
+                hintStyle: const TextStyle(
+                  color: AppColors.creamSurface,
                   fontSize: 14,
                 ),
-                decoration: InputDecoration(
-                  hintText: 'Tìm kiếm bạn bè...',
-                  hintStyle: const TextStyle(
-                    color: AppColors.textTertiary,
-                    fontSize: 14,
-                  ),
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: EdgeInsets.zero,
-                ),
-                onChanged: _onSearchTextChanged,
-                onTap: () => setState(() => _isShowingSearchResults = true),
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
               ),
+              onChanged: _onSearchTextChanged,
+              onTap: () => setState(() => _isShowingSearchResults = true),
             ),
           ),
           if (_inlineSearchController.text.isNotEmpty)
             IconButton(
               icon: const Icon(
                 Icons.close,
-                color: AppColors.textSecondary,
+                color: AppColors.creamSurface,
                 size: 18,
               ),
               onPressed: _clearInlineSearch,
@@ -984,7 +978,7 @@ class ChatListViewState extends State<ChatListView>
           AppSpacing.lg,
           AppSpacing.md,
         ),
-        color: AppColors.darkElevated,
+        color: AppColors.darkPremiumBackground,
         child: SafeArea(
           bottom: false,
           child: Column(
