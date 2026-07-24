@@ -51,18 +51,9 @@ class TriAvatar extends StatelessWidget {
   }
 
   Color get _bgColor {
-    const palette = [
-      Color(0xFFD97706),
-      Color(0xFF16A34A),
-      Color(0xFF2563EB),
-      Color(0xFFDC2626),
-      Color(0xFF7C3AED),
-      Color(0xFFDB2777),
-    ];
-    if (name.isEmpty) return palette.first;
-    // Normalize to lowercase so 'Alice' and 'alice' get the same color.
+    if (name.isEmpty) return AppColors.avatarPalette.first;
     final firstChar = name.trim().toLowerCase().codeUnitAt(0);
-    return palette[firstChar % palette.length];
+    return AppColors.avatarPalette[firstChar % AppColors.avatarPalette.length];
   }
 
   @override

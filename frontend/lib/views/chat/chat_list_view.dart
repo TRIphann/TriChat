@@ -670,7 +670,7 @@ class ChatListViewState extends State<ChatListView>
   Timer? _searchDebounce;
 
   Widget _buildInlineSearchField() {
-    // Search field: darkPremiumBackground bg (darker than panel darkPremiumSurface)
+    // Search field: unified darkPremiumBackground color
     return Container(
       decoration: BoxDecoration(
         color: AppColors.darkPremiumBackground,
@@ -837,6 +837,14 @@ class ChatListViewState extends State<ChatListView>
         _isInlineSearching = false;
       });
       _inlineSearchFocus.unfocus();
+
+      // Navigate to ChatScreen on narrow screens
+      if (!isWideScreen && active != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => ChatScreen(conversation: active)),
+        );
+      }
     } on DioException catch (e) {
       // Parse the backend's error message from the 400 response body.
       String msg = 'Không thể mở cuộc trò chuyện';

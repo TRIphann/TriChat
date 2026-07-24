@@ -493,36 +493,6 @@ class _NewfeedScreenState extends State<NewfeedScreen>
     );
   }
 
-  Widget _buildAvatarFallback() {
-    return Container(
-      width: 46,
-      height: 46,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          colors: [
-            AppColors.neonRoyal,
-            AppColors.neonRoyal.withValues(alpha: 0.7),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: Center(
-        child: Text(
-          _currentUserName.isNotEmpty
-              ? _currentUserName[0].toUpperCase()
-              : '?',
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w800,
-            fontSize: 16,
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildQuickActions() {
     return Container(
       margin: const EdgeInsets.fromLTRB(12, 10, 12, 10),

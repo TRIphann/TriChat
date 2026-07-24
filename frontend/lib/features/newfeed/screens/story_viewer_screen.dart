@@ -362,30 +362,6 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     );
   }
 
-  Color _avatarColor(String name) {
-    final colors = [
-      AppColors.success,
-      AppColors.primaryOrange,
-      AppColors.primaryOrangeLight,
-      AppColors.accentBrown,
-      AppColors.accentRed,
-      AppColors.accentBrown,
-      AppColors.accentBrown,
-      AppColors.neutralGray700,
-    ];
-    if (name.isEmpty) return colors[0];
-    return colors[name.codeUnitAt(0) % colors.length];
-  }
-
-  String _initials(String name) {
-    if (name.isEmpty) return '?';
-    final parts = name.trim().split(' ');
-    if (parts.length >= 2) {
-      return '${parts[0][0]}${parts[parts.length - 1][0]}'.toUpperCase();
-    }
-    return name[0].toUpperCase();
-  }
-
   String _formatTime(DateTime dateTime) {
     final now = DateTime.now();
     final diff = now.difference(dateTime);

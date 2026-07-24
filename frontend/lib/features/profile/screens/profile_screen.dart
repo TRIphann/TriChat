@@ -654,17 +654,9 @@ class _ProfileScreenState extends State<ProfileScreen>
     }
   }
 
-  Color _avatarColor(String name) {
-    final colors = [
-      AppColors.primaryOrange,
-      AppColors.primaryOrangeLight,
-      AppColors.success,
-      AppColors.primaryOrangeLight,
-      AppColors.accentBrown,
-      AppColors.accentRed,
-    ];
-    if (name.isEmpty) return colors[0];
-    return colors[name.codeUnitAt(0) % colors.length];
+  Color _avatarBgColor(String name) {
+    if (name.isEmpty) return AppColors.avatarPalette.first;
+    return AppColors.avatarPalette[name.toLowerCase().codeUnitAt(0) % AppColors.avatarPalette.length];
   }
 
   String _getInitials(String name) {
@@ -783,7 +775,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   : _currentUserName)
               : _targetUserName;
           final bio = profile?.bio.trim() ?? '';
-          final coverColor = _avatarColor(displayName);
+          final coverColor = _avatarBgColor(displayName);
 
           return Column(
             children: [
@@ -1500,28 +1492,6 @@ class _FriendRowItem extends StatelessWidget {
     required this.onTap,
     required this.onRespondFriend,
   });
-
-  Color _avatarColor(String name) {
-    final colors = [
-      AppColors.primaryOrange,
-      AppColors.primaryOrangeLight,
-      AppColors.success,
-      AppColors.primaryOrangeLight,
-      AppColors.accentBrown,
-      AppColors.accentRed,
-    ];
-    if (name.isEmpty) return colors[0];
-    return colors[name.codeUnitAt(0) % colors.length];
-  }
-
-  String _initials(String name) {
-    if (name.isEmpty) return '?';
-    final parts = name.trim().split(' ');
-    if (parts.length >= 2) {
-      return '${parts[0][0]}${parts[parts.length - 1][0]}'.toUpperCase();
-    }
-    return name[0].toUpperCase();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -2603,28 +2573,6 @@ class _ImagePostSheet extends StatelessWidget {
 
   const _ImagePostSheet({required this.post});
 
-  Color _avatarColor(String name) {
-    final colors = [
-      AppColors.primaryOrange,
-      AppColors.primaryOrangeLight,
-      AppColors.success,
-      AppColors.primaryOrangeLight,
-      AppColors.accentBrown,
-      AppColors.accentRed,
-    ];
-    if (name.isEmpty) return colors[0];
-    return colors[name.codeUnitAt(0) % colors.length];
-  }
-
-  String _initials(String name) {
-    if (name.isEmpty) return '?';
-    final parts = name.trim().split(' ');
-    if (parts.length >= 2) {
-      return '${parts[0][0]}${parts[parts.length - 1][0]}'.toUpperCase();
-    }
-    return name[0].toUpperCase();
-  }
-
   String _formatTime(DateTime dateTime) {
     final now = DateTime.now();
     final diff = now.difference(dateTime);
@@ -2637,9 +2585,6 @@ class _ImagePostSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _avatarColor(post.userName);
-    final initials = _initials(post.userName);
-
     return DraggableScrollableSheet(
       initialChildSize: 0.85,
       minChildSize: 0.4,

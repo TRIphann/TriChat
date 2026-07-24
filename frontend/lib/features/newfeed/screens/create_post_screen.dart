@@ -1115,7 +1115,7 @@ class _FriendSelectorSheet extends StatelessWidget {
                     final isSelected = selectedFriendIds.contains(
                       friend.friendId,
                     );
-                    final color = _avatarColor(friend.fullName);
+                    final color = _avatarBgColor(friend.fullName);
 
                     return InkWell(
                       onTap: () {
@@ -1229,16 +1229,8 @@ class _FriendSelectorSheet extends StatelessWidget {
     );
   }
 
-  Color _avatarColor(String name) {
-    final colors = [
-      AppColors.neonOnline,
-      AppColors.neonRoyal,
-      AppColors.neonOrange,
-      AppColors.neonPink,
-      AppColors.neonPurple,
-      AppColors.neonYellow,
-    ];
-    if (name.isEmpty) return colors[0];
-    return colors[name.codeUnitAt(0) % colors.length];
+  Color _avatarBgColor(String name) {
+    if (name.isEmpty) return AppColors.avatarPalette.first;
+    return AppColors.avatarPalette[name.toLowerCase().codeUnitAt(0) % AppColors.avatarPalette.length];
   }
 }
