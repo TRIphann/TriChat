@@ -672,7 +672,7 @@ class ChatListViewState extends State<ChatListView>
   Widget _buildInlineSearchField() {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.darkPremiumSurface,
+        color: AppColors.darkPremiumElevated,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: AppColors.darkBorder,
