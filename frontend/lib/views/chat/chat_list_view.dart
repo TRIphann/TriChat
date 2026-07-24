@@ -670,11 +670,10 @@ class ChatListViewState extends State<ChatListView>
   Timer? _searchDebounce;
 
   Widget _buildInlineSearchField() {
-    // Search field: unified darkPremiumBackground color
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.darkPremiumBackground,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        color: AppColors.darkPremiumSurface,
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: AppColors.darkBorder,
           width: 1,
