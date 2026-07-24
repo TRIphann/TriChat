@@ -33,11 +33,11 @@ class StoryAvatar extends StatelessWidget {
               ? DecorationImage(
                   image: NetworkImage(bgUrl),
                   fit: BoxFit.cover,
-                  onError: (_, __) {},
+                  onError: (exception, stackTrace) {},
                 )
-              : const BoxDecoration(),
+              : null,
           gradient: bgUrl.isEmpty
-              ? LinearGradient(
+              ? const LinearGradient(
                   colors: [
                     AppColors.darkPremiumSurface,
                     AppColors.darkPremiumElevated,
