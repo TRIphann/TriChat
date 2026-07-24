@@ -259,7 +259,13 @@ class ChatListViewState extends State<ChatListView>
     context.read<ChatProvider>().openConversation(conversation);
     final isWideScreen = MediaQuery.of(context).size.width >= 900;
     if (isWideScreen) {
-      setState(() => _selectedConversation = conversation);
+      // Avoid setState if same conversation already selected (prevents
+      // unnecessary rebuilds + ensures the middle/right panels re-render
+      // with the fresh object even when id is unchanged).
+      if (_selectedConversation?.id != conversation.id ||
+          _selectedConversation != conversation) {
+        setState(() => _selectedConversation = conversation);
+      }
     } else {
       Navigator.push(
         context,
@@ -519,6 +525,7 @@ class ChatListViewState extends State<ChatListView>
         }
 
         return ChatContentPanel(
+          key: ValueKey('chat_content_${conversation.id}'),
           conversation: conversation,
           onOpenChatScreen: () {
             Navigator.push(
@@ -623,7 +630,10 @@ class ChatListViewState extends State<ChatListView>
           );
         }
 
-        return ConversationDetailPanel(conversation: conversation);
+        return ConversationDetailPanel(
+          key: ValueKey('right_panel_${conversation.id}'),
+          conversation: conversation,
+        );
       },
     );
   }

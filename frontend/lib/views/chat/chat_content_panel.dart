@@ -31,10 +31,40 @@ class ChatContentPanel extends StatefulWidget {
 
 class _ChatContentPanelState extends State<ChatContentPanel> {
   final ScrollController _scrollController = ScrollController();
+  ChatProvider? _chatProvider;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _chatProvider = context.read<ChatProvider>();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<ChatProvider>().setConversationVisible(true);
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(ChatContentPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.conversation.id != widget.conversation.id) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.read<ChatProvider>().setConversationVisible(true);
+        }
+      });
+    }
+  }
 
   @override
   void dispose() {
     _scrollController.dispose();
+    _chatProvider?.setConversationVisible(false);
     super.dispose();
   }
 
