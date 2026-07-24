@@ -632,9 +632,9 @@ class ChatListViewState extends State<ChatListView>
   // PREMIUM CHAT LIST PANEL
   // ════════════════════════════════════════════════════════════════
   Widget _buildChatListPanel(AppLocalizations t, bool isDark) {
-    // Chat list panel: darkElevated bg
+    // Chat list panel: darkPremiumBackground (matches other tabs)
     return Container(
-      color: AppColors.darkElevated,
+      color: AppColors.darkPremiumBackground,
       child: Column(
         children: [
           _buildSearchHeader(t, isDark, isMobile: true),
@@ -650,9 +650,9 @@ class ChatListViewState extends State<ChatListView>
   /// otherwise shows the conversation list. No dropdown overlay, no
   /// navigation to another screen.
   Widget _buildChatListBody(AppLocalizations t, bool isDark) {
-    // Chat list panel: darkElevated bg
+    // Chat list panel: darkPremiumBackground (matches other tabs)
     return Container(
-      color: AppColors.darkElevated,
+      color: AppColors.darkPremiumBackground,
       child: _isShowingSearchResults
           ? _buildInlineSearchResults()
           : _buildConversationList(t, isDark),
@@ -670,10 +670,10 @@ class ChatListViewState extends State<ChatListView>
   Timer? _searchDebounce;
 
   Widget _buildInlineSearchField() {
-    // Search field: darkPremiumBackground bg + creamSurface text (pure dark input box)
+    // Search field: darkElevated bg (slightly lighter than tabs)
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.darkPremiumBackground,
+        color: AppColors.darkElevated,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(
           color: AppColors.darkBorder,
