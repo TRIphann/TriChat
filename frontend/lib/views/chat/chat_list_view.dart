@@ -267,12 +267,19 @@ class ChatListViewState extends State<ChatListView>
         setState(() => _selectedConversation = conversation);
       }
     } else {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ChatScreen(conversation: conversation),
-        ),
-      );
+      // Wait for the current frame to finish (so openConversation's
+      // notifyListeners flushes the provider state) before pushing
+      // ChatScreen. Without this, ChatScreen can build before
+      // activeConversation + messages are wired up.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ChatScreen(conversation: conversation),
+          ),
+        );
+      });
     }
   }
 

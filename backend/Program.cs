@@ -90,6 +90,14 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.SnakeCaseLower;
     });
+
+// Disable ASP.NET's automatic ModelState 400 responses so FluentValidation
+// (in GlobalExceptionHandler → 422) is the only validation pipeline. This
+// keeps the response shape consistent across endpoints.
+builder.Services.Configure<Microsoft.AspNetCore.Mvc.ApiBehaviorOptions>(options =>
+{
+    options.SuppressModelStateInvalidFilter = true;
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
