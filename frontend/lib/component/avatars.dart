@@ -60,7 +60,9 @@ class TriAvatar extends StatelessWidget {
       Color(0xFFDB2777),
     ];
     if (name.isEmpty) return palette.first;
-    return palette[name.codeUnitAt(0) % palette.length];
+    // Normalize to lowercase so 'Alice' and 'alice' get the same color.
+    final firstChar = name.trim().toLowerCase().codeUnitAt(0);
+    return palette[firstChar % palette.length];
   }
 
   @override
@@ -68,7 +70,8 @@ class TriAvatar extends StatelessWidget {
     final double inner = size;
     final double ringWidth = storyRing ? size * 0.055 : 0;
     final double outerSize = inner + ringWidth * 2 + 4;
-    final effectiveBorderColor = borderColor ?? AppColors.cream;
+    // Use darkElevated as default border so it blends with warm dark surfaces.
+    final effectiveBorderColor = borderColor ?? AppColors.darkElevated;
 
     Widget avatarContent = Container(
       width: inner,

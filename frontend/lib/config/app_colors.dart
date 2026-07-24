@@ -263,7 +263,8 @@ class AppColors {
 
   static Color getDivider(bool isDark) => isDark ? darkBorder : divider;
 
-  /// Avatar color based on name (hash for consistent colors)
+  /// Avatar color based on name (hash for consistent colors).
+  /// Normalized to lowercase so name case doesn't affect color.
   static Color avatarColorFor(String name) {
     const palette = [
       Color(0xFFD97706),
@@ -274,7 +275,8 @@ class AppColors {
       Color(0xFFDB2777),
     ];
     if (name.isEmpty) return palette.first;
-    return palette[name.codeUnitAt(0) % palette.length];
+    final firstChar = name.trim().toLowerCase().codeUnitAt(0);
+    return palette[firstChar % palette.length];
   }
 
   // ════════════════════════════════════════════════════════════════
