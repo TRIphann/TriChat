@@ -154,7 +154,12 @@ public class UserService(FirestoreDb db, ILogger<UserService> logger, Cloudinary
             .Take(20)
             .ToList();
 
-        await _kv.SetAsync(cacheKey, JsonSerializer.Serialize(users), TimeSpan.FromMinutes(5));
+        // Short TTL so that user profile changes (e.g. email / display
+        // name updates via the admin console) show up in search results
+        // quickly. The 5-minute caching was causing stale results to
+        // include the current user under a different email, which led
+        // to "Cannot send message to yourself" 400s on the chat side.
+        await _kv.SetAsync(cacheKey, JsonSerializer.Serialize(users), TimeSpan.FromSeconds(30));
         return users;
     }
 

@@ -207,7 +207,16 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Open a conversation with a specific user (creates one if not exists)
   /// Used for opening chat from friend search
-  Future<void> openChatWithUser(String userId) async {
+  Future<({String? error})> openChatWithUser(String userId) async {
+    // Defensive: the search cache may briefly return the current user
+    // (e.g. when the Redis cache is stale or the user shares the same
+    // uid as another account). Reject self-chats before they ever hit
+    // the backend.
+    final myUid = FirebaseAuth.instance.currentUser?.uid;
+    if (myUid != null && userId == myUid) {
+      return (error: 'Bạn không thể nhắn tin cho chính mình');
+    }
+
     // Check if conversation already exists
     final existing = _conversations.where((c) =>
       c.type == 'private' && c.otherUserId == userId
@@ -226,6 +235,7 @@ class ChatProvider extends ChangeNotifier with WidgetsBindingObserver {
       notifyListeners();
       await openConversation(conversation);
     }
+    return (error: null);
   }
 
   void _resetUnreadCount(String conversationId) {

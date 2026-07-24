@@ -811,6 +811,16 @@ class ChatListViewState extends State<ChatListView>
           byId.putIfAbsent(r.id, () => r);
         }
 
+        // Drop the current user from the result list. The backend search
+        // already filters its own currentUserId, but a stale Redis cache
+        // entry or a separately-stored user record that shares the same
+        // uid can leak through. Filtering client-side avoids the dreaded
+        // "Cannot send message to yourself" 400.
+        final myUid = FirebaseAuth.instance.currentUser?.uid;
+        if (myUid != null) {
+          byId.remove(myUid);
+        }
+
         if (mounted) {
           setState(() {
             _inlineSearchResults = byId.values.toList();
@@ -832,8 +842,14 @@ class ChatListViewState extends State<ChatListView>
   Future<void> _openConversationFromSearch(UserSearchModel user) async {
     try {
       final chatProvider = context.read<ChatProvider>();
-      await chatProvider.openChatWithUser(user.id);
+      final result = await chatProvider.openChatWithUser(user.id);
       if (!mounted) return;
+      if (result.error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result.error!)),
+        );
+        return;
+      }
 
       // Resolve the freshly opened conversation so the middle + right panels
       // can re-render even on wide-screen layouts (which key off

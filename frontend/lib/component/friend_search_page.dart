@@ -197,11 +197,16 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
       onTap: () async {
         // Open chat conversation directly
         final chatProvider = context.read<ChatProvider>();
-        await chatProvider.openChatWithUser(f.friendId);
-        // Pop back to chat list (only one route above us)
-        if (context.mounted) {
-          Navigator.of(context).pop();
+        final result = await chatProvider.openChatWithUser(f.friendId);
+        if (!context.mounted) return;
+        if (result.error != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(result.error!)),
+          );
+          return;
         }
+        // Pop back to chat list (only one route above us)
+        Navigator.of(context).pop();
       },
       trailing: Container(
         width: 36,
@@ -214,8 +219,14 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
           icon: Icon(Icons.chat_bubble_outline, color: Colors.white, size: 18),
           onPressed: () async {
             final chatProvider = context.read<ChatProvider>();
-            await chatProvider.openChatWithUser(f.friendId);
+            final result = await chatProvider.openChatWithUser(f.friendId);
             if (!context.mounted) return;
+            if (result.error != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(result.error!)),
+              );
+              return;
+            }
             Navigator.of(context).pop();
           },
           padding: EdgeInsets.zero,
@@ -260,8 +271,14 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
         child: IconButton(
           onPressed: () async {
             final chatProvider = context.read<ChatProvider>();
-            await chatProvider.openChatWithUser(user.id);
+            final result = await chatProvider.openChatWithUser(user.id);
             if (!context.mounted) return;
+            if (result.error != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(result.error!)),
+              );
+              return;
+            }
             Navigator.of(context).pop();
           },
           icon: Icon(Icons.chat_bubble_outline, color: Colors.white, size: 18),
@@ -339,11 +356,16 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
       onTap: () async {
         // Open chat conversation directly with this user
         final chatProvider = context.read<ChatProvider>();
-        await chatProvider.openChatWithUser(user.id);
-        // Pop back to chat list to see the conversation
-        if (context.mounted) {
-          Navigator.of(context).pop();
+        final result = await chatProvider.openChatWithUser(user.id);
+        if (!context.mounted) return;
+        if (result.error != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(result.error!)),
+          );
+          return;
         }
+        // Pop back to chat list to see the conversation
+        Navigator.of(context).pop();
       },
       trailing: action,
     );
