@@ -631,13 +631,18 @@ class ChatListViewState extends State<ChatListView>
   // PREMIUM CHAT LIST PANEL
   // ════════════════════════════════════════════════════════════════
   Widget _buildChatListPanel(AppLocalizations t, bool isDark) {
-    return Column(
-      children: [
-        _buildSearchHeader(t, isDark, isMobile: true),
-        Expanded(
-          child: _buildChatListBody(t, isDark),
-        ),
-      ],
+    // Chat list always uses the web-like warm cream background, regardless
+    // of the app's dark mode setting.
+    return Container(
+      color: AppColors.cream,
+      child: Column(
+        children: [
+          _buildSearchHeader(t, isDark, isMobile: true),
+          Expanded(
+            child: _buildChatListBody(t, isDark),
+          ),
+        ],
+      ),
     );
   }
 
@@ -664,9 +669,10 @@ class ChatListViewState extends State<ChatListView>
   Widget _buildInlineSearchField() {
     return Container(
       decoration: BoxDecoration(
-        // Slightly lighter gray than the surrounding surface
-        color: const Color(0xFF3A3735),
+        // Web-like warm light gray (creamSurface), reads as a real input.
+        color: AppColors.creamSurface,
         borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: AppColors.borderDefault, width: 0.5),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: Row(
@@ -675,7 +681,7 @@ class ChatListViewState extends State<ChatListView>
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Icon(
               Icons.search_rounded,
-              color: AppColors.darkPremiumTextHint,
+              color: AppColors.textSecondary,
               size: 20,
             ),
           ),
@@ -685,13 +691,13 @@ class ChatListViewState extends State<ChatListView>
               controller: _inlineSearchController,
               focusNode: _inlineSearchFocus,
               style: const TextStyle(
-                color: AppColors.darkPremiumTextPrimary,
+                color: AppColors.textPrimary,
                 fontSize: 14,
               ),
               decoration: InputDecoration(
                 hintText: 'Tìm kiếm bạn bè...',
-                hintStyle: TextStyle(
-                  color: AppColors.darkPremiumTextHint,
+                hintStyle: const TextStyle(
+                  color: AppColors.textTertiary,
                   fontSize: 14,
                 ),
                 border: InputBorder.none,
@@ -704,9 +710,9 @@ class ChatListViewState extends State<ChatListView>
           ),
           if (_inlineSearchController.text.isNotEmpty)
             IconButton(
-              icon: Icon(
+              icon: const Icon(
                 Icons.close,
-                color: AppColors.darkPremiumTextSecondary,
+                color: AppColors.textSecondary,
                 size: 18,
               ),
               onPressed: _clearInlineSearch,
@@ -803,6 +809,16 @@ class ChatListViewState extends State<ChatListView>
       final chatProvider = context.read<ChatProvider>();
       await chatProvider.openChatWithUser(user.id);
       if (!mounted) return;
+
+      // Resolve the freshly opened conversation so the middle + right panels
+      // can re-render even on wide-screen layouts (which key off
+      // `_selectedConversation`, not just `ChatProvider.activeConversation`).
+      final active = chatProvider.activeConversation;
+      final isWideScreen = MediaQuery.of(context).size.width >= 900;
+      if (isWideScreen && active != null) {
+        setState(() => _selectedConversation = active);
+      }
+
       // Reset search UI and clear query
       _inlineSearchController.clear();
       _searchDebounce?.cancel();
@@ -815,9 +831,9 @@ class ChatListViewState extends State<ChatListView>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Không thể mở cuộc trò chuyện'),
-            backgroundColor: AppColors.accentRed,
+          SnackBar(
+            content: Text('Không thể mở cuộc trò chuyện: $e'),
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -826,7 +842,7 @@ class ChatListViewState extends State<ChatListView>
 
   Widget _buildInlineSearchResults() {
     return Container(
-      color: AppColors.darkPremiumBackground,
+      color: AppColors.cream,
       child: _isInlineSearching
           ? const Padding(
               padding: EdgeInsets.all(AppSpacing.xl),
@@ -850,7 +866,7 @@ class ChatListViewState extends State<ChatListView>
                           ? 'Nhập tối thiểu 3 ký tự để tìm người lạ'
                           : 'Không tìm thấy kết quả',
                       style: const TextStyle(
-                        color: AppColors.darkPremiumTextHint,
+                        color: AppColors.textSecondary,
                         fontSize: 14,
                       ),
                     ),
@@ -859,9 +875,9 @@ class ChatListViewState extends State<ChatListView>
               : ListView.separated(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   itemCount: _inlineSearchResults.length,
-                  separatorBuilder: (_, __) => const Divider(
+                  separatorBuilder: (context, index) => const Divider(
                     height: 1,
-                    color: AppColors.darkPremiumBorder,
+                    color: AppColors.divider,
                     indent: 68,
                   ),
                   itemBuilder: (context, index) {
@@ -870,6 +886,7 @@ class ChatListViewState extends State<ChatListView>
                         ? user.fullName
                         : user.email;
                     return ListTile(
+                      tileColor: AppColors.cream,
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 4,
@@ -882,7 +899,7 @@ class ChatListViewState extends State<ChatListView>
                       title: Text(
                         name,
                         style: const TextStyle(
-                          color: AppColors.darkPremiumTextPrimary,
+                          color: AppColors.textPrimary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -890,14 +907,14 @@ class ChatListViewState extends State<ChatListView>
                           ? Text(
                               user.email,
                               style: const TextStyle(
-                                color: AppColors.darkPremiumTextHint,
+                                color: AppColors.textSecondary,
                                 fontSize: 12,
                               ),
                             )
                           : null,
                       trailing: const Icon(
                         Icons.chat_bubble_outline_rounded,
-                        color: AppColors.darkPremiumTextHint,
+                        color: AppColors.textSecondary,
                         size: 18,
                       ),
                       onTap: () => _openConversationFromSearch(user),
@@ -929,7 +946,7 @@ class ChatListViewState extends State<ChatListView>
           AppSpacing.lg,
           AppSpacing.md,
         ),
-        color: AppColors.darkPremiumSurface,
+        color: AppColors.cream,
         child: SafeArea(
           bottom: false,
           child: Column(
@@ -948,7 +965,7 @@ class ChatListViewState extends State<ChatListView>
                     child: Text(
                       t.get('messages'),
                       style: AppTypography.headlineMedium.copyWith(
-                        color: theme.colorScheme.onSurface,
+                        color: AppColors.textPrimary,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.5,
                       ),

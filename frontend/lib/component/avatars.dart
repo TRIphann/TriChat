@@ -68,7 +68,7 @@ class TriAvatar extends StatelessWidget {
     final double inner = size;
     final double ringWidth = storyRing ? size * 0.055 : 0;
     final double outerSize = inner + ringWidth * 2 + 4;
-    final effectiveBorderColor = borderColor ?? AppColors.darkBackground;
+    final effectiveBorderColor = borderColor ?? AppColors.cream;
 
     Widget avatarContent = Container(
       width: inner,
