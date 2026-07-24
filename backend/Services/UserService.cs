@@ -123,13 +123,15 @@ public class UserService(FirestoreDb db, ILogger<UserService> logger, Cloudinary
         return updated.ConvertTo<User>().Adapt<UserResponse>();
     }
 
-    public async Task<List<UserRequestDto>> SearchUser(string keyword, string currentUserId)
+    public async Task<List<UserRequestDto>> SearchUser(string keyword, string currentUserId, string? currentEmail = null)
     {
         keyword = keyword.Trim().ToLower();
         if (keyword.Length < 2)
             return new();
 
-        string cacheKey = $"search:user:{keyword}:{currentUserId}";
+        // Cache key also includes the caller's email so a stale entry built
+        // for one of the caller's accounts doesn't bleed across profiles.
+        string cacheKey = $"search:user:{keyword}:{currentUserId}:{(currentEmail ?? string.Empty).ToLowerInvariant()}";
         var cached = await _kv.GetAsync(cacheKey);
 
         if (!string.IsNullOrEmpty(cached))
@@ -139,6 +141,14 @@ public class UserService(FirestoreDb db, ILogger<UserService> logger, Cloudinary
         var users = snapshot.Documents
             .Select(doc => doc.ConvertTo<User>())
             .Where(u => u.Id != currentUserId)
+            // Drop any record that shares the caller's email. This handles
+            // the case where the user's Firestore document has been edited
+            // (e.g. via the admin console) to use a different display name
+            // or email while still pointing at the same uid — it would
+            // otherwise leak through as a search result, leading to
+            // "Cannot send message to yourself" 400s when tapped.
+            .Where(u => string.IsNullOrWhiteSpace(currentEmail) ||
+                        !string.Equals(u.Email, currentEmail, StringComparison.OrdinalIgnoreCase))
             .Where(u =>
                 (!string.IsNullOrWhiteSpace(u.FirstName) && u.FirstName.ToLower().Contains(keyword)) ||
                 (!string.IsNullOrWhiteSpace(u.LastName) && u.LastName.ToLower().Contains(keyword)) ||

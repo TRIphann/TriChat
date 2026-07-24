@@ -44,11 +44,23 @@ public class FirebaseAuthMiddleware(RequestDelegate _next, ILogger<FirebaseAuthM
 
                 context.Items["User"] = decoded;
 
-                // Set ClaimsPrincipal để User.GetUid() hoạt động trong controllers
+                // Try to extract the caller's email from the token claims.
+                // FirebaseToken doesn't expose a typed Email property, so
+                // we read it from the raw claims dictionary (may be absent
+                // for service-account-issued tokens).
+                string? decodedEmail = null;
+                if (decoded.Claims != null && decoded.Claims.TryGetValue("email", out var emailObj))
+                {
+                    decodedEmail = emailObj?.ToString();
+                }
+
+                // Set ClaimsPrincipal để User.GetUid() / User.GetEmail() hoạt động trong controllers
                 var claims = new[]
                 {
                     new System.Security.Claims.Claim(
-                        System.Security.Claims.ClaimTypes.NameIdentifier, decoded.Uid)
+                        System.Security.Claims.ClaimTypes.NameIdentifier, decoded.Uid),
+                    new System.Security.Claims.Claim(
+                        System.Security.Claims.ClaimTypes.Email, decodedEmail ?? string.Empty),
                 };
                 var identity = new System.Security.Claims.ClaimsIdentity(claims, "Firebase");
                 context.User = new System.Security.Claims.ClaimsPrincipal(identity);

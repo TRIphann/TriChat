@@ -13,5 +13,8 @@ namespace backend.Extensions
         public static string GetUid(this ClaimsPrincipal user) =>
         user.FindFirstValue(ClaimTypes.NameIdentifier)
             ?? throw new AppException(ErrorCode.UNAUTHENTICATED);
+
+        public static string? GetEmail(this ClaimsPrincipal user) =>
+        user.FindFirstValue(ClaimTypes.Email);
     }
 }

@@ -5,6 +5,7 @@ using backend.dtos.Response;
 using backend.dtos.Response.Chat;
 using backend.Enums;
 using backend.Exceptions;
+using backend.Extensions;
 using backend.Models;
 using backend.Services;
 using FirebaseAdmin.Auth;
@@ -62,7 +63,8 @@ public class UserController(UserService userService, ChatService chatService) : 
     public async Task<IActionResult> SearchUser([FromQuery] string q)
     {
         var currentUserId = GetUserIdFromToken();
-        var users = await userService.SearchUser(q ?? "", currentUserId);
+        var currentEmail = User.GetEmail();
+        var users = await userService.SearchUser(q ?? "", currentUserId, currentEmail);
         return Ok(new ApiResponse<List<UserRequestDto>> { Code = 200, Result = users });
     }
 
