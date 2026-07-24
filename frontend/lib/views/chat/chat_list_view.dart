@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -648,10 +649,12 @@ class ChatListViewState extends State<ChatListView>
   /// otherwise shows the conversation list. No dropdown overlay, no
   /// navigation to another screen.
   Widget _buildChatListBody(AppLocalizations t, bool isDark) {
-    if (_isShowingSearchResults) {
-      return _buildInlineSearchResults();
-    }
-    return _buildConversationList(t, isDark);
+    return Container(
+      color: AppColors.darkElevated,
+      child: _isShowingSearchResults
+          ? _buildInlineSearchResults()
+          : _buildConversationList(t, isDark),
+    );
   }
 
   // ════════════════════════════════════════════════════════════════
@@ -667,12 +670,12 @@ class ChatListViewState extends State<ChatListView>
   Widget _buildInlineSearchField() {
     return Container(
       decoration: BoxDecoration(
-        // Inner area same warm dark gray as the outer panel — no jarring black.
-        color: AppColors.darkElevated,
+        // Outer ring: darkest dark background
+        color: AppColors.darkPremiumBackground,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(
-          color: AppColors.darkPremiumBorder,
-          width: 0.5,
+          color: AppColors.darkBorder,
+          width: 1,
         ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -688,32 +691,40 @@ class ChatListViewState extends State<ChatListView>
           ),
           const SizedBox(width: 4),
           Expanded(
-            child: TextField(
-              controller: _inlineSearchController,
-              focusNode: _inlineSearchFocus,
-              style: const TextStyle(
-                color: AppColors.darkPremiumTextPrimary,
-                fontSize: 14,
+            child: Container(
+              decoration: BoxDecoration(
+                // Inner area: warm cream — same as the search bar design in web Zalo
+                color: AppColors.creamSurface,
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
-              decoration: InputDecoration(
-                hintText: 'Tìm kiếm bạn bè...',
-                hintStyle: const TextStyle(
-                  color: AppColors.darkPremiumTextHint,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              child: TextField(
+                controller: _inlineSearchController,
+                focusNode: _inlineSearchFocus,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
                   fontSize: 14,
                 ),
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: InputDecoration(
+                  hintText: 'Tìm kiếm bạn bè...',
+                  hintStyle: const TextStyle(
+                    color: AppColors.textTertiary,
+                    fontSize: 14,
+                  ),
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                onChanged: _onSearchTextChanged,
+                onTap: () => setState(() => _isShowingSearchResults = true),
               ),
-              onChanged: _onSearchTextChanged,
-              onTap: () => setState(() => _isShowingSearchResults = true),
             ),
           ),
           if (_inlineSearchController.text.isNotEmpty)
             IconButton(
               icon: const Icon(
                 Icons.close,
-                color: AppColors.darkPremiumTextSecondary,
+                color: AppColors.textSecondary,
                 size: 18,
               ),
               onPressed: _clearInlineSearch,
@@ -829,11 +840,19 @@ class ChatListViewState extends State<ChatListView>
         _isInlineSearching = false;
       });
       _inlineSearchFocus.unfocus();
-    } on Exception catch (e, st) {
-      // Catch Dio/network errors with full detail for debugging
-      final msg = e.toString().contains('Connection')
-          ? 'Mất kết nối mạng. Vui lòng thử lại.'
-          : 'Không thể mở cuộc trò chuyện ($e)';
+    } on DioException catch (e) {
+      // Parse the backend's error message from the 400 response body.
+      String msg = 'Không thể mở cuộc trò chuyện';
+      if (e.response != null && e.response!.data != null) {
+        try {
+          final data = e.response!.data;
+          if (data is Map) {
+            msg = data['message'] ?? data['Message'] ?? msg;
+          } else if (data is String && data.isNotEmpty) {
+            msg = data;
+          }
+        } catch (_) {}
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -848,92 +867,99 @@ class ChatListViewState extends State<ChatListView>
         );
       }
       // ignore: avoid_print
-      print('[ChatListView] openConversationFromSearch error: $e\n$st');
+      print('[ChatListView] DioException ${e.response?.statusCode} when opening '
+          'chat with ${user.id}: $msg\n${e.response?.data}');
+    } on Exception catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     }
   }
 
   Widget _buildInlineSearchResults() {
-    return Container(
-      color: AppColors.darkElevated,
-      child: _isInlineSearching
-          ? const Padding(
-              padding: EdgeInsets.all(AppSpacing.xl),
-              child: Center(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: AppColors.primaryAmber,
-                  ),
+    return _isInlineSearching
+        ? const Padding(
+            padding: EdgeInsets.all(AppSpacing.xl),
+            child: Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.primaryAmber,
                 ),
               ),
-            )
-          : _inlineSearchResults.isEmpty
-              ? Padding(
-                  padding: const EdgeInsets.all(AppSpacing.xl),
-                  child: Center(
-                    child: Text(
-                      _inlineSearchController.text.trim().length < 3
-                          ? 'Nhập tối thiểu 3 ký tự để tìm người lạ'
-                          : 'Không tìm thấy kết quả',
-                      style: const TextStyle(
-                        color: AppColors.darkPremiumTextHint,
-                        fontSize: 14,
-                      ),
+            ),
+          )
+        : _inlineSearchResults.isEmpty
+            ? Padding(
+                padding: const EdgeInsets.all(AppSpacing.xl),
+                child: Center(
+                  child: Text(
+                    _inlineSearchController.text.trim().length < 3
+                        ? 'Nhập tối thiểu 3 ký tự để tìm người lạ'
+                        : 'Không tìm thấy kết quả',
+                    style: const TextStyle(
+                      color: AppColors.darkPremiumTextHint,
+                      fontSize: 14,
                     ),
                   ),
-                )
-              : ListView.separated(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  itemCount: _inlineSearchResults.length,
-                  separatorBuilder: (context, index) => const Divider(
-                    height: 1,
-                    color: AppColors.darkPremiumBorder,
-                    indent: 68,
-                  ),
-                  itemBuilder: (context, index) {
-                    final user = _inlineSearchResults[index];
-                    final name = user.fullName.isNotEmpty
-                        ? user.fullName
-                        : user.email;
-                    return ListTile(
-                      tileColor: AppColors.darkElevated,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 4,
-                      ),
-                      leading: TriAvatar(
-                        imageUrl: user.avatar,
-                        name: name,
-                        size: 44,
-                      ),
-                      title: Text(
-                        name,
-                        style: const TextStyle(
-                          color: AppColors.darkPremiumTextPrimary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      subtitle: user.email.isNotEmpty && user.fullName.isNotEmpty
-                          ? Text(
-                              user.email,
-                              style: const TextStyle(
-                                color: AppColors.darkPremiumTextHint,
-                                fontSize: 12,
-                              ),
-                            )
-                          : null,
-                      trailing: const Icon(
-                        Icons.chat_bubble_outline_rounded,
-                        color: AppColors.darkPremiumTextHint,
-                        size: 18,
-                      ),
-                      onTap: () => _openConversationFromSearch(user),
-                    );
-                  },
                 ),
-    );
+              )
+            : ListView.separated(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                itemCount: _inlineSearchResults.length,
+                separatorBuilder: (context, index) => const Divider(
+                  height: 1,
+                  color: AppColors.darkPremiumBorder,
+                  indent: 68,
+                ),
+                itemBuilder: (context, index) {
+                  final user = _inlineSearchResults[index];
+                  final name = user.fullName.isNotEmpty
+                      ? user.fullName
+                      : user.email;
+                  return ListTile(
+                    tileColor: AppColors.darkElevated,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
+                    leading: TriAvatar(
+                      imageUrl: user.avatar,
+                      name: name,
+                      size: 44,
+                    ),
+                    title: Text(
+                      name,
+                      style: const TextStyle(
+                        color: AppColors.darkPremiumTextPrimary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    subtitle: user.email.isNotEmpty && user.fullName.isNotEmpty
+                        ? Text(
+                            user.email,
+                            style: const TextStyle(
+                              color: AppColors.darkPremiumTextHint,
+                              fontSize: 12,
+                            ),
+                          )
+                        : null,
+                    trailing: const Icon(
+                      Icons.chat_bubble_outline_rounded,
+                      color: AppColors.darkPremiumTextHint,
+                      size: 18,
+                    ),
+                    onTap: () => _openConversationFromSearch(user),
+                  );
+                },
+              );
   }
 
   // Legacy helper kept for callers that pushed a full-screen page.
