@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import AppShell from '../components/layout/AppShell';
+import TriChatLayout from '../components/layout/TriChatLayout';
 
 const Splash = () => <></>;
 
@@ -15,7 +15,7 @@ function RedirectIfAuth() {
   const ready = useAuthStore((s) => s.ready);
   const user = useAuthStore((s) => s.user);
   if (!ready) return null;
-  return user ? <Navigate to="/chat-list" replace /> : <Outlet />;
+  return user ? <Navigate to="/app" replace /> : <Outlet />;
 }
 
 import Home from '../pages/Home';
@@ -26,20 +26,12 @@ import SetPassword from '../pages/auth/SetPassword';
 import EnterName from '../pages/auth/EnterName';
 import PersonalInfo from '../pages/auth/PersonalInfo';
 import UpdateAvatar from '../pages/auth/UpdateAvatar';
-import ChatList from '../pages/chat/ChatList';
-import ChatRoom from '../pages/chat/ChatRoom';
-import NewConversation from '../pages/chat/NewConversation';
-import GroupInfo from '../pages/chat/GroupInfo';
-import Newsfeed from '../pages/feed/Newsfeed';
 import CreatePost from '../pages/feed/CreatePost';
 import CreateStory from '../pages/feed/CreateStory';
 import StoryViewer from '../pages/feed/StoryViewer';
-import FriendList from '../pages/friends/FriendList';
-import FriendRequests from '../pages/friends/FriendRequests';
 import AddFriend from '../pages/friends/AddFriend';
 import Contacts from '../pages/friends/Contacts';
-import Profile from '../pages/profile/Profile';
-import MyProfile from '../pages/profile/MyProfile';
+import FriendRequests from '../pages/friends/FriendRequests';
 import CallRoom from '../pages/call/CallRoom';
 import NotFound from '../pages/NotFound';
 
@@ -62,26 +54,27 @@ export const router = createBrowserRouter([
   {
     element: <RequireAuth />,
     children: [
-      {
-        element: <AppShell />,
-        children: [
-          { path: '/chat-list', element: <ChatList /> },
-          { path: '/chat-list/:id', element: <ChatRoom /> },
-          { path: '/newfeed', element: <Newsfeed /> },
-          { path: '/create-post', element: <CreatePost /> },
-          { path: '/create-story', element: <CreateStory /> },
-          { path: '/story-viewer', element: <StoryViewer /> },
-          { path: '/profile', element: <Profile /> },
-          { path: '/my-profile', element: <MyProfile /> },
-          { path: '/friends', element: <FriendList /> },
-          { path: '/friend-requests', element: <FriendRequests /> },
-          { path: '/add-friend', element: <AddFriend /> },
-          { path: '/contacts', element: <Contacts /> },
-          { path: '/new-conversation', element: <NewConversation /> },
-          { path: '/group-info/:id', element: <GroupInfo /> },
-          { path: '/call', element: <CallRoom /> },
-        ],
-      },
+      // Single primary app shell — handles everything via state
+      { path: '/app', element: <TriChatLayout /> },
+
+      // Standalone routes (post creation, call room) — fullscreen overlays
+      { path: '/create-post', element: <CreatePost /> },
+      { path: '/create-story', element: <CreateStory /> },
+      { path: '/story-viewer', element: <StoryViewer /> },
+      { path: '/add-friend', element: <AddFriend /> },
+      { path: '/contacts', element: <Contacts /> },
+      { path: '/friend-requests', element: <FriendRequests /> },
+      { path: '/call', element: <CallRoom /> },
+
+      // Legacy aliases → redirect to /app (back-compat with old bookmarks)
+      { path: '/chat-list', element: <Navigate to="/app" replace /> },
+      { path: '/chat-list/:id', element: <Navigate to="/app" replace /> },
+      { path: '/newfeed', element: <Navigate to="/app" replace /> },
+      { path: '/friends', element: <Navigate to="/app" replace /> },
+      { path: '/profile', element: <Navigate to="/app" replace /> },
+      { path: '/my-profile', element: <Navigate to="/app" replace /> },
+      { path: '/new-conversation', element: <Navigate to="/app" replace /> },
+      { path: '/group-info/:id', element: <Navigate to="/app" replace /> },
     ],
   },
   { path: '*', element: <NotFound /> },

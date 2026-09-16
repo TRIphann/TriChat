@@ -1,25 +1,12 @@
-import { Outlet, useLocation } from 'react-router-dom';
-import { useEffect, useRef } from 'react';
-import { pageIn } from '../../lib/anime';
-import TopBar from './TopBar';
-import BottomNav from './BottomNav';
-import './appShell.css';
+import { Outlet, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
+// Compatibility shim — các page cũ đang dùng AppShell nên redirect về /app.
+// Tất cả UI thật giờ nằm trong TriChatLayout.
 export default function AppShell() {
-  const ref = useRef(null);
-  const loc = useLocation();
-
+  const nav = useNavigate();
   useEffect(() => {
-    pageIn(ref.current);
-  }, [loc.pathname]);
-
-  return (
-    <div className="app-shell">
-      <TopBar />
-      <main ref={ref} className="app-shell__main">
-        <Outlet />
-      </main>
-      <BottomNav />
-    </div>
-  );
+    nav('/app', { replace: true });
+  }, [nav]);
+  return <Outlet />;
 }

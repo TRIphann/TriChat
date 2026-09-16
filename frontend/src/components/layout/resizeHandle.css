@@ -1,0 +1,41 @@
+.resize-handle {
+  position: relative;
+  width: 1px;
+  background: var(--hairline);
+  cursor: col-resize;
+  transition: background 200ms var(--ease-soft);
+  flex-shrink: 0;
+  z-index: 5;
+}
+.resize-handle:hover,
+.resize-handle.is-dragging {
+  background: var(--amber);
+  width: 1px;
+}
+.resize-handle__grip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+  background: var(--strong);
+  opacity: 0;
+  transition: all 220ms var(--ease-soft);
+}
+.resize-handle:hover .resize-handle__grip,
+.resize-handle.is-dragging .resize-handle__grip {
+  opacity: 1;
+  background: var(--amber);
+  width: 4px;
+  height: 48px;
+}
+.resize-handle:hover {
+  width: 8px;
+  margin: 0 -3px;
+}
+.resize-handle.is-dragging {
+  width: 8px;
+  margin: 0 -3px;
+}

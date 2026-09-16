@@ -1,0 +1,114 @@
+.newsfeed-view {
+  width: 100%;
+  padding: 24px 28px;
+}
+.newsfeed-view.is-embedded {
+  padding: 16px;
+}
+
+.newsfeed-view__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 12px;
+}
+.newsfeed-view__title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.newsfeed-view__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.newsfeed-view__stories {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+  padding: 4px 0;
+}
+.story-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  flex-shrink: 0;
+}
+.story-chip__name {
+  font-size: 12px;
+  color: var(--text-2);
+  max-width: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.newsfeed-view__list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+.post-card {
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-xl);
+  padding: 18px;
+  transition: all 220ms var(--ease-soft);
+}
+.post-card:hover {
+  box-shadow: var(--shadow-soft);
+}
+.post-card__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.post-card__name {
+  font-weight: 600;
+  font-size: 14px;
+}
+.post-card__time {
+  font-size: 12px;
+  color: var(--text-3);
+}
+.post-card__content {
+  margin: 0 0 12px;
+  line-height: 1.5;
+  color: var(--text);
+}
+.post-card__media {
+  width: 100%;
+  border-radius: var(--radius-md);
+  margin-bottom: 12px;
+}
+.post-card__footer {
+  display: flex;
+  gap: 16px;
+  padding-top: 8px;
+  border-top: 1px solid var(--hairline);
+}
+.post-card__like,
+.post-card__comment,
+.post-card__share {
+  font-size: 13px;
+  color: var(--text-2);
+  background: transparent;
+  padding: 6px 10px;
+  border-radius: var(--radius-pill);
+  transition: all 200ms var(--ease-soft);
+}
+.post-card__like:hover,
+.post-card__comment:hover,
+.post-card__share:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+.post-card__like.is-liked { color: var(--rose); }

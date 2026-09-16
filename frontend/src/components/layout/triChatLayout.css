@@ -1,0 +1,163 @@
+.tri-chat-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: var(--canvas);
+  color: var(--text);
+}
+
+.tri-chat-layout__topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--hairline);
+  background: color-mix(in srgb, var(--card) 80%, transparent);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  z-index: 50;
+  flex-shrink: 0;
+}
+
+.tri-chat-layout__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+}
+.tri-chat-layout__logo {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--amber), var(--ember));
+  box-shadow: var(--shadow-aurora);
+  flex-shrink: 0;
+}
+.tri-chat-layout__brand-name {
+  background: linear-gradient(135deg, var(--amber), var(--ember));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.tri-chat-layout__search {
+  position: relative;
+  flex: 1;
+  max-width: 520px;
+}
+.tri-chat-layout__search .input {
+  width: 100%;
+}
+.tri-chat-layout__search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: var(--text-3);
+  pointer-events: none;
+}
+
+.tri-chat-layout__topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+.tri-chat-layout__icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: var(--text-2);
+  background: transparent;
+  transition: all 200ms var(--ease-soft);
+}
+.tri-chat-layout__icon-btn:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.tri-chat-layout__panels {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.tri-chat-layout__panel {
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.tri-chat-layout__panel--left { background: var(--card); }
+.tri-chat-layout__panel--center { background: var(--canvas); }
+.tri-chat-layout__panel--right { background: var(--card); }
+
+/* Floating dock buttons for hide/show panels */
+.tri-chat-layout__dock {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 64px;
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--text-2);
+  z-index: 40;
+  box-shadow: var(--shadow-soft);
+  transition: all 200ms var(--ease-soft);
+}
+.tri-chat-layout__dock:hover {
+  background: var(--amber);
+  color: #fff;
+  box-shadow: var(--shadow-aurora);
+  width: 28px;
+}
+
+.tri-chat-layout__dock--left {
+  left: 0;
+  border-left: none;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.tri-chat-layout__dock--left.is-closed {
+  left: 0;
+}
+.tri-chat-layout__dock--right {
+  right: 0;
+  border-right: none;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* When panel hidden, dock button shows the OTHER direction */
+.tri-chat-layout__dock--left.is-closed { transform: translateY(-50%) translateX(0); }
+
+/* When window too narrow — collapse panels automatically */
+@media (max-width: 880px) {
+  .tri-chat-layout__panel--left,
+  .tri-chat-layout__panel--right {
+    display: none;
+  }
+  .tri-chat-layout__dock--left,
+  .tri-chat-layout__dock--right {
+    display: none;
+  }
+  .tri-chat-layout__search { display: none; }
+}
