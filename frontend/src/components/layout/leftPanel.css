@@ -8,6 +8,7 @@
   overflow: hidden;
 }
 
+/* ---------- User strip ---------- */
 .left-panel__me {
   display: flex;
   align-items: center;
@@ -23,16 +24,11 @@
 .left-panel__me-text { flex: 1; min-width: 0; }
 .left-panel__me-name {
   font-weight: 600;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-.left-panel__me-sub {
-  font-size: 12px;
-  color: var(--text-3);
-  margin-top: 2px;
 }
 .left-panel__me-chev {
   font-size: 20px;
@@ -40,6 +36,7 @@
   line-height: 1;
 }
 
+/* ---------- Sub-tabs ---------- */
 .left-panel__tabs {
   display: flex;
   gap: 4px;
@@ -69,34 +66,72 @@
   color: var(--amber);
 }
 
-.left-panel__subtabs {
-  display: flex;
-  gap: 4px;
-  padding: 8px 12px;
+/* ---------- Search bar ---------- */
+.left-panel__search {
+  position: relative;
+  padding: 10px 12px 6px;
 }
-.left-panel__subtab {
-  flex: 1;
-  padding: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-2);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  transition: all 200ms var(--ease-soft);
+.left-panel__search-input {
+  width: 100%;
+  padding: 9px 32px 9px 34px !important;
+  background: var(--surface) !important;
+  border-radius: var(--radius-pill) !important;
+  font-size: 13px;
+}
+.left-panel__search-icon {
+  position: absolute;
+  left: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  color: var(--text-3);
+  pointer-events: none;
+}
+.left-panel__search-clear {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--strong);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  transition: background 200ms var(--ease-soft);
 }
-.left-panel__subtab.is-active {
-  background: var(--surface);
-  color: var(--text);
+.left-panel__search-clear:hover { background: var(--amber); color: #fff; }
+
+.left-panel__search-status {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-3);
+  padding: 16px;
+  margin: 0;
 }
 
+.left-panel__search-results {
+  padding: 0 4px 12px;
+}
+.left-panel__search-heading {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-3);
+  padding: 8px 12px 6px;
+  margin: 0;
+}
+
+/* ---------- Inner scroll area ---------- */
 .left-panel__inner {
   flex: 1;
   overflow-y: auto;
-  padding: 8px 8px 16px;
+  padding: 4px 4px 16px;
   position: relative;
 }
 
@@ -104,7 +139,7 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  padding: 12px 12px 8px;
+  padding: 8px 12px 8px;
 }
 .left-panel__title {
   margin: 0;
@@ -131,7 +166,64 @@
   gap: 2px;
 }
 
-/* conv-tile overrides for left-panel context */
+/* ---------- Friend groups (collapsible rows) ---------- */
+.left-panel__friends-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 0;
+}
+.friend-group {
+  background: transparent;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.friend-group__head {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  transition: background 200ms var(--ease-soft);
+  border-radius: var(--radius-md);
+}
+.friend-group__head:hover { background: var(--surface); }
+.friend-group__head-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+.friend-group__chev {
+  font-size: 12px;
+  color: var(--text-3);
+  transition: transform 240ms var(--ease-soft);
+  width: 14px;
+  display: inline-flex;
+  justify-content: center;
+}
+.friend-group.is-open .friend-group__chev { transform: rotate(0); }
+.friend-group__icon {
+  font-size: 16px;
+  color: var(--amber);
+}
+.friend-group__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  flex: 1;
+}
+.friend-group__body {
+  padding: 0 4px 6px;
+}
+.friend-group__empty {
+  margin: 0;
+  padding: 8px 14px 12px 38px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+/* ---------- conv-tile overrides for left-panel context ---------- */
 .left-panel .conv-tile {
   display: flex;
   align-items: center;
@@ -164,6 +256,7 @@
   gap: 6px;
 }
 
+/* ---------- Empty state ---------- */
 .empty-state--compact {
   padding: 40px 24px;
 }

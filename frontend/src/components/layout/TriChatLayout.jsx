@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { useUiStore } from '../../store/uiStore';
-import { useTheme } from '../../theme/ThemeProvider';
 import ResizeHandle from './ResizeHandle';
 import LeftPanel from './LeftPanel';
 import CenterPanel from './CenterPanel';
@@ -16,8 +15,6 @@ export default function TriChatLayout() {
   const setRightWidth = useUiStore((s) => s.setRightWidth);
   const toggleLeft = useUiStore((s) => s.toggleLeft);
   const toggleRight = useUiStore((s) => s.toggleRight);
-  const resetLayout = useUiStore((s) => s.resetLayout);
-  const { theme, toggle: toggleTheme } = useTheme();
 
   const rootRef = useRef(null);
 
@@ -44,7 +41,6 @@ export default function TriChatLayout() {
       setLeftWidth(320);
       return;
     }
-    // Drag handle on the right edge of left panel: drag right → left grows
     setLeftWidth(leftWidth + dx);
   }
   function handleRightDelta(dx) {
@@ -52,49 +48,12 @@ export default function TriChatLayout() {
       setRightWidth(340);
       return;
     }
-    // Drag handle on the left edge of right panel: drag left → right grows
     setRightWidth(rightWidth - dx);
   }
 
   return (
     <div className="tri-chat-layout" ref={rootRef}>
-      {/* Top chrome bar — search + theme + reset */}
-      <div className="tri-chat-layout__topbar">
-        <div className="tri-chat-layout__brand">
-          <span className="tri-chat-layout__logo" aria-hidden />
-          <span className="tri-chat-layout__brand-name">TriChat</span>
-        </div>
-
-        <div className="tri-chat-layout__search">
-          <input
-            className="input"
-            placeholder="Tìm kiếm trên TriChat..."
-            style={{ background: 'var(--surface)', padding: '8px 14px 8px 36px' }}
-          />
-          <span className="tri-chat-layout__search-icon">🔍</span>
-        </div>
-
-        <div className="tri-chat-layout__topbar-actions">
-          <button
-            className="tri-chat-layout__icon-btn"
-            onClick={toggleTheme}
-            aria-label="Đổi giao diện"
-            title="Đổi giao diện"
-          >
-            {theme === 'dark' ? '☀️' : '🌙'}
-          </button>
-          <button
-            className="tri-chat-layout__icon-btn"
-            onClick={resetLayout}
-            aria-label="Reset layout"
-            title="Reset layout"
-          >
-            ↺
-          </button>
-        </div>
-      </div>
-
-      {/* 3-panel container */}
+      {/* 3-panel container — top bar đã được lược bỏ */}
       <div className="tri-chat-layout__panels">
         {leftVisible && (
           <>
@@ -145,6 +104,22 @@ export default function TriChatLayout() {
       >
         {rightVisible ? '›' : '‹'}
       </button>
+
+      <ResetHotkey />
     </div>
   );
+}
+
+function ResetHotkey() {
+  useEffect(() => {
+    function onKey(e) {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === 'r' || e.key === 'R')) {
+        e.preventDefault();
+        useUiStore.getState().resetLayout();
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+  return null;
 }

@@ -480,7 +480,7 @@ function AddMemberModal({ open, onClose, conversationId }) {
 /*  PROFILE SECTION                                                   */
 /* ------------------------------------------------------------------ */
 
-function ProfileSection({ userId, onChangeUser }) {
+export function ProfileSection({ userId, onChangeUser }) {
   const me = useAuthStore((s) => s.user);
   const myProfile = useAuthStore((s) => s.profile);
   const loadMyProfile = useProfileStore((s) => s.loadMyProfile);

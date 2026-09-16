@@ -78,6 +78,19 @@ export const useUiStore = create((set, get) => ({
   setActiveUserId: (uid) => {
     set({ activeUserId: uid, rightTab: 'profile', rightVisible: true });
   },
+  openProfileInCenter: (uid) => {
+    set({
+      activeUserId: uid,
+      centerMode: 'profile',
+      rightVisible: false,
+    });
+  },
+  closeProfileInCenter: () => {
+    set({
+      centerMode: 'chat',
+      activeUserId: null,
+    });
+  },
   setRightFeedId: (id) => {
     set({ rightFeedId: id, rightTab: 'feed', rightVisible: true });
   },

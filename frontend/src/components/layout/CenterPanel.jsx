@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { useChatStore } from '../../store/chatStore';
 import { useUiStore } from '../../store/uiStore';
 import { useCallStore } from '../../store/callStore';
-import { Avatar, Button } from '../ui';
+import { Avatar } from '../ui';
 import MessageBubble from '../chat/MessageBubble';
 import ChatComposer from '../chat/ChatComposer';
 import NewsfeedView from './NewsfeedView';
+import { ProfileSection } from './RightPanel';
 import { formatLastSeen } from '../../lib/format';
 import './centerPanel.css';
 
@@ -14,6 +15,8 @@ export default function CenterPanel() {
   const setCenterMode = useUiStore((s) => s.setCenterMode);
   const activeConvId = useUiStore((s) => s.activeConvId);
   const closeConversation = useUiStore((s) => s.closeConversation);
+  const activeUserId = useUiStore((s) => s.activeUserId);
+  const closeProfileInCenter = useUiStore((s) => s.closeProfileInCenter);
   const conversations = useChatStore((s) => s.conversations);
   const activeConv = useChatStore((s) => s.activeConversation);
   const openConversation = useChatStore((s) => s.openConversation);
@@ -42,12 +45,15 @@ export default function CenterPanel() {
         centerMode={centerMode}
         setCenterMode={setCenterMode}
         conv={conv}
-        onBack={closeConversation}
+        onBack={centerMode === 'profile' ? closeProfileInCenter : closeConversation}
+        activeUserId={activeUserId}
       />
 
       <div className="center-panel__body">
         {centerMode === 'chat' ? (
           <ChatArea conv={conv} />
+        ) : centerMode === 'profile' ? (
+          <ProfileSection userId={activeUserId || 'me'} />
         ) : (
           <NewsfeedView embedded />
         )}
@@ -57,14 +63,13 @@ export default function CenterPanel() {
 }
 
 function useChatServiceLazy() {
-  // local import to avoid circular deps at top
   return { getConversation: async (id) => {
     const { chatService } = await import('../../services/chat.service');
     return chatService.getConversation(id);
   } };
 }
 
-function CenterToolbar({ centerMode, setCenterMode, conv, onBack }) {
+function CenterToolbar({ centerMode, setCenterMode, conv, onBack, activeUserId }) {
   const onlineStatuses = useChatStore((s) => s.onlineStatuses);
   const otherOnline = conv?.otherUserId ? onlineStatuses[conv.otherUserId] : false;
   const startOutgoing = useCallStore((s) => s.startOutgoing);
@@ -72,6 +77,28 @@ function CenterToolbar({ centerMode, setCenterMode, conv, onBack }) {
   const setRightFeedId = useUiStore((s) => s.setRightFeedId);
 
   const otherName = conv?.displayName || 'Hội thoại';
+
+  // PROFILE MODE — chỉ hiện tiêu đề + nút đóng (back), không có mode switch
+  if (centerMode === 'profile') {
+    const title = activeUserId === 'me' ? 'Hồ sơ của bạn' : 'Hồ sơ';
+    return (
+      <header className="center-panel__header center-panel__header--simple">
+        <div className="center-panel__conv">
+          <button
+            className="center-panel__back"
+            onClick={onBack}
+            aria-label="Đóng"
+            title="Đóng"
+          >×</button>
+          <div className="center-panel__info">
+            <div>
+              <div className="center-panel__name">{title}</div>
+            </div>
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="center-panel__header">
@@ -229,8 +256,6 @@ function ChatArea({ conv }) {
               onReact={(emoji) => reactToMessage(conv.id, m.id, emoji)}
               onDelete={(msg) => deleteMessage(conv.id, msg.id)}
               onRetry={(msg) => {
-                // remove failed and resend
-                // simple: re-trigger send
                 sendMessage({
                   type: msg.type,
                   content: msg.content,
