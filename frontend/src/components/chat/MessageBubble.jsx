@@ -35,7 +35,7 @@ export default function MessageBubble({ message, onReply, onReact, onDelete, onR
       <div className="bubble__meta">
         <time>{formatTime(message.createdAt)}</time>
         {message.isEdited && <span className="bubble__edited">· đã sửa</span>}
-        {isMine && message.status === 'sending' && <span>⏱</span>}
+        {isMine && message.status === 'sending' && <span className="bubble__sending">đang gửi</span>}
         {isMine && message.status === 'failed' && (
           <button className="bubble__retry" onClick={() => onRetry?.(message)}>↻ Thử lại</button>
         )}
@@ -60,10 +60,10 @@ export default function MessageBubble({ message, onReply, onReact, onDelete, onR
             <button key={e} className="bubble__action" onClick={() => onReact?.(e)} aria-label={`React ${e}`}>{e}</button>
           ))}
           {onReply && (
-            <button className="bubble__action" onClick={() => onReply(message)} aria-label="Reply">↩</button>
+            <button className="bubble__action" onClick={() => onReply(message)} aria-label="Reply" title="Trả lời">Trả lời</button>
           )}
           {isMine && onDelete && (
-            <button className="bubble__action" onClick={() => onDelete(message)} aria-label="Delete">🗑</button>
+            <button className="bubble__action" onClick={() => onDelete(message)} aria-label="Delete" title="Thu hồi">Xóa</button>
           )}
         </div>
       )}
@@ -97,7 +97,7 @@ function BubbleContent({ message }) {
     case 'location':
       return (
         <div className="bubble__location">
-          📍 {message.address || `${message.latitude?.toFixed?.(4)}, ${message.longitude?.toFixed?.(4)}`}
+          Vị trí: {message.address || `${message.latitude?.toFixed?.(4)}, ${message.longitude?.toFixed?.(4)}`}
         </div>
       );
     case 'call':
@@ -105,7 +105,7 @@ function BubbleContent({ message }) {
     case 'file':
       return (
         <a href={message.mediaUrl} target="_blank" rel="noreferrer" className="bubble__file">
-          📎 {message.fileName || 'Tệp đính kèm'}
+          File: {message.fileName || 'Tệp đính kèm'}
         </a>
       );
     default:

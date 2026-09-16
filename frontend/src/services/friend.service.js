@@ -43,4 +43,13 @@ export const friendService = {
   async searchUsers(keyword) {
     return http.get('/api/user/search', { q: keyword });
   },
+
+  /**
+   * Lấy danh sách người dùng trong hệ thống để gợi ý kết bạn.
+   * Endpoint: GET /api/user (trả về toàn bộ user).
+   * Frontend sẽ tự lọc trừ current user + đã là bạn + đang pending.
+   */
+  async discoverUsers() {
+    return http.get('/api/user');
+  },
 };

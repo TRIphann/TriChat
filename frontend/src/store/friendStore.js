@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { friendService } from '../services/friend.service';
 import { createFriendConnection } from '../lib/signalr';
+import { useAuthStore } from './authStore';
 
 export const useFriendStore = create((set, get) => ({
   friends: [],
@@ -8,6 +9,10 @@ export const useFriendStore = create((set, get) => ({
   pendingSent: [],
   searchResults: [],
   searchQuery: '',
+
+  // Gợi ý kết bạn — user chưa có bạn sẽ thấy danh sách này
+  suggestions: [],
+  suggestionsState: 'idle', // 'idle' | 'loading' | 'success' | 'error'
 
   friendsState: 'idle',
   requestsState: 'idle',
@@ -72,8 +77,38 @@ export const useFriendStore = create((set, get) => ({
         friendsState: 'success',
         requestsState: 'success',
       });
+      // Khi load xong, nếu chưa có bạn thì tải luôn gợi ý
+      if (!friends || friends.length === 0) {
+        get().loadSuggestions();
+      }
     } catch (e) {
       set({ friendsState: 'error', requestsState: 'error' });
+    }
+  },
+
+  /**
+   * Lấy gợi ý kết bạn — gọi GET /api/user rồi lọc trừ current user + đã là bạn + đang pending.
+   * Chỉ chạy khi user chưa có bạn để tránh tải thừa.
+   */
+  async loadSuggestions() {
+    if (get().suggestionsState === 'loading') return;
+    set({ suggestionsState: 'loading' });
+    try {
+      const all = await friendService.discoverUsers();
+      const myUid = useAuthStore.getState().user?.uid;
+      const friendIds = new Set(get().friends.map((f) => f.friendId));
+      const pendingIds = new Set([
+        ...get().pendingSent.map((r) => r.addresseeId),
+        ...get().pendingReceived.map((r) => r.senderId),
+      ]);
+      const filtered = (all || [])
+        .filter((u) => u.id !== myUid)
+        .filter((u) => !friendIds.has(u.id))
+        .filter((u) => !pendingIds.has(u.id))
+        .slice(0, 8);
+      set({ suggestions: filtered, suggestionsState: 'success' });
+    } catch (e) {
+      set({ suggestions: [], suggestionsState: 'error' });
     }
   },
 
@@ -96,6 +131,7 @@ export const useFriendStore = create((set, get) => ({
     const res = await friendService.sendRequest(userId);
     set((s) => ({
       pendingSent: [res, ...s.pendingSent.filter((f) => f.id !== res.id)],
+      suggestions: s.suggestions.filter((u) => u.id !== userId),
     }));
     return res;
   },
@@ -107,6 +143,9 @@ export const useFriendStore = create((set, get) => ({
       set((s) => ({
         pendingReceived: s.pendingReceived.filter((f) => f.id !== friendshipId),
         friends: [friend, ...s.friends.filter((f) => f.friendId !== friend.friendId)],
+        // Sau khi đã có bạn thì không cần suggestions nữa
+        suggestions: [],
+        suggestionsState: 'idle',
       }));
     } else {
       set((s) => ({
@@ -118,7 +157,16 @@ export const useFriendStore = create((set, get) => ({
 
   async cancelRequest(friendshipId) {
     await friendService.cancelRequest(friendshipId);
-    set((s) => ({ pendingSent: s.pendingSent.filter((f) => f.id !== friendshipId) }));
+    set((s) => {
+      const cancelled = s.pendingSent.find((r) => r.id === friendshipId);
+      return {
+        pendingSent: s.pendingSent.filter((f) => f.id !== friendshipId),
+        // Trả lại user vào suggestions nếu còn thiếu bạn
+        suggestions: cancelled && s.friends.length === 0
+          ? [{ id: cancelled.addresseeId, fullName: cancelled.addresseeName, avatar: cancelled.addresseeAvatar }, ...s.suggestions]
+          : s.suggestions,
+      };
+    });
   },
 
   async unfriend(targetUserId) {

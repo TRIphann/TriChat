@@ -9,10 +9,9 @@ const DEFAULTS = {
   rightVisible: true,
   centerMode: 'chat', // 'chat' | 'feed'
   leftTab: 'chats',   // 'chats' | 'friends' | 'requests'
-  rightTab: 'info',   // 'info' | 'profile' | 'feed'
+  rightTab: 'info',   // 'info' | 'profile'  (không còn 'feed')
   activeConvId: null, // current opened conversation id
   activeUserId: null, // user profile shown in right panel (null = auto from conv)
-  rightFeedId: null,  // group/user id shown in right newsfeed (null = global)
   collapsed: false,   // mini mode toggle (mobile-ish)
 };
 
@@ -92,7 +91,12 @@ export const useUiStore = create((set, get) => ({
     });
   },
   setRightFeedId: (id) => {
-    set({ rightFeedId: id, rightTab: 'feed', rightVisible: true });
+    // Backwards-compat: tab feed đã bỏ khỏi right panel — giữ stub cho code cũ không vỡ.
+    // Center vẫn có chế độ 'feed' render NewsfeedView global; hành vi này không còn ảnh hưởng.
+    if (typeof window !== 'undefined' && import.meta?.env?.DEV) {
+      // eslint-disable-next-line no-console
+      console.debug('[uiStore] setRightFeedId đã deprecated — right panel chỉ còn Thông tin / Hồ sơ');
+    }
   },
   resetLayout: () => {
     set({ ...DEFAULTS });

@@ -70,9 +70,9 @@ export default function ChatComposer({ onSend, disabled }) {
 
   return (
     <div className="composer">
-      <button className="composer__icon" onClick={sendImage} aria-label="Gửi ảnh">📷</button>
-      <button className="composer__icon" onClick={sendFile} aria-label="Gửi file">📎</button>
-      <button className="composer__icon" onClick={sendLocation} aria-label="Vị trí">📍</button>
+      <button className="composer__icon" onClick={sendImage} aria-label="Gửi ảnh" title="Gửi ảnh">Ảnh</button>
+      <button className="composer__icon" onClick={sendFile} aria-label="Gửi file" title="Gửi file">File</button>
+      <button className="composer__icon" onClick={sendLocation} aria-label="Vị trí" title="Vị trí">Vị trí</button>
       <input
         ref={inputRef}
         className="composer__input"
@@ -89,8 +89,8 @@ export default function ChatComposer({ onSend, disabled }) {
       {text.trim() ? (
         <button className="composer__send" onClick={send} aria-label="Gửi">→</button>
       ) : (
-        <button className={`composer__mic ${recording ? 'is-recording' : ''}`} onClick={toggleRecord} aria-label={recording ? 'Dừng ghi âm' : 'Ghi âm'}>
-          🎙
+        <button className={`composer__mic ${recording ? 'is-recording' : ''}`} onClick={toggleRecord} aria-label={recording ? 'Dừng ghi âm' : 'Ghi âm'} title={recording ? 'Dừng ghi âm' : 'Ghi âm'}>
+          {recording ? 'Dừng' : 'Mic'}
         </button>
       )}
     </div>

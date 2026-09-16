@@ -74,7 +74,6 @@ function CenterToolbar({ centerMode, setCenterMode, conv, onBack, activeUserId }
   const otherOnline = conv?.otherUserId ? onlineStatuses[conv.otherUserId] : false;
   const startOutgoing = useCallStore((s) => s.startOutgoing);
   const setActiveUserId = useUiStore((s) => s.setActiveUserId);
-  const setRightFeedId = useUiStore((s) => s.setRightFeedId);
 
   const otherName = conv?.displayName || 'Hội thoại';
 
@@ -110,8 +109,8 @@ function CenterToolbar({ centerMode, setCenterMode, conv, onBack, activeUserId }
           className="center-panel__info"
           onClick={() => {
             if (!conv) return;
-            if (conv.type === 'group') setRightFeedId(conv.id);
-            else setActiveUserId(conv.otherUserId);
+            if (conv.type === 'private') setActiveUserId(conv.otherUserId);
+            else setActiveUserId(conv.id); // group: mở profile nhóm
           }}
         >
           <Avatar
@@ -141,6 +140,7 @@ function CenterToolbar({ centerMode, setCenterMode, conv, onBack, activeUserId }
             <button
               className="center-panel__icon"
               aria-label="Gọi thoại"
+              title="Gọi thoại"
               onClick={() =>
                 startOutgoing({
                   conversationId: conv.id,
@@ -151,11 +151,12 @@ function CenterToolbar({ centerMode, setCenterMode, conv, onBack, activeUserId }
                 })
               }
             >
-              📞
+              Gọi
             </button>
             <button
               className="center-panel__icon"
               aria-label="Gọi video"
+              title="Gọi video"
               onClick={() =>
                 startOutgoing({
                   conversationId: conv.id,
@@ -166,7 +167,7 @@ function CenterToolbar({ centerMode, setCenterMode, conv, onBack, activeUserId }
                 })
               }
             >
-              📹
+              Video
             </button>
           </div>
         )}
@@ -177,13 +178,13 @@ function CenterToolbar({ centerMode, setCenterMode, conv, onBack, activeUserId }
           className={`center-panel__mode-btn ${centerMode === 'chat' ? 'is-active' : ''}`}
           onClick={() => setCenterMode('chat')}
         >
-          💬 Trò chuyện
+          Trò chuyện
         </button>
         <button
           className={`center-panel__mode-btn ${centerMode === 'feed' ? 'is-active' : ''}`}
           onClick={() => setCenterMode('feed')}
         >
-          🌿 Bảng tin
+          Bảng tin
         </button>
       </div>
     </header>

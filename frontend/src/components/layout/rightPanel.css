@@ -17,8 +17,8 @@
 }
 .right-panel__tab {
   flex: 1;
-  padding: 14px 8px;
-  font-size: 13px;
+  padding: 14px 12px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-2);
   background: transparent;
@@ -49,13 +49,11 @@
   padding: 60px 24px;
   text-align: center;
   color: var(--text-3);
+  font-size: 14px;
+  line-height: 1.6;
   height: 100%;
 }
-.right-panel__empty-icon {
-  font-size: 48px;
-  margin-bottom: 12px;
-  opacity: 0.5;
-}
+.right-panel__empty p { margin: 0; }
 
 /* ---------- INFO SECTION ---------- */
 .info-section {
@@ -71,30 +69,31 @@
 }
 .info-section__name {
   font-family: var(--font-serif);
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
   margin: 14px 0 4px;
   color: var(--text);
 }
 .info-section__sub {
   margin: 0 0 16px;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-3);
 }
 .info-section__quick-actions {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: wrap;
   justify-content: center;
 }
 .qa-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 8px 14px;
+  padding: 9px 16px;
   border-radius: var(--radius-pill);
   background: var(--surface);
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 600;
   color: var(--text);
   transition: all 200ms var(--ease-soft);
@@ -103,7 +102,6 @@
   background: color-mix(in srgb, var(--amber) 14%, transparent);
   color: var(--amber);
 }
-.qa-btn__icon { font-size: 16px; }
 
 /* ---------- COLLAPSIBLE ---------- */
 .collapsible {
@@ -116,7 +114,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--text);
   background: transparent;
@@ -158,18 +156,18 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 0;
+  padding: 13px 0;
   border-bottom: 1px solid var(--hairline);
   gap: 12px;
 }
 .info-row:last-child { border-bottom: none; }
 .info-row__label {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-2);
   flex-shrink: 0;
 }
 .info-row__value {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text);
   text-align: right;
   flex: 1;
@@ -398,20 +396,21 @@
 .profile-section__avatar-btn:hover .profile-section__avatar-overlay { opacity: 1; }
 .profile-section__name {
   font-family: var(--font-serif);
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
   margin: 14px 0 4px;
 }
 .profile-section__email {
   margin: 0;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-2);
 }
 .profile-section__bio {
   margin: 8px 0 0;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-2);
   max-width: 280px;
+  line-height: 1.5;
 }
 .profile-section__actions {
   display: flex;

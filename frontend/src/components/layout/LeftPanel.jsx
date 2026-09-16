@@ -29,13 +29,13 @@ export default function LeftPanel() {
           className={`left-panel__tab ${leftTab === 'chats' ? 'is-active' : ''}`}
           onClick={() => setLeftTab('chats')}
         >
-          💬 Tin nhắn
+          Tin nhắn
         </button>
         <button
           className={`left-panel__tab ${leftTab === 'friends' ? 'is-active' : ''}`}
           onClick={() => setLeftTab('friends')}
         >
-          👥 Bạn bè
+          Bạn bè
         </button>
       </div>
 
@@ -75,7 +75,6 @@ function ChatsList() {
   const loadConversations = useChatStore((s) => s.loadConversations);
   const activeConvId = useUiStore((s) => s.activeConvId);
   const openConversation = useUiStore((s) => s.openConversation);
-  const setRightFeedId = useUiStore((s) => s.setRightFeedId);
   const setActiveUserId = useUiStore((s) => s.setActiveUserId);
   const listRef = useRef(null);
 
@@ -105,7 +104,6 @@ function ChatsList() {
     <>
       {/* Thanh tìm kiếm — chỉ lọc cuộc trò chuyện */}
       <div className="left-panel__search">
-        <span className="left-panel__search-icon" aria-hidden>🔍</span>
         <input
           className="input left-panel__search-input"
           placeholder="Tìm cuộc trò chuyện..."
@@ -130,7 +128,6 @@ function ChatsList() {
         <SkeletonList count={6} />
       ) : filtered.length === 0 ? (
         <div className="empty-state empty-state--compact">
-          <div className="empty-state__icon">💬</div>
           <h3>{keyword ? 'Không tìm thấy cuộc trò chuyện' : 'Chưa có hội thoại nào'}</h3>
           <p>{keyword ? 'Thử từ khóa khác.' : 'Mời bạn bè để bắt đầu trò chuyện.'}</p>
         </div>
@@ -144,8 +141,8 @@ function ChatsList() {
                 active={c.id === activeConvId}
                 onClick={() => openConversation(c.id)}
                 onAvatar={() => {
-                  if (c.type === 'group') setRightFeedId(c.id);
-                  else setActiveUserId(c.otherUserId);
+                  // Right panel chỉ còn 2 tab (Thông tin / Hồ sơ) — không mở feed ở đây nữa
+                  setActiveUserId(c.type === 'group' ? c.id : c.otherUserId);
                 }}
               />
             </li>
@@ -161,9 +158,9 @@ function ConversationTile({ conv, online, active, onClick, onAvatar }) {
   const preview =
     lastMsg?.content ||
     (lastMsg?.type === 'image'
-      ? '📷 Hình ảnh'
+      ? 'Hình ảnh'
       : lastMsg?.type === 'audio'
-      ? '🎙️ Tin nhắn thoại'
+      ? 'Tin nhắn thoại'
       : 'Chưa có tin nhắn');
   return (
     <div className={`conv-tile ${active ? 'is-active' : ''}`}>
@@ -233,7 +230,6 @@ function FriendsList() {
     <>
       {/* Thanh tìm kiếm — tìm người để kết bạn */}
       <div className="left-panel__search">
-        <span className="left-panel__search-icon" aria-hidden>🔍</span>
         <input
           className="input left-panel__search-input"
           placeholder="Tìm người để kết bạn..."
@@ -267,10 +263,12 @@ function FriendsList() {
 
       {!showSearchResults && (
         <div className="left-panel__friends-groups">
+          {/* Hàng 0 — Gợi ý kết bạn (chỉ khi chưa có bạn) */}
+          {friends.length === 0 && <SuggestionList />}
+
           {/* Hàng 1 — Lời mời kết bạn (đã nhận) */}
           <CollapsibleRow
             title="Lời mời kết bạn"
-            icon="📨"
             count={pendingReceived.length}
             open={openReceived}
             onToggle={() => setOpenReceived((v) => !v)}
@@ -320,7 +318,6 @@ function FriendsList() {
           {/* Hàng 2 — Lời mời đã gửi */}
           <CollapsibleRow
             title="Lời mời đã gửi"
-            icon="📤"
             count={pendingSent.length}
             open={openSent}
             onToggle={() => setOpenSent((v) => !v)}
@@ -364,7 +361,6 @@ function FriendsList() {
           {/* Hàng 3 — Danh sách bạn bè */}
           <CollapsibleRow
             title="Bạn bè"
-            icon="👥"
             count={friends.length}
             open={openFriends}
             onToggle={() => setOpenFriends((v) => !v)}
@@ -411,13 +407,12 @@ function FriendsList() {
 }
 
 /* ---------- Sub components ---------- */
-function CollapsibleRow({ title, icon, count, open, onToggle, empty, emptyText, children }) {
+function CollapsibleRow({ title, count, open, onToggle, empty, emptyText, children }) {
   return (
     <div className={`friend-group ${open ? 'is-open' : ''}`}>
       <button className="friend-group__head" onClick={onToggle}>
         <span className="friend-group__head-left">
           <span className="friend-group__chev" aria-hidden>{open ? '▾' : '▸'}</span>
-          <span className="friend-group__icon">{icon}</span>
           <span className="friend-group__title">{title}</span>
           {count > 0 && <Badge variant="primary">{count}</Badge>}
         </span>
@@ -435,6 +430,86 @@ function CollapsibleRow({ title, icon, count, open, onToggle, empty, emptyText, 
   );
 }
 
+/* ---------- Gợi ý kết bạn ---------- */
+function SuggestionList() {
+  const suggestions = useFriendStore((s) => s.suggestions);
+  const suggestionsState = useFriendStore((s) => s.suggestionsState);
+  const loadSuggestions = useFriendStore((s) => s.loadSuggestions);
+  const sendRequest = useFriendStore((s) => s.sendRequest);
+  const setActiveUserId = useUiStore((s) => s.setActiveUserId);
+
+  useEffect(() => {
+    if (suggestionsState === 'idle') loadSuggestions();
+  }, [suggestionsState, loadSuggestions]);
+
+  return (
+    <div className="friend-suggest">
+      <div className="friend-suggest__head">
+        <h3 className="friend-suggest__title">Gợi ý kết bạn</h3>
+        {suggestionsState === 'success' && suggestions.length > 0 && (
+          <button
+            className="friend-suggest__refresh"
+            onClick={() => loadSuggestions()}
+            aria-label="Tải lại"
+            title="Tải lại gợi ý"
+          >
+            Làm mới
+          </button>
+        )}
+      </div>
+
+      {suggestionsState === 'loading' && suggestions.length === 0 ? (
+        <p className="friend-group__empty">Đang tải gợi ý...</p>
+      ) : suggestions.length === 0 ? (
+        <p className="friend-group__empty">Chưa có gợi ý nào.</p>
+      ) : (
+        <ul className="left-panel__items">
+          {suggestions.map((u) => {
+            const name =
+              u.fullName ||
+              `${u.firstName || ''} ${u.lastName || ''}`.trim() ||
+              u.email ||
+              u.id;
+            return (
+              <li key={u.id}>
+                <div className="conv-tile">
+                  <Avatar
+                    src={u.avatar}
+                    name={name}
+                    size={48}
+                    onClick={() => setActiveUserId(u.id)}
+                  />
+                  <div className="conv-tile__body">
+                    <div className="conv-tile__row1">
+                      <span className="conv-tile__name">{name}</span>
+                    </div>
+                    <div className="conv-tile__row2">
+                      <div className="request-actions">
+                        <button
+                          className="btn btn--primary btn--sm"
+                          onClick={() => sendRequest(u.id)}
+                        >
+                          Kết bạn
+                        </button>
+                        <button
+                          className="btn btn--ghost btn--sm"
+                          onClick={() => setActiveUserId(u.id)}
+                        >
+                          Xem hồ sơ
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function SearchResults({ results, state, keyword, friends, pendingReceived, pendingSent, onSend, onRespond, onCancel, onOpenProfile }) {
   if (state === 'loading') {
     return <p className="left-panel__search-status">Đang tìm "{keyword}"...</p>;
@@ -442,7 +517,6 @@ function SearchResults({ results, state, keyword, friends, pendingReceived, pend
   if (!results || results.length === 0) {
     return (
       <div className="empty-state empty-state--compact">
-        <div className="empty-state__icon">🔍</div>
         <h3>Không tìm thấy</h3>
         <p>Thử từ khóa khác.</p>
       </div>
@@ -497,7 +571,7 @@ function SearchResults({ results, state, keyword, friends, pendingReceived, pend
                           className="btn btn--primary btn--sm"
                           onClick={() => onSend(u.id)}
                         >
-                          + Kết bạn
+                          Kết bạn
                         </button>
                       </div>
                     )}

@@ -5,10 +5,8 @@ import { useAuthStore } from '../../store/authStore';
 import { useProfileStore } from '../../store/profileStore';
 import { useFriendStore } from '../../store/friendStore';
 import { Avatar, Button, Modal } from '../ui';
-import NewsfeedView from './NewsfeedView';
 import { formatLastSeen } from '../../lib/format';
 import { chatService } from '../../services/chat.service';
-import { friendService } from '../../services/friend.service';
 import './rightPanel.css';
 
 export default function RightPanel() {
@@ -16,7 +14,6 @@ export default function RightPanel() {
   const setRightTab = useUiStore((s) => s.setRightTab);
   const activeConvId = useUiStore((s) => s.activeConvId);
   const activeUserId = useUiStore((s) => s.activeUserId);
-  const rightFeedId = useUiStore((s) => s.rightFeedId);
   const conversations = useChatStore((s) => s.conversations);
   const activeConv = useChatStore((s) => s.activeConversation);
   const me = useAuthStore((s) => s.user);
@@ -28,7 +25,6 @@ export default function RightPanel() {
 
   let resolvedTab = rightTab;
   let resolvedUserId = activeUserId;
-  let resolvedFeedId = rightFeedId;
 
   if (rightTab === 'info') {
     if (!conv && activeUserId !== 'me' && !activeUserId) {
@@ -41,11 +37,6 @@ export default function RightPanel() {
   if (rightTab === 'profile' && !resolvedUserId) {
     if (conv?.type === 'private') resolvedUserId = conv.otherUserId;
     else if (me) resolvedUserId = 'me';
-  }
-
-  if (rightTab === 'feed' && !resolvedFeedId) {
-    if (conv?.type === 'group') resolvedFeedId = conv.id;
-    else if (resolvedUserId) resolvedFeedId = resolvedUserId;
   }
 
   return (
@@ -72,26 +63,12 @@ export default function RightPanel() {
         >
           Hồ sơ
         </button>
-        <button
-          className={`right-panel__tab ${rightTab === 'feed' ? 'is-active' : ''}`}
-          onClick={() => {
-            setRightTab('feed');
-            if (!rightFeedId && conv?.type === 'group') {
-              useUiStore.setState({ rightFeedId: conv.id });
-            } else if (!rightFeedId && activeUserId) {
-              useUiStore.setState({ rightFeedId: activeUserId });
-            }
-          }}
-        >
-          Bảng tin
-        </button>
       </div>
 
       <div className="right-panel__body">
         {rightTab === 'info' && conv && <InfoSection conv={conv} />}
         {rightTab === 'info' && !conv && (
           <div className="right-panel__empty">
-            <div className="right-panel__empty-icon">ℹ️</div>
             <p>Chọn một cuộc trò chuyện để xem thông tin.</p>
           </div>
         )}
@@ -102,13 +79,6 @@ export default function RightPanel() {
             onChangeUser={(id) =>
               useUiStore.setState({ activeUserId: id, rightTab: 'profile' })
             }
-          />
-        )}
-
-        {rightTab === 'feed' && (
-          <FeedSection
-            feedId={resolvedFeedId}
-            isGroup={conv?.type === 'group'}
           />
         )}
       </div>
@@ -200,28 +170,17 @@ function InfoSection({ conv }) {
         {isGroup ? (
           <div className="info-section__quick-actions">
             <button className="qa-btn" onClick={() => setMuted((m) => !m)}>
-              <span className="qa-btn__icon">{muted ? '🔕' : '🔔'}</span>
-              <span>{muted ? 'Bật lại' : 'Tắt tiếng'}</span>
+              {muted ? 'Bật lại' : 'Tắt tiếng'}
             </button>
-            <button className="qa-btn">
-              <span className="qa-btn__icon">🔍</span>
-              <span>Tìm kiếm</span>
-            </button>
+            <button className="qa-btn">Tìm kiếm</button>
           </div>
         ) : (
           <div className="info-section__quick-actions">
             <button className="qa-btn" onClick={toggleMute}>
-              <span className="qa-btn__icon">{muted ? '🔕' : '🔔'}</span>
-              <span>{muted ? 'Bật lại' : 'Tắt tiếng'}</span>
+              {muted ? 'Bật lại' : 'Tắt tiếng'}
             </button>
-            <button className="qa-btn">
-              <span className="qa-btn__icon">🔍</span>
-              <span>Tìm kiếm</span>
-            </button>
-            <button className="qa-btn">
-              <span className="qa-btn__icon">📞</span>
-              <span>Cuộc gọi</span>
-            </button>
+            <button className="qa-btn">Tìm kiếm</button>
+            <button className="qa-btn">Cuộc gọi</button>
           </div>
         )}
       </div>
@@ -342,9 +301,7 @@ function InfoSection({ conv }) {
             <div className="info-media__grid">
               {/* Stub grid — sẽ load thật từ API */}
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="info-media__cell">
-                  <span>📷</span>
-                </div>
+                <div key={i} className="info-media__cell" />
               ))}
             </div>
             <p className="info-media__hint">
@@ -559,7 +516,6 @@ export function ProfileSection({ userId, onChangeUser }) {
   if (!profile) {
     return (
       <div className="right-panel__empty">
-        <div className="right-panel__empty-icon">👤</div>
         <p>Không tìm thấy hồ sơ.</p>
       </div>
     );
@@ -660,7 +616,7 @@ export function ProfileSection({ userId, onChangeUser }) {
               useUiStore.getState().openConversation(conv.id);
             }}
           >
-            💬 Nhắn tin
+            Nhắn tin
           </Button>
           <Button variant="ghost">Gửi lời mời</Button>
         </div>
@@ -676,26 +632,8 @@ export function ProfileSection({ userId, onChangeUser }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  FEED SECTION                                                      */
+/*  FEED SECTION — đã bỏ (tab Bảng tin không còn trong right panel)     */
 /* ------------------------------------------------------------------ */
-
-function FeedSection({ feedId, isGroup }) {
-  if (!feedId) {
-    return (
-      <div className="right-panel__empty">
-        <div className="right-panel__empty-icon">🌿</div>
-        <p>Chọn một người/nhóm để xem bảng tin.</p>
-      </div>
-    );
-  }
-  return (
-    <NewsfeedView
-      embedded
-      scope={isGroup ? 'group' : 'user'}
-      scopeId={feedId}
-    />
-  );
-}
 
 /* ------------------------------------------------------------------ */
 /*  Shared UI helpers                                                  */

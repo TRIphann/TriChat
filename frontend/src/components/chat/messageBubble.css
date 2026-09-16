@@ -20,11 +20,11 @@
 }
 
 .bubble__surface {
-  padding: 10px 14px;
+  padding: 11px 16px;
   border-radius: 18px;
   word-wrap: break-word;
-  font-size: 15px;
-  line-height: 1.45;
+  font-size: 15.5px;
+  line-height: 1.5;
   position: relative;
   box-shadow: var(--shadow-soft);
   cursor: pointer;
@@ -82,15 +82,20 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-3);
-  margin-top: 2px;
+  margin-top: 4px;
 }
 .bubble__edited { font-style: italic; }
+.bubble__sending {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--text-3);
+}
 .bubble__retry {
   color: var(--danger);
   font-weight: 600;
-  font-size: 11px;
+  font-size: 12px;
 }
 .bubble__delivered { color: var(--text-3); }
 .bubble__read { color: var(--info); font-weight: 700; }
@@ -127,14 +132,20 @@
 .bubble--theirs .bubble__actions { left: 0; }
 .bubble:hover .bubble__actions { display: inline-flex; }
 .bubble__action {
-  width: 28px;
+  min-width: 28px;
   height: 28px;
-  border-radius: 50%;
+  padding: 0 10px;
+  border-radius: var(--radius-pill);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
   background: transparent;
-  transition: background 150ms;
+  transition: background 150ms, color 150ms;
 }
-.bubble__action:hover { background: var(--surface); }
+.bubble__action:hover {
+  background: var(--surface);
+  color: var(--text);
+}
