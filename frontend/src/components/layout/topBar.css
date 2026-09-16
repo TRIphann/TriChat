@@ -1,0 +1,69 @@
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  padding: 0 var(--space-5);
+  z-index: 100;
+  border-bottom: 1px solid var(--hairline);
+}
+.topbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+}
+.topbar__logo {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--amber), var(--ember));
+  box-shadow: var(--shadow-aurora);
+}
+.topbar__brand-name {
+  background: linear-gradient(135deg, var(--amber), var(--ember));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.topbar__nav {
+  display: flex;
+  gap: var(--space-2);
+  margin-left: auto;
+  margin-right: auto;
+}
+.topbar__nav-link {
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-2);
+  transition: all 200ms var(--ease-soft);
+}
+.topbar__nav-link:hover { background: var(--surface); color: var(--text); }
+.topbar__nav-link.active {
+  background: color-mix(in srgb, var(--amber) 14%, transparent);
+  color: var(--amber);
+}
+.topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.topbar__icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 200ms var(--ease-soft);
+}
+.topbar__icon-btn:hover { background: var(--surface); }

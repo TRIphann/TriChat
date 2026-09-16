@@ -12,35 +12,64 @@ namespace backend.Services;
 
 public class FirebaseService
 {
-    public FirestoreDb FirestoreDb { get; }
+    private readonly IConfiguration _configuration;
+    private readonly object _lock = new();
+    private FirestoreDb? _firestoreDb;
+    private bool _initialized;
+    private string? _projectId;
 
     public FirebaseService(IConfiguration configuration)
     {
-        var section = configuration.GetSection("Firebase");
+        _configuration = configuration;
+    }
+
+    /// <summary>
+    /// Returns the FirestoreDb instance, initializing it lazily on first access.
+    /// Throws if Firebase credentials are not configured.
+    /// </summary>
+    public FirestoreDb FirestoreDb
+    {
+        get
+        {
+            if (_firestoreDb != null) return _firestoreDb;
+
+            lock (_lock)
+            {
+                if (_firestoreDb != null) return _firestoreDb;
+                Initialize();
+                return _firestoreDb!;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Lazy initialization — only called when FirestoreDb is first accessed.
+    /// Allows the app to start without Firebase credentials for testing purposes.
+    /// </summary>
+    private void Initialize()
+    {
+        if (_initialized) return;
+        _initialized = true;
+
+        var section = _configuration.GetSection("Firebase");
         var credentialsFilePath = section.GetValue<string>("CredentialsFilePath");
-        var projectId = section.GetValue<string>("ProjectId");
+        _projectId = section.GetValue<string>("ProjectId");
         var credentialsJson = section.GetValue<string>("CredentialsJson");
         var credentialsBase64 = section.GetValue<string>("CredentialsBase64");
 
-        if (string.IsNullOrWhiteSpace(projectId))
+        if (string.IsNullOrWhiteSpace(_projectId))
             throw new InvalidOperationException("Missing Firebase:ProjectId in appsettings.json or FIREBASE__PROJECTID env var.");
 
         GoogleCredential credential;
 
         if (!string.IsNullOrWhiteSpace(credentialsJson))
         {
-            // Credentials được truyền trực tiếp qua JSON string (từ env var).
-            // Render/Koyeb/Railway: đặt FIREBASE__CREDENTIALSJSON=<json_string>
-            // trong dashboard environment variables.
             Console.WriteLine("[FIREBASE] Loading credentials from FIREBASE__CREDENTIALSJSON env var.");
             using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(credentialsJson));
             credential = GoogleCredential.FromStream(stream);
         }
         else if (!string.IsNullOrWhiteSpace(credentialsBase64))
         {
-            // Credentials được truyền dạng base64 (Render-friendly: tránh vượt limit độ dài env var).
-            // docker-entrypoint.sh cũng decode giá trị này ra file, nhưng ở đây ta decode trực tiếp
-            // trong bộ nhớ để không phụ thuộc vào việc file có tồn tại hay không trên Render.
             Console.WriteLine("[FIREBASE] Loading credentials from FIREBASE__CREDENTIALSBASE64 env var.");
             try
             {
@@ -80,14 +109,14 @@ public class FirebaseService
             FirebaseApp.Create(new AppOptions
             {
                 Credential = credential,
-                ProjectId = projectId
+                ProjectId = _projectId
             });
         }
 #pragma warning restore CS0618
 
         var builder = new FirestoreDbBuilder
         {
-            ProjectId = projectId,
+            ProjectId = _projectId,
             Credential = credential
         };
 
@@ -95,8 +124,8 @@ public class FirebaseService
         if (!string.IsNullOrWhiteSpace(databaseId))
             builder.DatabaseId = databaseId;
 
-        FirestoreDb = builder.Build();
-        Console.WriteLine($"[FIREBASE] FirestoreDb initialized for project: {projectId}");
+        _firestoreDb = builder.Build();
+        Console.WriteLine($"[FIREBASE] FirestoreDb initialized for project: {_projectId}");
     }
 
     public async Task<UserRecord> CreateOrUpdateAuthUserAsync(string userId, string email)

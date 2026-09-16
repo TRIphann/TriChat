@@ -1,0 +1,81 @@
+{
+  "app": { "name": "TriChat", "tagline": "Trò chuyện. Kết nối. Trên mọi thiết bị." },
+  "common": {
+    "login": "Đăng nhập",
+    "register": "Đăng ký",
+    "logout": "Đăng xuất",
+    "send": "Gửi",
+    "cancel": "Hủy",
+    "confirm": "Xác nhận",
+    "save": "Lưu",
+    "loading": "Đang tải...",
+    "retry": "Thử lại",
+    "next": "Tiếp tục",
+    "back": "Quay lại",
+    "search": "Tìm kiếm",
+    "delete": "Xóa",
+    "edit": "Sửa",
+    "reply": "Trả lời",
+    "copy": "Sao chép",
+    "forward": "Chuyển tiếp",
+    "pin": "Ghim",
+    "unpin": "Bỏ ghim"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Mật khẩu",
+    "fullName": "Họ và tên",
+    "firstName": "Tên",
+    "lastName": "Họ",
+    "dob": "Ngày sinh",
+    "bio": "Tiểu sử",
+    "forgotPassword": "Quên mật khẩu?",
+    "noAccount": "Chưa có tài khoản?",
+    "haveAccount": "Đã có tài khoản?",
+    "signUp": "Đăng ký ngay",
+    "signIn": "Đăng nhập",
+    "sendOtp": "Gửi OTP",
+    "verifyOtp": "Xác thực OTP",
+    "enterOtp": "Nhập mã OTP 6 số",
+    "welcomeBack": "Chào mừng trở lại",
+    "createAccount": "Tạo tài khoản mới"
+  },
+  "chat": {
+    "typeMessage": "Nhập tin nhắn...",
+    "sendMessage": "Gửi",
+    "online": "Đang hoạt động",
+    "lastSeen": "Hoạt động {{time}}",
+    "noConversations": "Chưa có hội thoại nào",
+    "deletedMessage": "Tin nhắn đã bị thu hồi",
+    "newChat": "Cuộc trò chuyện mới",
+    "voiceCall": "Gọi thoại",
+    "videoCall": "Gọi video"
+  },
+  "feed": {
+    "newsfeed": "Bảng tin",
+    "stories": "Tin nhanh",
+    "createPost": "Tạo bài viết",
+    "createStory": "Tạo tin nhanh",
+    "like": "Thích",
+    "comment": "Bình luận",
+    "share": "Chia sẻ"
+  },
+  "friends": {
+    "friends": "Bạn bè",
+    "requests": "Lời mời",
+    "addFriend": "Thêm bạn",
+    "pendingReceived": "Đang chờ",
+    "noFriends": "Chưa có bạn bè nào",
+    "sendRequest": "Gửi lời mời",
+    "accept": "Chấp nhận",
+    "decline": "Từ chối",
+    "unfriend": "Hủy kết bạn",
+    "block": "Chặn"
+  },
+  "settings": {
+    "profile": "Hồ sơ",
+    "language": "Ngôn ngữ",
+    "theme": "Giao diện",
+    "feedback": "Phản hồi"
+  }
+}

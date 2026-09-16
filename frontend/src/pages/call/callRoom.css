@@ -1,0 +1,64 @@
+.call-room {
+  position: fixed;
+  inset: 0;
+  background: #0A0907;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+.call-room__bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(217, 119, 6, 0.3), transparent 50%),
+    radial-gradient(circle at 70% 70%, rgba(124, 58, 237, 0.3), transparent 50%);
+}
+.call-room__avatar {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 32px;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+.call-room__name {
+  font-family: var(--font-serif);
+  font-size: 36px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0 0 8px;
+  z-index: 1;
+}
+.call-room__status {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 64px;
+  z-index: 1;
+}
+.call-room__actions {
+  display: flex;
+  gap: 24px;
+  z-index: 1;
+}
+.call-room__btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 200ms var(--ease-soft);
+  backdrop-filter: blur(12px);
+}
+.call-room__btn:hover { transform: scale(1.08); background: rgba(255, 255, 255, 0.25); }
+.call-room__btn--accept { background: linear-gradient(135deg, #16A34A, #15803D); }
+.call-room__btn--reject { background: linear-gradient(135deg, #DC2626, #991B1B); }
+.call-room__btn.is-active { background: rgba(255, 255, 255, 0.4); }

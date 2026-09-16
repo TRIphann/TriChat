@@ -1,0 +1,119 @@
+.chat-list {
+  width: 100%;
+}
+.chat-list__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+.chat-list__title {
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+.chat-list__new {
+  padding: 10px 18px;
+  border-radius: var(--radius-pill);
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--amber);
+  transition: all 200ms var(--ease-soft);
+}
+.chat-list__new:hover { background: var(--amber); color: #fff; box-shadow: var(--shadow-aurora); }
+
+.chat-list__items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.conv-tile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  transition: all 220ms var(--ease-soft);
+  cursor: pointer;
+}
+.conv-tile:hover {
+  background: var(--surface);
+  transform: translateX(4px);
+}
+.conv-tile__body {
+  flex: 1;
+  min-width: 0;
+}
+.conv-tile__row1, .conv-tile__row2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.conv-tile__name {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60%;
+}
+.conv-tile__time {
+  font-size: 12px;
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+.conv-tile__preview {
+  font-size: 13px;
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+.conv-tile__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--radius-pill);
+  background: var(--amber);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  text-align: center;
+  color: var(--text-2);
+}
+.empty-state__icon {
+  font-size: 56px;
+  margin-bottom: 16px;
+  opacity: 0.7;
+}
+.empty-state h3 {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  margin: 0 0 6px;
+  color: var(--text);
+}
+.empty-state p { margin: 0 0 20px; }

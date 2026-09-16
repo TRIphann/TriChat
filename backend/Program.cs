@@ -165,8 +165,6 @@ builder.Services.AddSignalR(opts =>
 
 var app = builder.Build();
 
-app.Services.GetRequiredService<FirebaseService>();
-
 app.UseMiddleware<GlobalExceptionHandler>();
 
 // Render terminates TLS at its edge proxy and forwards plain HTTP to the container.
@@ -192,5 +190,8 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<ChatHub>("/hubs/chat");
 app.MapHub<FriendHub>("/hubs/friend");
+
+// Health check — no auth required
+app.MapGet("/health", () => Results.Ok(new { status = "ok", timestamp = DateTime.UtcNow }));
 
 app.Run();

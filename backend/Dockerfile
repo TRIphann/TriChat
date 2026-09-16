@@ -23,7 +23,6 @@ COPY . ./
 RUN dotnet publish backend.csproj \
     -c Release \
     -o /app/publish \
-    --no-restore \
     /p:UseAppHost=false
 
 # -------------------- 2. runtime --------------------

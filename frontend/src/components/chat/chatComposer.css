@@ -1,0 +1,65 @@
+.composer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: var(--card);
+  border-top: 1px solid var(--hairline);
+}
+.composer__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--surface);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: all 200ms var(--ease-soft);
+}
+.composer__icon:hover { background: color-mix(in srgb, var(--amber) 12%, transparent); }
+.composer__input {
+  flex: 1;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  padding: 0 18px;
+  font-size: 15px;
+  outline: none;
+  transition: all 200ms var(--ease-soft);
+}
+.composer__input:focus {
+  border-color: var(--amber);
+  background: var(--card);
+  box-shadow: var(--shadow-focus);
+}
+.composer__send, .composer__mic {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  background: linear-gradient(135deg, var(--amber), var(--amber-deep));
+  color: #fff;
+  box-shadow: var(--shadow-aurora);
+  transition: all 200ms var(--ease-soft);
+}
+.composer__send:hover, .composer__mic:hover { transform: scale(1.06); }
+.composer__mic {
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--shadow-soft);
+}
+.composer__mic.is-recording {
+  background: var(--danger);
+  color: #fff;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}

@@ -1,0 +1,81 @@
+{
+  "app": { "name": "TriChat", "tagline": "Chat. Connect. Anywhere." },
+  "common": {
+    "login": "Sign in",
+    "register": "Sign up",
+    "logout": "Sign out",
+    "send": "Send",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "loading": "Loading...",
+    "retry": "Retry",
+    "next": "Continue",
+    "back": "Back",
+    "search": "Search",
+    "delete": "Delete",
+    "edit": "Edit",
+    "reply": "Reply",
+    "copy": "Copy",
+    "forward": "Forward",
+    "pin": "Pin",
+    "unpin": "Unpin"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "fullName": "Full name",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "dob": "Date of birth",
+    "bio": "Bio",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "No account?",
+    "haveAccount": "Already have an account?",
+    "signUp": "Sign up",
+    "signIn": "Sign in",
+    "sendOtp": "Send OTP",
+    "verifyOtp": "Verify OTP",
+    "enterOtp": "Enter the 6-digit code",
+    "welcomeBack": "Welcome back",
+    "createAccount": "Create new account"
+  },
+  "chat": {
+    "typeMessage": "Type a message...",
+    "sendMessage": "Send",
+    "online": "Active now",
+    "lastSeen": "Active {{time}}",
+    "noConversations": "No conversations yet",
+    "deletedMessage": "This message was recalled",
+    "newChat": "New conversation",
+    "voiceCall": "Voice call",
+    "videoCall": "Video call"
+  },
+  "feed": {
+    "newsfeed": "Feed",
+    "stories": "Stories",
+    "createPost": "Create post",
+    "createStory": "Create story",
+    "like": "Like",
+    "comment": "Comment",
+    "share": "Share"
+  },
+  "friends": {
+    "friends": "Friends",
+    "requests": "Requests",
+    "addFriend": "Add friend",
+    "pendingReceived": "Pending",
+    "noFriends": "No friends yet",
+    "sendRequest": "Send request",
+    "accept": "Accept",
+    "decline": "Decline",
+    "unfriend": "Unfriend",
+    "block": "Block"
+  },
+  "settings": {
+    "profile": "Profile",
+    "language": "Language",
+    "theme": "Theme",
+    "feedback": "Feedback"
+  }
+}

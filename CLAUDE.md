@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-TriChat is a Zalo-like chat application with 1-1 and group messaging, built with an ASP.NET Core 8 backend and a Flutter frontend. Real-time communication uses SignalR; data is stored in Firestore; media uploads go through Cloudinary; and Redis is used for caching. A separate `web_admin/` Flutter Web app provides an admin dashboard that reads/writes Firestore directly (no backend API involved). A small `functions/` Node.js Firebase Cloud Function dispatches FCM push notifications when the admin dashboard creates a notification document.
+TriChat is a Zalo-like chat application with 1-1 and group messaging, built with an ASP.NET Core 8 backend and a **React 18.3.1 + Vite 5.4.10 + Anime.js 4.0.2** frontend. Real-time communication uses SignalR; data is stored in Firestore; media uploads go through Cloudinary; and Redis is used for caching. A separate `web_admin/` Flutter Web app provides an admin dashboard that reads/writes Firestore directly (no backend API involved). A small `functions/` Node.js Firebase Cloud Function dispatches FCM push notifications when the admin dashboard creates a notification document.
 
-**Brand:** The app's visual identity uses a warm palette — black, orange, red, white and brown — defined centrally in `frontend/lib/config/app_colors.dart`. To re-theme the app, edit the constants in that file (`primaryOrange`, `accentRed`, `accentBrown`, `neutralBlack`, `neutralWhite`, etc.). All UI files import colors from there, so a single edit propagates everywhere.
+**Brand:** The app's visual identity uses a warm palette — amber `#D97706`, ember `#EA580C`, rose `#E11D48`, plasma `#7C3AED`, bone cream `#FAF8F5`, noir `#0A0907` — defined centrally in `frontend/src/theme/tokens.js` and `frontend/src/theme/global.css`. To re-theme the app, edit those constants. All UI files import colors from there, so a single edit propagates everywhere.
 
 ## Commands
 
@@ -28,13 +28,17 @@ There is no backend test project in this repo currently.
 ### Frontend (from `frontend/`)
 
 ```bash
-flutter pub get         # Install packages
-flutter run             # Run on connected device/emulator
-flutter build apk       # Build Android APK
-flutter analyze         # Lint
+npm install            # Install dependencies (React 18 + Vite + Anime.js + ...)
+npm run dev            # Dev server (http://localhost:5173, auto-reload)
+npm run build          # Production build → dist/
+npm run preview        # Serve dist/ (port 4173)
 ```
 
-Frontend requires a `.env` file in `frontend/` with `AGORA_APP_ID` and `AGORA_APP_CERTIFICATE`. Firebase options are in `frontend/lib/firebase_options.dart`.
+Frontend requires a `.env` file in `frontend/` with:
+- `VITE_API_BASE_URL` (default `http://localhost:5244`)
+- `VITE_AGORA_APP_ID`, `VITE_AGORA_APP_CERTIFICATE` (Agora RTC)
+- `VITE_FB_*` (Firebase Web SDK config)
+- `VITE_FB_VAPID_KEY` (FCM Web Push — lấy từ Firebase Console)
 
 ### Admin dashboard (from `web_admin/`)
 
@@ -75,35 +79,48 @@ Middleware/             → FirebaseAuthMiddleware, GlobalExceptionHandler
 
 **In-memory cache in ChatService:** `ConversationResponse` and user objects are cached for 5 minutes in static `ConcurrentDictionary` fields — mutations must invalidate or update these caches to stay consistent.
 
-### Frontend
+### Frontend (React 18 + Vite + Anime.js)
 
-**Routing:** `go_router` with auth-guard redirect logic in `lib/apps/router.dart`. `RouterNotifier` listens to `FirebaseAuth.authStateChanges()` and triggers redirects. Unauthenticated users are sent to `/login`; authenticated users are redirected away from auth routes to `/chat-list`.
+```
+src/
+├── lib/             # apiConfig, httpClient, signalr, firebase, anime, agora, mediaRecorder, fcm, geolocation, format
+├── theme/           # tokens.js, ThemeProvider.jsx, global.css (design tokens + dark/light)
+├── i18n/            # i18next + vi.json, en.json
+├── services/        # auth.service, chat.service, friend.service, feed.service, profile.service, feedback.service
+├── store/           # Zustand stores: auth, ui, chat, friend, feed, call, profile
+├── hooks/           # useAppBootstrap, useFx
+├── components/
+│   ├── ui/          # Button, Input, Card, Modal, Avatar, Badge, Toast, Spinner
+│   ├── layout/      # AppShell, TopBar, BottomNav (page transition với Anime.js)
+│   ├── chat/        # MessageBubble, ChatComposer
+│   ├── feed/        # (đang phát triển thêm)
+│   └── friends/     # (đang phát triển thêm)
+├── pages/
+│   ├── auth/        # Login, SignUp, OtpVerify, SetPassword, EnterName, PersonalInfo, UpdateAvatar
+│   ├── chat/        # ChatList, ChatRoom, NewConversation, GroupInfo
+│   ├── feed/        # Newsfeed, CreatePost, CreateStory, StoryViewer
+│   ├── friends/     # FriendList, FriendRequests, AddFriend, Contacts
+│   ├── profile/     # Profile, MyProfile
+│   ├── call/        # CallRoom
+│   ├── Home.jsx, NotFound.jsx
+└── router/          # React Router DOM 6.26.2 với auth guards (RequireAuth, RedirectIfAuth)
+```
 
-**State management:** Mix of `provider` (for `CallProvider`, `FriendProvider`, `ChatProvider`) and `flutter_bloc` (BLoC pattern in feature modules). Feature-specific BLoCs live in `lib/features/<feature>/providers/`.
+**Routing:** React Router DOM 6.26.2 với auth-guard redirect logic trong `src/router/index.jsx`. `RequireAuth` chỉ render `<Outlet />` nếu user đã đăng nhập; `RedirectIfAuth` đẩy user đã login ra khỏi auth routes về `/chat-list`.
 
-**API calls:** `DioClient` (`lib/services/dio_client.dart`) is the base HTTP client. `ApiService` wraps it. Feature-specific services extend from there. Base URL is configured in `lib/config/api_config.dart` — uses `http://10.0.2.2:5244` for Android emulator.
+**State management:** Zustand (`store/*Store.js`) — thay thế Provider/BLoC pattern cũ. Mỗi store là một hook với state + actions; components subscribe qua selector.
 
-**Real-time:** `SignalR` via `signalr_netcore` package. `SignalRService` (`lib/services/chat/signalr_service.dart`) connects to `/hubs/chat?userId=<uid>&access_token=<firebase_token>`. `FriendHub` at `/hubs/friend` uses only `?access_token=<token>` and verifies the token itself (no userId param). Automatic reconnect is configured with delays `[2000, 5000, 10000, 30000]` ms.
+**API calls:** `httpClient.js` (wrapper quanh `fetch`) — tự động gắn Firebase ID token vào header `Authorization: Bearer <token>`, tự refresh + retry khi 401. Base URL cấu hình qua `VITE_API_BASE_URL`. Proxy `/api` + `/hubs` qua Vite dev server sang `http://localhost:5244`.
 
-**ChatProvider lifecycle:** `ChatProvider.init(uid)` must be called after login. It connects SignalR, loads conversations, starts the 3-minute heartbeat timer, and saves the FCM token. Call `setContext(ctx)` to give it access to `CallProvider` for incoming call routing. The provider observes `AppLifecycleState` to mark online/offline on resume/pause.
+**Realtime:** `@microsoft/signalr` 8.0.7. `signalr.js` cung cấp `createChatConnection({userId})` cho `/hubs/chat` và `createFriendConnection()` cho `/hubs/friend`. `accessTokenFactory` tự lấy Firebase ID token. Auto-reconnect với delays `[2000, 5000, 10000, 30000]` ms.
 
-**Online presence:** Redis stores online status with a TTL. The frontend refreshes it every 3 minutes via `Heartbeat` SignalR call. On app resume, `SetOnline` is invoked; on pause, `SetOffline`. `ChatHub` tracks in-memory `_onlineUsers` (uid → Set\<connectionId\>) and `_connections` (connectionId → uid) as `ConcurrentDictionary`.
+**ChatStore lifecycle:** `useChatStore.init(uid)` được gọi sau login từ `useAppBootstrap`. Nó kết nối SignalR, load conversations, bắt đầu heartbeat 3 phút, lưu FCM token. Store lắng nghe `visibilitychange` để gọi `SetOnline` / `SetOffline`.
 
-**Optimistic UI for messages:** `ChatProvider.sendMessage()` adds a temporary message with id `_pending_<timestamp>` and status `sending` immediately. A FIFO `Queue<String>` tracks pending IDs; when the server confirms via `MessageSent`, the first pending ID is dequeued and its message replaced in-place.
+**Online presence:** Redis (backend) lưu online status với TTL. Frontend refresh mỗi 3 phút qua SignalR `Heartbeat`. App resume → `SetOnline`; pause → `SetOffline`. `ChatHub` track `_onlineUsers` và `_connections` in-memory.
 
-**Key features by view:**
-- `views/auth/` — Firebase Auth login, OTP, registration flow
-- `views/chat/` — chat list, chat detail, conversation screen, group info
-- `views/home/` — home shell, splash/load screen
-- `features/friends/` — friend requests, friend list (BLoC-based)
-- `features/calling/` — Agora RTC video/voice calls
+**Optimistic UI for messages:** `useChatStore.sendMessage()` tạo message tạm với id `_pending_<timestamp>` + status `sending`. Khi server echo `MessageSent` với `clientTempId`, message tạm được replace in-place.
 
-**Firestore collections:**
-- `users/` — user profiles
-- `conversations/` — 1-1 and group conversations with participant metadata
-- `conversations/{id}/messages/` — messages subcollection
-- `feeds/` — stories/posts with expiration
-- `friendships/` — edges between users with `sender_id`, `addressee_id`, `status`
+**Animation:** Anime.js 4.0.2 — presets trong `src/lib/anime.js`: `staggerCards` (reveal list), `handArc` (FAB menu), `fxBurst` (send message), `ripple` (button press), `pageIn` (page transition), `likeBounce`, `sheetIn`. Tôn trọng `prefers-reduced-motion`.
 
 ### Admin dashboard (`web_admin/`)
 

@@ -1,0 +1,108 @@
+.newsfeed {
+  max-width: 720px;
+  margin: 0 auto;
+}
+.newsfeed__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 12px;
+}
+.newsfeed__title {
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+.newsfeed__actions {
+  display: flex;
+  gap: 8px;
+}
+.newsfeed__stories {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 8px 0 16px;
+  margin-bottom: 16px;
+}
+.story-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  flex-shrink: 0;
+  transition: transform 240ms var(--ease-soft);
+}
+.story-chip:hover { transform: scale(1.05); }
+.story-chip__name {
+  font-size: 12px;
+  color: var(--text-2);
+  max-width: 64px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.newsfeed__list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.post-card {
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+  transition: all 280ms var(--ease-soft);
+}
+.post-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+.post-card__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px 12px;
+}
+.post-card__name { font-weight: 600; font-size: 15px; }
+.post-card__time { font-size: 12px; color: var(--text-3); }
+.post-card__content {
+  margin: 0;
+  padding: 0 20px 14px;
+  font-size: 15px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+.post-card__media {
+  width: 100%;
+  display: block;
+  background: var(--surface);
+}
+.post-card__footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--hairline);
+}
+.post-card__like, .post-card__comment, .post-card__share {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  font-size: 13px;
+  color: var(--text-2);
+  font-weight: 500;
+  transition: all 200ms var(--ease-soft);
+}
+.post-card__like:hover, .post-card__comment:hover, .post-card__share:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+.post-card__like.is-liked { color: var(--rose); }

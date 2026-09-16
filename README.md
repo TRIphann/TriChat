@@ -8,14 +8,14 @@
 
 **TriChat** is a real-time messaging application inspired by Zalo, built with a Client-Server architecture. The project consists of 4 main components:
 
-| Component      | Description                         | Technology                   |
-| -------------- | ----------------------------------- | ---------------------------- |
-| **frontend/**  | Mobile + Web Messaging Application  | Flutter / Dart               |
-| **backend/**   | REST API & WebSocket Server         | ASP.NET Core 8.0 (C#)       |
-| **web_admin/** | Admin Dashboard (local dev only)    | Flutter Web                  |
-| **functions/** | Cloud Functions (Push Notification) | Firebase Functions (Node.js) |
+| Component      | Description                         | Technology                       |
+| -------------- | ----------------------------------- | -------------------------------- |
+| **frontend/**  | Mobile + Web Messaging Application  | **React 18 + Vite + Anime.js**   |
+| **backend/**   | REST API & WebSocket Server         | ASP.NET Core 8.0 (C#)           |
+| **web_admin/** | Admin Dashboard (local dev only)    | Flutter Web                      |
+| **functions/** | Cloud Functions (Push Notification) | Firebase Functions (Node.js)     |
 
-> **🚀 Deployment:** The **frontend** (the messaging app) has been deployed as a Flutter Web build to **[https://trichatt.netlify.app/](https://trichatt.netlify.app/)**. The `web_admin/` dashboard is **not** deployed — it is intended for local development only. See the [Deployment](#-deployment) section for details.
+> **🚀 Deployment:** The **frontend** (the messaging app) has been deployed as a Vite production build to **[https://trichatt.netlify.app/](https://trichatt.netlify.app/)**. The `web_admin/` dashboard is **not** deployed — it is intended for local development only. See the [Deployment](#-deployment) section for details.
 
 ---
 
@@ -23,8 +23,8 @@
 
 | App                       | URL                                                                            | Platform             |
 | ------------------------- | ------------------------------------------------------------------------------ | -------------------- |
-| **TriChat Messaging App** | **[https://trichatt.netlify.app/](https://trichatt.netlify.app/)**             | Flutter Web (Netlify) |
-| Android Mobile            | Build APK from source (see [Build APK Guide](#-build-apk-guide-android))       | Android (Flutter)    |
+| **TriChat Messaging App** | **[https://trichatt.netlify.app/](https://trichatt.netlify.app/)**             | React SPA (Netlify)  |
+| Backend API               | `https://trichat.onrender.com`                                                | ASP.NET Core (Render) |
 
 > `web_admin/` is a developer/admin tool and is **not deployed** — run it locally with `cd web_admin && flutter run -d chrome`.
 
@@ -32,16 +32,18 @@
 
 ## 🚀 Key Features
 
-### 📱 Mobile Application (frontend)
+### 📱 Web Application (frontend)
 
 - **1-1 & Group Chat:** Send text messages, images, videos, audio, and file attachments
-- **Real-time:** Receive instant messages via SignalR WebSocket
-- **Calls:** Voice/Video calls via Agora RTC Engine
-- **Friends:** Send/receive friend requests, scan QR codes for quick friend adding
+- **Real-time:** Receive instant messages via SignalR WebSocket (`@microsoft/signalr`)
+- **Calls:** Voice/Video calls via Agora RTC Web SDK
+- **Friends:** Send/receive friend requests, realtime updates via FriendHub
 - **NewsFeed & Story:** Post feeds and stories (auto-expire after 24 hours)
-- **Push Notifications:** Firebase Cloud Messaging (FCM)
+- **Push Notifications:** Firebase Cloud Messaging (FCM Web Push)
 - **Message Interactions:** Reply, forward, react with emoji, recall, and edit messages
 - **Status:** Online/Offline, typing indicator, read/delivered receipts
+- **Thiết kế High-end Editorial:** glass blur, aurora shadows, Anime.js v4 animations
+- **Dark/Light mode** + i18n (vi/en) + accessibility (prefers-reduced-motion)
 
 ### 🖥️ Admin Dashboard (web_admin)
 
@@ -154,9 +156,11 @@ docker compose up --build
 
 ```bash
 cd frontend
-flutter pub get
-flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:5244
+npm install
+npm run dev
 ```
+
+The dev server opens at `http://localhost:5173`. The Vite dev server proxies `/api/*` and `/hubs/*` to the backend (`http://localhost:5244` by default).
 
 ### Quick choice — local dev with Docker Compose
 
@@ -282,27 +286,17 @@ dotnet run
 # Navigate to frontend directory
 cd frontend
 
-# Install Dart packages
-flutter pub get
+# Install dependencies
+npm install
 ```
 
-**Run on Android Emulator:**
+**Run dev server:**
 
 ```bash
-flutter run
+npm run dev
 ```
 
-**Run on a physical Android device (via Wi-Fi on the same network):**
-
-1. Open `frontend/.env`
-2. Change `API_BASE_URL` to your network IP:
-   ```env
-   API_BASE_URL=http://192.168.1.xxx:5244
-   ```
-3. Run:
-   ```bash
-   flutter run
-   ```
+> Lưu ý: bản React này chạy trên web only (không build APK mobile). Nếu cần mobile app, dùng Capacitor để wrap hoặc quay lại phiên bản Flutter trước đó.
 
 ### Step 5: Run Web Admin (Flutter Web)
 
@@ -325,7 +319,7 @@ flutter run -d chrome
 
 ## 🌐 Deployment
 
-The TriChat **messaging app** (`frontend/`, Flutter Web build) has been deployed to **[https://trichatt.netlify.app/](https://trichatt.netlify.app/)**.
+The TriChat **messaging app** (`frontend/`, Vite production build) has been deployed to **[https://trichatt.netlify.app/](https://trichatt.netlify.app/)**.
 
 The `web_admin/` dashboard is **not deployed** anywhere — it is a developer tool meant to be run locally with `flutter run -d chrome`. It talks directly to Firestore and is only useful during development.
 
@@ -334,24 +328,22 @@ The `web_admin/` dashboard is **not deployed** anywhere — it is a developer to
 1. **Build the web bundle:**
    ```bash
    cd frontend
-   flutter pub get
-   flutter build web --release --dart-define=API_BASE_URL=https://your-backend.example.com
+   npm install
+   npm run build
    ```
-   The build output is generated in `frontend/build/web/`.
+   The build output is generated in `frontend/dist/`.
 
-2. **Create `_redirects` file** in `frontend/build/web/` (required for SPA routing) with the content:
-   ```
-   /*    /index.html   200
-   ```
+2. **Configuration:** `netlify.toml` ở root repo đã có sẵn:
+   - **Base directory:** `frontend`
+   - **Build command:** `npm install && npm run build`
+   - **Publish directory:** `dist`
+   - SPA fallback tự động (toàn bộ route trả về `index.html`).
 
-3. **Deploy to Netlify:**
-   - Drag-and-drop the `frontend/build/web/` folder to Netlify Drop, OR
-   - Connect your Git repo on Netlify and set:
-     - **Base directory:** `frontend`
-     - **Build command:** `flutter build web --release --dart-define=API_BASE_URL=https://your-backend.example.com`
-     - **Publish directory:** `frontend/build/web`
-   - Add environment variables in Netlify dashboard if you read them via `--dart-define-from-file`:
-     - `API_BASE_URL`, `AGORA_APP_ID`, `AGORA_APP_CERTIFICATE`
+3. **Environment variables** in Netlify dashboard:
+   - `VITE_API_BASE_URL`
+   - `VITE_AGORA_APP_ID`, `VITE_AGORA_APP_CERTIFICATE`
+   - `VITE_FB_*` (Firebase Web SDK)
+   - `VITE_FB_VAPID_KEY` (FCM Web Push)
 
 4. **Firebase Hosting (alternative):**
    ```bash
@@ -410,30 +402,34 @@ This guide walks you through building a release APK for the Flutter mobile app (
 
 ### Step 1: Configure `frontend/.env`
 
-Before building the APK, make sure your `.env` file in `frontend/` has the correct backend URL. For a real device, point it at your public backend (or LAN IP):
+Trước khi build, đảm bảo `.env` trong `frontend/` có đúng URL backend:
 
 ```env
-API_BASE_URL=https://your-backend.example.com
-AGORA_APP_ID=<your-agora-app-id>
-AGORA_APP_CERTIFICATE=<your-agora-app-certificate>
+VITE_API_BASE_URL=https://your-backend.example.com
+VITE_AGORA_APP_ID=<your-agora-app-id>
+VITE_AGORA_APP_CERTIFICATE=<your-agora-app-certificate>
+VITE_FB_API_KEY=<...>
+VITE_FB_PROJECT_ID=zalo-lite-f2d28
+VITE_FB_APP_ID=<...>
+VITE_FB_VAPID_KEY=<from-firebase-console>
 ```
 
-> If you skip `API_BASE_URL`, the app defaults to `http://10.0.2.2:5244` (Android emulator only).
+> Nếu bỏ qua `VITE_API_BASE_URL`, app sẽ dùng `window.location.origin` (cùng host) cho web.
 
 ### Step 2: Get Dependencies
 
 ```bash
 cd frontend
-flutter pub get
+npm install
 ```
 
-### Step 3: Build a Debug APK (Quick Test)
+### Step 3: Build Production Web Bundle
 
 ```bash
-flutter build apk --debug
+npm run build
 ```
 
-Output: `frontend/build/app/outputs/flutter-apk/app-debug.apk`
+Output: `frontend/dist/` — sẵn sàng deploy lên Netlify / Vercel / Cloudflare Pages / Render static.
 
 ### Step 4: Build a Release APK (Production)
 
@@ -447,92 +443,39 @@ flutter build apk --release
 
 Output: `frontend/build/app/outputs/flutter-apk/app-release.apk`
 
-#### Option B — Signed release APK (recommended for distribution)
+### Step 4: Build a Release Web Bundle (Production)
 
-1. **Generate a keystore** (one-time):
-   ```bash
-   keytool -genkey -v -keystore android/app/trichat-release.jks ^
-     -keyalg RSA -keysize 2048 -validity 10000 ^
-     -alias trichat
-   ```
-   > Save the keystore file and passwords securely. **If you lose them, you cannot update your app on the Play Store.**
-
-2. **Create `frontend/android/key.properties`:**
-   ```properties
-   storePassword=<your-store-password>
-   keyPassword=<your-key-password>
-   keyAlias=trichat
-   storeFile=trichat-release.jks
-   ```
-
-3. **Update `frontend/android/app/build.gradle.kts`** — replace the `buildTypes` block:
-   ```kotlin
-   import java.util.Properties
-   import java.io.FileInputStream
-
-   val keystoreProperties = Properties().apply {
-       val f = rootProject.file("key.properties")
-       if (f.exists()) load(FileInputStream(f))
-   }
-
-   android {
-       // ... existing config ...
-
-       signingConfigs {
-           create("release") {
-               keyAlias = keystoreProperties["keyAlias"] as String
-               keyPassword = keystoreProperties["keyPassword"] as String
-               storeFile = file(keystoreProperties["storeFile"] as String)
-               storePassword = keystoreProperties["storePassword"] as String
-           }
-       }
-
-       buildTypes {
-           release {
-               signingConfig = signingConfigs.getByName("release")
-               isMinifyEnabled = true
-               isShrinkResources = true
-           }
-       }
-   }
-   ```
-
-4. **Build the signed APK:**
-   ```bash
-   flutter build apk --release
-   ```
-
-5. **Build split APKs per ABI** (smaller file size per device):
-   ```bash
-   flutter build apk --release --split-per-abi
-   ```
-   This produces `app-armeabi-v7a-release.apk`, `app-arm64-v8a-release.apk`, `app-x86_64-release.apk`.
-
-6. **Build an Android App Bundle** (for Google Play Store):
-   ```bash
-   flutter build appbundle --release
-   ```
-   Output: `frontend/build/app/outputs/bundle/release/app-release.aab`
-
-### Step 5: Install the APK on a Device
+#### Option A — Quick release
 
 ```bash
-# Via ADB
-adb install build/app/outputs/flutter-apk/app-release.apk
-
-# Or transfer the .apk file to the phone and tap to install
-# (you may need to enable "Install from unknown sources" in Settings)
+cd frontend
+npm run build
 ```
+
+Output: `frontend/dist/` — sẵn sàng deploy lên Netlify / Vercel / Cloudflare Pages / Render static.
+
+#### Option B — Deploy thẳng lên Netlify
+
+Đã có sẵn `netlify.toml` ở root repo:
+
+```bash
+cd frontend
+npm install
+npm run build
+# Kết nối repo với Netlify → tự động build + deploy mỗi push.
+```
+
+> Netlify tự động detect `netlify.toml` ở root, dùng `frontend/` làm base, build, và serve `frontend/dist/`.
 
 ### Common Issues
 
 | Problem                                          | Solution                                                                              |
 | ------------------------------------------------ | ------------------------------------------------------------------------------------- |
-| `Execution failed for task ':app:minifyEnabled'` | The release build uses R8/ProGuard; check `proguard-rules.pro` if you have one.      |
-| `Could not find method isMinifyEnabled()`        | Upgrade AGP: `android/settings.gradle.kts` should have AGP ≥ 7.0.                     |
-| `flutter_dotenv` not loading in release          | Ensure `.env` is listed in `pubspec.yaml` under `flutter.assets:` (already configured). |
-| App can't reach backend                          | Use the public backend URL in `frontend/.env` (`API_BASE_URL=https://...`), not `localhost`. |
-| Network errors with `cleartext` traffic          | Add `android:usesCleartextTraffic="true"` in `AndroidManifest.xml` (HTTP only) or use HTTPS. |
+| App can't reach backend                          | Use the public backend URL in `frontend/.env` (`VITE_API_BASE_URL=https://...`), not `localhost`. |
+| SignalR WebSocket fails                          | Đảm bảo backend có cấu hình WebSocket + CORS cho domain frontend (đã có trong `Program.cs`). |
+| FCM Web Push không hoạt động                      | Tạo VAPID key trong Firebase Console → thêm `VITE_FB_VAPID_KEY` vào `.env`.          |
+| Agora WebRTC không kết nối                        | Cần HTTPS ở production; VAPID + Agora App ID/Cert phải được set trong `.env`.         |
+| Bundle lớn hơn 500 kB                            | Đã có `manualChunks` cho firebase/signalr/agora/maps; cân nhắc lazy load thêm.        |
 
 ---
 
@@ -653,7 +596,7 @@ The backend uses Redis to store online/offline status, OTP, and cache. If Redis 
 
 1. **Redis Server** → start first
 2. **Backend** (`dotnet run`) → start after Redis
-3. **Frontend** (`flutter run`) → start after Backend
+3. **Frontend** (`npm run dev`) → start after Backend
 4. **Web Admin** (`flutter run -d chrome`) → can run independently (connects directly to Firestore)
 
 ---
