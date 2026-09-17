@@ -1,5 +1,6 @@
 import { http } from '../lib/httpClient';
 
+// Tất cả payload gửi backend dùng snake_case (ASP.NET Core SnakeCaseLower JSON).
 export const friendService = {
   async getFriends() {
     return http.get('/api/friends');
@@ -20,13 +21,15 @@ export const friendService = {
     return http.get(`/api/friends/status/${targetUserId}`);
   },
   async sendRequest(addresseeId, sourceType = 'search') {
+    // SendFriendRequestDto: AddresseeId, SourceType → snake_case
     return http.post('/api/friends/requests', {
-      AddresseeId: addresseeId,
-      SourceType: sourceType,
+      addressee_id: addresseeId,
+      source_type: sourceType,
     });
   },
   async respondRequest(friendshipId, accept) {
-    return http.patch(`/api/friends/requests/${friendshipId}`, { Accept: accept });
+    // RespondFriendRequestDto.Accept → "accept"
+    return http.patch(`/api/friends/requests/${friendshipId}`, { accept });
   },
   async cancelRequest(friendshipId) {
     return http.delete(`/api/friends/requests/${friendshipId}`);
@@ -47,7 +50,7 @@ export const friendService = {
   /**
    * Lấy danh sách người dùng trong hệ thống để gợi ý kết bạn.
    * Endpoint: GET /api/user (trả về toàn bộ user).
-   * Frontend sẽ tự lọc trừ current user + đã là bạn + đang pending.
+   * Frontend tự lọc trừ current user + đã là bạn + đang pending.
    */
   async discoverUsers() {
     return http.get('/api/user');

@@ -25,7 +25,8 @@ export async function requestFcmToken() {
 export async function saveFcmTokenToServer(token) {
   if (!token) return;
   try {
-    await http.post('/api/user/fcm-token', { Token: token });
+    // Backend SaveFcmTokenRequest.Token → snake_case "token"
+    await http.post('/api/user/fcm-token', { token });
   } catch (e) {
     console.warn('[fcm] save token failed:', e);
   }

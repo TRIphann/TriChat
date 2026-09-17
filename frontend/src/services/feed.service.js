@@ -1,5 +1,6 @@
 import { http } from '../lib/httpClient';
 
+// Backend dùng SnakeCaseLower cho JSON + multipart field names.
 export const feedService = {
   async getAll() {
     return http.get('/api/feed');
@@ -11,7 +12,7 @@ export const feedService = {
     return http.get('/api/feed/stories');
   },
   async createFeed(payload) {
-    // Backend CreateFeed uses [FromForm] — must send FormData, not JSON.
+    // Backend CreateFeed dùng [FromForm] FormData — multipart field names phải snake_case.
     const fd = new FormData();
     fd.append('Type', payload.type || 'post');
     fd.append('Content.Caption', payload.content || '');
@@ -29,7 +30,7 @@ export const feedService = {
     return http.post(`/api/feed/${id}/like`);
   },
   async unlike(id) {
-    // Backend uses POST toggle endpoint — unlike = call the same toggle while isLiked=true
+    // Backend dùng POST toggle endpoint — unlike = gọi lại toggle khi đã like
     return http.post(`/api/feed/${id}/like`);
   },
   async comment(id, payload) {

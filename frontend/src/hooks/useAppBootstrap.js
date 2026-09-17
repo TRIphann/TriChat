@@ -27,10 +27,11 @@ export function useAppBootstrap() {
     function onVis() {
       const conn = useChatStore.getState().signalR;
       if (!conn) return;
+      const uid = user.uid;
       if (document.visibilityState === 'visible') {
-        conn.invoke('SetOnline').catch(() => {});
+        conn.invoke('SetOnline', uid).catch(() => {});
       } else {
-        conn.invoke('SetOffline').catch(() => {});
+        conn.invoke('SetOffline', uid).catch(() => {});
       }
     }
     document.addEventListener('visibilitychange', onVis);

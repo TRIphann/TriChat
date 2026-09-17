@@ -1,8 +1,13 @@
 import { create } from 'zustand';
 import { chatService } from '../services/chat.service';
 import { useChatStore } from './chatStore';
+import { useAuthStore } from './authStore';
 import { buildChannelName, joinAgora, leaveAgora, makeAgoraClient } from '../lib/agora';
 
+/**
+ * currentUid được inject từ authStore khi init() được gọi (useAppBootstrap).
+ * KHÔNG khởi tạo mặc định ở module-level — sẽ luôn null và sai callerId.
+ */
 export const useCallStore = create((set, get) => ({
   currentCall: null,
   status: 'idle', // idle | dialing | ringing | active | ended | rejected | missed
@@ -14,12 +19,24 @@ export const useCallStore = create((set, get) => ({
   agoraClient: null,
   timer: null,
 
+  // Sync uid từ authStore — gọi khi vào màn hình call hoặc khi user thay đổi.
+  syncCurrentUid() {
+    const u = useAuthStore.getState().user;
+    set({ currentUid: u?.uid || null });
+    return u?.uid || null;
+  },
+
   // Caller side
   async startOutgoing({ conversationId, calleeId, isVideo, remoteName, remoteAvatar }) {
+    const myUid = get().syncCurrentUid();
+    if (!myUid) {
+      throw new Error('Bạn cần đăng nhập để thực hiện cuộc gọi');
+    }
+
     set({
       currentCall: {
         conversationId,
-        callerId: get().currentUid,
+        callerId: myUid,
         calleeId,
         isVideo,
         isIncoming: false,
@@ -39,25 +56,34 @@ export const useCallStore = create((set, get) => ({
 
     try {
       const chatStore = useChatStore.getState();
-      await chatStore.signalR?.invoke?.('InitiateCall', {
-        conversation_id: conversationId,
-        callee_id: calleeId,
-        call_type: isVideo ? 'video' : 'voice',
-        caller_id: get().currentUid,
-        caller_name: remoteName,
-        caller_avatar: remoteAvatar,
-      });
+      // Backend ChatHub.InitiateCall nhận 6 POSITIONAL args (không phải object):
+      //   (conversationId, calleeId, callType, callerId, callerName, callerAvatar)
+      // callerName/callerAvatar là của CALLER (mình), không phải remote.
+      const me = useAuthStore.getState().profile || {};
+      const callerName = me.full_name || me.fullName || 'Người dùng';
+      const callerAvatar = me.avatar || '';
+      const callType = isVideo ? 'video' : 'voice';
+      await chatStore.signalR?.invoke?.(
+        'InitiateCall',
+        conversationId,
+        calleeId,
+        callType,
+        myUid,
+        callerName,
+        callerAvatar,
+      );
     } catch (e) {
       console.warn('[call] initiate failed', e);
     }
   },
 
   receiveIncoming({ conversationId, callerId, callerName, callerAvatar, callType }) {
+    const myUid = get().syncCurrentUid();
     set({
       currentCall: {
         conversationId,
         callerId,
-        calleeId: get().currentUid,
+        calleeId: myUid,
         isVideo: callType === 'video',
         isIncoming: true,
         remoteName: callerName,
@@ -74,6 +100,7 @@ export const useCallStore = create((set, get) => ({
     get().startTimer();
     try {
       const chatStore = useChatStore.getState();
+      // AcceptCall(conversationId, callerId)
       await chatStore.signalR?.invoke?.('AcceptCall', call.conversationId, call.callerId);
     } catch {}
     await get().joinAgora();
@@ -93,7 +120,8 @@ export const useCallStore = create((set, get) => ({
   async endCall() {
     const call = get().currentCall;
     if (!call) return;
-    const otherId = call.callerId === get().currentUid ? call.calleeId : call.callerId;
+    const myUid = get().syncCurrentUid();
+    const otherId = call.callerId === myUid ? call.calleeId : call.callerId;
     if (!otherId) {
       await get().endCallLocal('ended');
       return;
@@ -109,12 +137,12 @@ export const useCallStore = create((set, get) => ({
     const call = get().currentCall;
     if (!call) return;
     set({ status: 'missed' });
-    // Log call message
+    // Log call message — backend snake_case (conversation_id, type, content)
     chatService
       .sendMessage({
-        ConversationId: call.conversationId,
-        Type: 'call',
-        Content: call.isVideo ? 'Cuộc gọi video nhỡ' : 'Cuộc gọi thoại nhỡ',
+        conversation_id: call.conversationId,
+        type: 'call',
+        content: call.isVideo ? 'Cuộc gọi video nhỡ' : 'Cuộc gọi thoại nhỡ',
       })
       .catch(() => {});
     setTimeout(() => get().endCallLocal('missed'), 1500);
@@ -170,5 +198,3 @@ export const useCallStore = create((set, get) => ({
     }
   },
 }));
-
-useCallStore.setState({ currentUid: null });

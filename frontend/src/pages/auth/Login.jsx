@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button, Input, Card } from '../../components/ui';
 import { authService, mapAuthError } from '../../services/auth.service';
 import { useUiStore } from '../../store/uiStore';
-import './auth.css';
 
 const PWD_HINT = 'Mật khẩu phân biệt HOA/thường. Tắt Caps Lock và không có khoảng trắng thừa.';
 
@@ -27,11 +26,12 @@ export default function Login() {
     try {
       await authService.signIn(trimmedEmail, password);
       showToast('Đăng nhập thành công', 'success');
-      nav('/chat-list');
+      nav('/app');
     } catch (e) {
       const friendly = mapAuthError(e?.code);
       setError(
         friendly ||
+          e?.message ||
           'Không thể đăng nhập. Vui lòng kiểm tra email, mật khẩu và kết nối mạng rồi thử lại.',
       );
     } finally {

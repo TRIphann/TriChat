@@ -34,17 +34,32 @@ export const authService = {
     await auth.signOut();
   },
 
+  /**
+   * Đăng ký tài khoản mới.
+   * Bước 1: tạo user trên Firebase Auth (modular SDK).
+   * Bước 2: gọi backend POST /api/user để tạo profile Firestore.
+   * Backend dùng SnakeCaseLower JSON → gửi snake_case.
+   * Lưu ý: CreateUserRequestValidator yêu cầu DateOfBirth bắt buộc (yyyy-MM-dd, ngày trong quá khứ).
+   */
   async register(req) {
     const cred = await createUserWithEmailAndPassword(auth, req.email, req.password);
     const uid = cred.user.uid;
-    // Backend bind snake_case cho /api/user (create user)
+
+    // DateOfBirth là bắt buộc theo validator — backend nhận string yyyy-MM-dd.
+    const dob = req.dateOfBirth || req.date_of_birth;
+    if (!dob) {
+      // Rollback: xoá user Firebase để tránh tài khoản "ma" không có profile.
+      await cred.user.delete().catch(() => {});
+      throw new Error('Ngày sinh là bắt buộc để tạo tài khoản.');
+    }
+
     await http.post('/api/user', {
       id: uid,
       first_name: req.firstName,
       last_name: req.lastName,
       email: req.email,
       password: req.password,
-      date_of_birth: req.dateOfBirth,
+      date_of_birth: dob,
       bio: req.bio || '',
     });
     return uid;
@@ -77,8 +92,11 @@ export const authService = {
     return http.get('/api/user/search', { q });
   },
 
+  /**
+   * UpdateUserRequest: tất cả field optional, snake_case theo SnakeCaseLower JSON config.
+   * Truyền đúng key để ASP.NET Core bind được.
+   */
   async updateMe(payload) {
-    // UpdateUserRequest DTO — PascalCase
     return http.put('/api/user/me', payload);
   },
 

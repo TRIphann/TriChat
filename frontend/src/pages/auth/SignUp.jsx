@@ -9,12 +9,16 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PWD_RE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 const EMAIL_HINT = 'Dùng email hợp lệ để nhận mã xác thực. Ví dụ: ten@example.com';
 const PWD_HINT = 'Mật khẩu cần ≥ 8 ký tự, bao gồm chữ HOA, chữ thường và số.';
+const DOB_HINT = 'Bắt buộc — dùng để xác minh tuổi và cá nhân hoá trải nghiệm.';
 
 export default function SignUp() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  // Backend CreateUserRequestValidator yêu cầu DateOfBirth bắt buộc (yyyy-MM-dd, ngày trong quá khứ).
+  // Phải thu thập ngay tại form đăng ký — nếu thiếu sẽ 422.
+  const [dateOfBirth, setDateOfBirth] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [touched, setTouched] = useState(false);
@@ -29,6 +33,17 @@ export default function SignUp() {
   const passwordError =
     touched && password && !PWD_RE.test(password)
       ? 'Mật khẩu chưa đúng định dạng. Hãy dùng ≥ 8 ký tự gồm chữ HOA, chữ thường và số.'
+      : '';
+  const dobError =
+    touched && dateOfBirth
+      ? (() => {
+          const d = new Date(dateOfBirth);
+          const now = new Date();
+          if (Number.isNaN(d.getTime())) return 'Ngày sinh không hợp lệ.';
+          if (d >= now) return 'Ngày sinh phải là ngày trong quá khứ.';
+          if (now.getFullYear() - d.getFullYear() > 100) return 'Ngày sinh không hợp lệ (>100 tuổi).';
+          return '';
+        })()
       : '';
 
   async function onSubmit(e) {
@@ -54,6 +69,15 @@ export default function SignUp() {
       );
       return;
     }
+    if (!dateOfBirth) {
+      setError('Vui lòng nhập ngày sinh để hoàn tất đăng ký.');
+      return;
+    }
+    const dobDate = new Date(dateOfBirth);
+    if (Number.isNaN(dobDate.getTime()) || dobDate >= new Date()) {
+      setError('Ngày sinh phải là ngày hợp lệ trong quá khứ (định dạng yyyy-MM-dd).');
+      return;
+    }
 
     setLoading(true);
     try {
@@ -62,12 +86,13 @@ export default function SignUp() {
         password,
         firstName: trimmedFirst,
         lastName: trimmedLast,
+        dateOfBirth, // backend yêu cầu DateOfRequest "yyyy-MM-dd"
       });
       showToast('Đăng ký thành công', 'success');
-      nav('/chat-list');
+      nav('/app');
     } catch (e) {
       const friendly = mapAuthError(e?.code);
-      setError(friendly || 'Đăng ký thất bại. Vui lòng kiểm tra thông tin và thử lại.');
+      setError(friendly || e?.message || 'Đăng ký thất bại. Vui lòng kiểm tra thông tin và thử lại.');
     } finally {
       setLoading(false);
     }
@@ -120,6 +145,17 @@ export default function SignUp() {
             hint={PWD_HINT}
             error={passwordError || undefined}
             autoComplete="new-password"
+          />
+          <Input
+            label="Ngày sinh"
+            type="date"
+            value={dateOfBirth}
+            onChange={(e) => setDateOfBirth(e.target.value)}
+            onBlur={() => setTouched(true)}
+            hint={DOB_HINT}
+            error={dobError || undefined}
+            autoComplete="bday"
+            max={new Date().toISOString().slice(0, 10)}
           />
           {error && <p className="auth-error">{error}</p>}
           <Button type="submit" variant="primary" size="lg" loading={loading} fullWidth>

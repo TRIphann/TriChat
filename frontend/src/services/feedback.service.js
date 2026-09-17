@@ -1,11 +1,12 @@
 import { http } from '../lib/httpClient';
 
+// Backend dùng SnakeCaseLower JSON — feedback DTO: Rating, Title, Description.
 export const feedbackService = {
   async submit({ rating, title, description }) {
     return http.post('/api/feedback', {
-      Rating: rating,
-      Title: title,
-      Description: description,
+      rating,
+      title,
+      description,
     });
   },
   async getMine() {

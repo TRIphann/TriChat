@@ -1,5 +1,6 @@
 import { http } from '../lib/httpClient';
 
+// Tất cả payload gửi backend dùng snake_case (ASP.NET Core SnakeCaseLower JSON).
 export const chatService = {
   // Conversations
   async getConversations() {
@@ -11,7 +12,6 @@ export const chatService = {
   },
 
   async createConversation(payload) {
-    // PascalCase: CreateConversationRequest
     return http.post('/api/chat/conversations', payload);
   },
 
@@ -50,7 +50,7 @@ export const chatService = {
   // Messages
   async getMessages(conversationId, { limit = 50, beforeMessageId } = {}) {
     const q = { limit };
-    if (beforeMessageId) q.beforeMessageId = beforeMessageId;
+    if (beforeMessageId) q.before_message_id = beforeMessageId;
     return http.get(`/api/chat/conversations/${conversationId}/messages`, q);
   },
 
@@ -99,22 +99,25 @@ export const chatService = {
   },
 
   async setDisappearing(conversationId, durationSeconds) {
+    // DisappearingSettingRequest.DurationSeconds → snake_case "duration_seconds"
     return http.put(`/api/chat/conversations/${conversationId}/settings/disappearing`, {
-      DurationSeconds: durationSeconds,
+      duration_seconds: durationSeconds,
     });
   },
 
   async setNickname(conversationId, userId, nickname) {
+    // SetNicknameRequest.Nickname → "nickname"
     return http.put(
       `/api/chat/conversations/${conversationId}/members/${userId}/nickname`,
-      { Nickname: nickname },
+      { nickname },
     );
   },
 
   async uploadMedia(conversationId, file) {
     const fd = new FormData();
+    // UploadMediaRequest: ConversationId + File — snake_case cho property name trong multipart.
     fd.append('ConversationId', conversationId);
-    fd.append('file', file);
+    fd.append('File', file);
     return http.upload('/api/chat/upload', fd);
   },
 
@@ -123,6 +126,7 @@ export const chatService = {
   },
 
   async saveFcmToken(token) {
-    return http.post('/api/user/fcm-token', { Token: token });
+    // SaveFcmTokenRequest.Token → "token"
+    return http.post('/api/user/fcm-token', { token });
   },
 };

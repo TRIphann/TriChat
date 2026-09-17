@@ -16,7 +16,9 @@ function options(extraQuery = {}) {
 }
 
 export function createChatConnection({ userId } = {}) {
-  const query = userId ? { userId, access_token: '' } : undefined;
+  // ChatHub.OnConnectedAsync đọc userId từ query string để join group user_{uid}.
+  // Không gửi access_token trong query vì backend dùng Bearer header (accessTokenFactory).
+  const query = userId ? { userId } : undefined;
   const url = buildHubUrl('/hubs/chat', query);
   return new signalR.HubConnectionBuilder()
     .withUrl(url, options())

@@ -61,7 +61,8 @@ export const useChatStore = create((set, get) => ({
 
     try {
       await conn.start();
-      await conn.invoke('SetOnline');
+      // Backend SetOnline/SetOffline/Heartbeat đều yêu cầu userId positional arg
+      await conn.invoke('SetOnline', uid);
       set({ signalR: conn });
     } catch (e) {
       console.warn('[chat] signalr connect failed:', e);
@@ -71,7 +72,9 @@ export const useChatStore = create((set, get) => ({
   startHeartbeat() {
     if (get().heartbeatTimer) clearInterval(get().heartbeatTimer);
     const t = setInterval(() => {
-      get().signalR?.invoke?.('Heartbeat').catch(() => {});
+      const uid = get().currentUid;
+      if (!uid) return;
+      get().signalR?.invoke?.('Heartbeat', uid).catch(() => {});
     }, 3 * 60 * 1000);
     set({ heartbeatTimer: t });
   },
@@ -215,9 +218,10 @@ export const useChatStore = create((set, get) => ({
       await get().openConversation(existing);
       return existing;
     }
+    // Backend CreateConversationRequest: snake_case (type, participant_ids, ...)
     const conv = await chatService.createConversation({
-      Type: 'private',
-      ParticipantIds: [userId],
+      type: 'private',
+      participant_ids: [userId],
     });
     set((s) => ({ conversations: [conv, ...s.conversations] }));
     await get().openConversation(conv);
@@ -385,7 +389,9 @@ export const useChatStore = create((set, get) => ({
 
   async dispose() {
     try {
-      await get().signalR?.invoke?.('SetOffline');
+      // Backend yêu cầu userId positional
+      const uid = get().currentUid;
+      if (uid) await get().signalR?.invoke?.('SetOffline', uid);
       await get().signalR?.stop();
     } catch {}
     if (get().heartbeatTimer) clearInterval(get().heartbeatTimer);

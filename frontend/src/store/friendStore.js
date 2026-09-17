@@ -21,7 +21,14 @@ export const useFriendStore = create((set, get) => ({
   connection: null,
 
   async init(uid) {
-    if (get().connection) return;
+    // Tránh re-init khi uid không đổi (giống chatStore.init)
+    if (get().connection && get().currentUid === uid) return;
+    set({ currentUid: uid });
+    // Dispose connection cũ (nếu có) trước khi tạo cái mới — tránh leak khi đổi user
+    if (get().connection) {
+      try { await get().connection.stop(); } catch {}
+      set({ connection: null });
+    }
     await get().loadAll();
     const conn = createFriendConnection();
 
@@ -97,9 +104,11 @@ export const useFriendStore = create((set, get) => ({
       const all = await friendService.discoverUsers();
       const myUid = useAuthStore.getState().user?.uid;
       const friendIds = new Set(get().friends.map((f) => f.friendId));
+      // pendingSent: tôi gửi → addresseeId là user kia
+      // pendingReceived: tôi nhận → senderId là user kia
       const pendingIds = new Set([
-        ...get().pendingSent.map((r) => r.addresseeId),
-        ...get().pendingReceived.map((r) => r.senderId),
+        ...get().pendingSent.map((r) => r.addresseeId || r.addressee_id),
+        ...get().pendingReceived.map((r) => r.senderId || r.sender_id),
       ]);
       const filtered = (all || [])
         .filter((u) => u.id !== myUid)
@@ -159,11 +168,12 @@ export const useFriendStore = create((set, get) => ({
     await friendService.cancelRequest(friendshipId);
     set((s) => {
       const cancelled = s.pendingSent.find((r) => r.id === friendshipId);
+      const cancelledAddresseeId = cancelled?.addresseeId || cancelled?.addressee_id;
       return {
         pendingSent: s.pendingSent.filter((f) => f.id !== friendshipId),
         // Trả lại user vào suggestions nếu còn thiếu bạn
         suggestions: cancelled && s.friends.length === 0
-          ? [{ id: cancelled.addresseeId, fullName: cancelled.addresseeName, avatar: cancelled.addresseeAvatar }, ...s.suggestions]
+          ? [{ id: cancelledAddresseeId, full_name: cancelled.addresseeName || cancelled.addressee_name, avatar: cancelled.addresseeAvatar || cancelled.addressee_avatar }, ...s.suggestions]
           : s.suggestions,
       };
     });
@@ -188,15 +198,25 @@ export const useFriendStore = create((set, get) => ({
     return get().friends.some((f) => f.friendId === userId);
   },
 
+  /**
+   * Tìm request tôi đã GỬI tới userId.
+   * pendingSent: senderId = tôi, addresseeId = user kia.
+   * → Chỉ check addresseeId (đúng người nhận), bỏ check senderId (sẽ match sai với received).
+   */
   getSentRequest(userId) {
     return get().pendingSent.find(
-      (f) => f.senderId === userId || f.addresseeId === userId,
+      (f) => (f.addresseeId || f.addressee_id) === userId,
     );
   },
 
+  /**
+   * Tìm request tôi đã NHẬN từ userId.
+   * pendingReceived: senderId = user kia, addresseeId = tôi.
+   * → Chỉ check senderId (đúng người gửi), bỏ check addresseeId (sẽ match sai với sent).
+   */
   getReceivedRequest(userId) {
     return get().pendingReceived.find(
-      (f) => f.senderId === userId || f.addresseeId === userId,
+      (f) => (f.senderId || f.sender_id) === userId,
     );
   },
 
@@ -204,7 +224,7 @@ export const useFriendStore = create((set, get) => ({
     try {
       await get().connection?.stop();
     } catch {}
-    set({ connection: null });
+    set({ connection: null, currentUid: null });
   },
 }));
 

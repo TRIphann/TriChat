@@ -15,23 +15,29 @@ export default function UpdateAvatar() {
   async function onPick(e) {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!file.type?.startsWith?.('image/')) {
+      showToast('Vui lòng chọn file ảnh', 'error');
+      return;
+    }
     setPreview(await readAsDataUrl(file));
   }
 
   async function save() {
     if (!preview) {
-      nav('/chat-list');
+      nav('/app');
       return;
     }
     setLoading(true);
     try {
       const blob = await (await fetch(preview)).blob();
-      const file = new File([blob], 'avatar.jpg', { type: blob.type });
+      // Đảm bảo mime type — một số browser trả blob.type rỗng với data URL.
+      const mime = blob.type || 'image/jpeg';
+      const file = new File([blob], 'avatar.jpg', { type: mime });
       await authService.updateAvatar(file);
       showToast('Đã cập nhật ảnh đại diện', 'success');
-      nav('/chat-list');
+      nav('/app');
     } catch (e) {
-      showToast('Cập nhật thất bại', 'error');
+      showToast(e?.message || 'Cập nhật thất bại', 'error');
     } finally {
       setLoading(false);
     }
@@ -43,13 +49,13 @@ export default function UpdateAvatar() {
         <h1 className="auth-title">Ảnh đại diện</h1>
         <p className="auth-sub">Chọn ảnh đại diện để mọi người dễ nhận ra bạn.</p>
         <div style={{ display: 'flex', justifyContent: 'center', margin: '24px 0' }}>
-          <button onClick={() => fileRef.current?.click()} style={{ background: 'transparent', border: 'none' }}>
+          <button type="button" onClick={() => fileRef.current?.click()} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
             <Avatar src={preview} name="?" size={120} ring />
           </button>
           <input ref={fileRef} type="file" accept="image/*" onChange={onPick} style={{ display: 'none' }} />
         </div>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-          <Button variant="ghost" size="md" onClick={() => nav('/chat-list')}>Bỏ qua</Button>
+          <Button variant="ghost" size="md" onClick={() => nav('/app')}>Bỏ qua</Button>
           <Button variant="primary" size="md" loading={loading} onClick={save}>Lưu</Button>
         </div>
       </Card>

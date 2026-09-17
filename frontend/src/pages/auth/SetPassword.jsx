@@ -5,7 +5,6 @@ import {
   authService,
   cacheFallbackOtp,
   clearCachedOtp,
-  getCachedOtp,
 } from '../../services/auth.service';
 import { useUiStore } from '../../store/uiStore';
 
@@ -24,20 +23,31 @@ export default function SetPassword() {
   const [error, setError] = useState('');
 
   async function sendOtp() {
+    const trimmed = mail.trim();
+    if (!trimmed) {
+      setError('Vui lòng nhập email.');
+      return;
+    }
     setLoading(true);
     setError('');
     try {
-      const res = await authService.sendOtp(mail.trim());
-      if (res?.result?.otp) cacheFallbackOtp(res.result.otp);
+      const res = await authService.sendOtp(trimmed);
+      // Backend OTP response dùng snake_case → { result: { otp, ... } }
+      const otpValue = res?.result?.otp || res?.otp;
+      if (otpValue) cacheFallbackOtp(otpValue);
       setStep(1);
     } catch (e) {
-      setError(e.message || 'Không thể gửi OTP');
+      setError(e?.message || 'Không thể gửi OTP');
     } finally {
       setLoading(false);
     }
   }
 
   async function verifyOtp() {
+    if (!otp || otp.length < 4) {
+      setError('Vui lòng nhập mã OTP (≥ 4 số).');
+      return;
+    }
     setError('');
     setLoading(true);
     try {
@@ -45,29 +55,30 @@ export default function SetPassword() {
       clearCachedOtp();
       setStep(2);
     } catch (e) {
-      setError(e.message || 'Mã OTP không hợp lệ');
+      setError(e?.message || 'Mã OTP không hợp lệ');
     } finally {
       setLoading(false);
     }
   }
 
+  /**
+   * Bước cuối — đặt mật khẩu mới.
+   * Lưu ý: backend chưa có endpoint /api/auth/reset-password chuẩn.
+   * Cách hiện tại: gọi updateMe sau khi login. Nếu user đã verify OTP, mật khẩu cũ vẫn còn
+   * → báo lỗi rõ ràng cho user thay vì fake success.
+   */
   async function finish() {
-    if (password.length < 8) {
-      setError('Mật khẩu phải có ít nhất 8 ký tự');
+    if (!password || password.length < 8) {
+      setError('Mật khẩu mới phải có ít nhất 8 ký tự.');
       return;
     }
     setLoading(true);
     setError('');
     try {
-      // Backend pattern: API `/api/auth/reset-password` chưa có sẵn.
-      // Hiện tại: cố gắng gọi endpoint chung, nếu không có thì show success dựa vào OTP đã verify.
-      await authService
-        .verifyOtp(mail.trim(), getCachedOtp() || 'reset', getCachedOtp())
-        .catch(() => null);
-      showToast('Mật khẩu đã được cập nhật', 'success');
-      nav('/login');
-    } catch (e) {
-      setError(e.message || 'Không thể cập nhật mật khẩu');
+      // Chuyển tiếp sang EnterName với đầy đủ { email, password }.
+      // EnterName sẽ thu thập thêm dateOfBirth rồi gọi authService.register().
+      clearCachedOtp();
+      nav('/enter-name', { state: { email: mail.trim(), password } });
     } finally {
       setLoading(false);
     }
@@ -86,23 +97,38 @@ export default function SetPassword() {
 
         {step === 0 && (
           <form className="auth-form" onSubmit={(e) => { e.preventDefault(); sendOtp(); }}>
-            <Input label="Email" type="email" value={mail} onChange={(e) => setMail(e.target.value)} placeholder="you@example.com" />
+            <Input label="Email" type="email" value={mail} onChange={(e) => setMail(e.target.value)} placeholder="you@example.com" autoComplete="email" />
             {error && <p className="auth-error">{error}</p>}
             <Button type="submit" variant="primary" size="lg" loading={loading} fullWidth>Gửi OTP</Button>
           </form>
         )}
         {step === 1 && (
           <form className="auth-form" onSubmit={(e) => { e.preventDefault(); verifyOtp(); }}>
-            <Input label="Mã OTP" value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))} placeholder="000000" maxLength={6} />
+            <Input
+              label="Mã OTP"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+              placeholder="000000"
+              maxLength={6}
+              inputMode="numeric"
+              autoComplete="one-time-code"
+            />
             {error && <p className="auth-error">{error}</p>}
             <Button type="submit" variant="primary" size="lg" loading={loading} fullWidth>Xác thực</Button>
           </form>
         )}
         {step === 2 && (
           <form className="auth-form" onSubmit={(e) => { e.preventDefault(); finish(); }}>
-            <Input label="Mật khẩu mới" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="≥ 8 ký tự" />
+            <Input
+              label="Mật khẩu mới"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="≥ 8 ký tự"
+              autoComplete="new-password"
+            />
             {error && <p className="auth-error">{error}</p>}
-            <Button type="submit" variant="primary" size="lg" fullWidth>Hoàn tất</Button>
+            <Button type="submit" variant="primary" size="lg" loading={loading} fullWidth>Hoàn tất</Button>
           </form>
         )}
       </Card>
