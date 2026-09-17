@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button, Input, Card } from '../../components/ui';
-import { authService } from '../../services/auth.service';
+import { authService, mapAuthError } from '../../services/auth.service';
 import { useUiStore } from '../../store/uiStore';
 import './auth.css';
+
+const PWD_HINT = 'Mật khẩu phân biệt HOA/thường. Tắt Caps Lock và không có khoảng trắng thừa.';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -16,18 +18,22 @@ export default function Login() {
   async function onSubmit(e) {
     e.preventDefault();
     setError('');
-    if (!email || !password) {
-      setError('Vui lòng nhập email và mật khẩu');
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !password) {
+      setError('Vui lòng nhập email và mật khẩu để đăng nhập.');
       return;
     }
     setLoading(true);
     try {
-      await authService.signIn(email.trim(), password);
+      await authService.signIn(trimmedEmail, password);
       showToast('Đăng nhập thành công', 'success');
       nav('/chat-list');
     } catch (e) {
-      const msg = mapAuthError(e?.code) || e?.message || 'Đăng nhập thất bại';
-      setError(msg);
+      const friendly = mapAuthError(e?.code);
+      setError(
+        friendly ||
+          'Không thể đăng nhập. Vui lòng kiểm tra email, mật khẩu và kết nối mạng rồi thử lại.',
+      );
     } finally {
       setLoading(false);
     }
@@ -40,13 +46,14 @@ export default function Login() {
         <h1 className="auth-title">Chào mừng trở lại</h1>
         <p className="auth-sub">Đăng nhập để tiếp tục trò chuyện cùng bạn bè.</p>
 
-        <form className="auth-form" onSubmit={onSubmit}>
+        <form className="auth-form" onSubmit={onSubmit} noValidate>
           <Input
             label="Email"
             type="email"
-            placeholder="you@example.com"
+            placeholder="ten@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            hint="Nhập đúng email bạn đã dùng khi đăng ký, ví dụ ten@example.com"
             autoComplete="email"
           />
           <Input
@@ -55,6 +62,7 @@ export default function Login() {
             placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            hint={PWD_HINT}
             autoComplete="current-password"
           />
           {error && <p className="auth-error">{error}</p>}
@@ -70,17 +78,4 @@ export default function Login() {
       </Card>
     </div>
   );
-}
-
-function mapAuthError(code) {
-  const map = {
-    'user-not-found': 'Email không tồn tại',
-    'wrong-password': 'Sai mật khẩu',
-    'invalid-email': 'Email không hợp lệ',
-    'user-disabled': 'Tài khoản đã bị vô hiệu hóa',
-    'too-many-requests': 'Quá nhiều lần thử, thử lại sau',
-    'network-request-failed': 'Lỗi kết nối mạng',
-    'invalid-credential': 'Email hoặc mật khẩu không đúng',
-  };
-  return map[code] || '';
 }

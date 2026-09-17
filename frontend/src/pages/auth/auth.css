@@ -38,6 +38,15 @@
   gap: 14px;
   margin-bottom: 22px;
 }
+.auth-row {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+.auth-row > .field {
+  flex: 1 1 0;
+  min-width: 0;
+}
 .auth-error {
   color: var(--danger);
   font-size: 13px;
