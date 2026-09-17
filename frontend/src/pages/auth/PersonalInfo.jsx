@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Input, Card } from '../../components/ui';
+import { Button, Input } from '../../components/ui';
 import { authService } from '../../services/auth.service';
 import { useAuthStore } from '../../store/authStore';
+import AuthShell from './AuthShell';
 
 export default function PersonalInfo() {
   const nav = useNavigate();
@@ -15,7 +16,6 @@ export default function PersonalInfo() {
   useEffect(() => {
     if (profile) {
       setBio(profile.bio || '');
-      // profile.date_of_birth là string ISO date — input[type=date] cũng dùng yyyy-MM-dd
       setDob(profile.date_of_birth || profile.dateOfBirth || profile.dob || '');
     }
   }, [profile]);
@@ -24,8 +24,6 @@ export default function PersonalInfo() {
     setLoading(true);
     setError('');
     try {
-      // UpdateUserRequest DTO: tất cả field optional, snake_case (SnakeCaseLower JSON config).
-      // Chỉ gửi field nào có giá trị để tránh validate DOB lỡ range.
       const payload = {};
       if (dob) payload.date_of_birth = dob;
       payload.bio = bio || '';
@@ -38,43 +36,46 @@ export default function PersonalInfo() {
     }
   }
 
-  async function skip() {
+  function skip() {
     nav('/app');
   }
 
   return (
-    <div className="auth-page">
-      <Card glass className="auth-card page-in">
-        <h1 className="auth-title">Thông tin cá nhân</h1>
-        <p className="auth-sub">Có thể bỏ qua — bạn có thể cập nhật sau trong phần Hồ sơ.</p>
-        <div className="auth-form">
-          <Input
-            label="Ngày sinh"
-            type="date"
-            value={dob}
-            onChange={(e) => setDob(e.target.value)}
-            max={new Date().toISOString().slice(0, 10)}
-          />
-          <label className="field">
-            <span className="field__label">Tiểu sử</span>
+    <AuthShell
+      eyebrow="Bước tuỳ chọn"
+      title="Thông tin cá nhân"
+      sub="Có thể bỏ qua — bạn có thể cập nhật sau trong phần Hồ sơ."
+    >
+      <div className="auth-form">
+        <Input
+          label="Ngày sinh"
+          type="date"
+          value={dob}
+          onChange={(e) => setDob(e.target.value)}
+          max={new Date().toISOString().slice(0, 10)}
+        />
+        <label className="field">
+          <span className="field__label">Tiểu sử</span>
+          <span className="field__control" style={{ alignItems: 'flex-start' }}>
             <textarea
-              className="field__control"
-              style={{ minHeight: 96, padding: 14, resize: 'vertical' }}
+              className="field__input"
+              style={{ minHeight: 84, resize: 'vertical', padding: 0 }}
               placeholder="Một vài dòng về bạn..."
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               maxLength={200}
             />
-          </label>
-          {error && <p className="auth-error">{error}</p>}
-          <div style={{ display: 'flex', gap: 12 }}>
-            <Button variant="ghost" size="md" onClick={skip} fullWidth>Bỏ qua</Button>
-            <Button onClick={next} variant="primary" size="md" loading={loading} fullWidth>
-              Tiếp tục
-            </Button>
-          </div>
+          </span>
+          <span className="field__hint">{bio.length}/200 ký tự</span>
+        </label>
+        {error && <p className="auth-error" role="alert">{error}</p>}
+        <div className="auth-row" style={{ gridTemplateColumns: '1fr 1fr' }}>
+          <Button variant="ghost" size="lg" onClick={skip} fullWidth>Bỏ qua</Button>
+          <Button variant="primary" size="lg" loading={loading} onClick={next} fullWidth>
+            Tiếp tục
+          </Button>
         </div>
-      </Card>
-    </div>
+      </div>
+    </AuthShell>
   );
 }

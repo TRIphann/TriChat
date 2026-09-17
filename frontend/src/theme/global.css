@@ -31,6 +31,15 @@
   --shadow-aurora: 0 24px 80px rgba(217, 119, 6, 0.18), 0 8px 24px rgba(124, 58, 237, 0.18);
   --shadow-focus: 0 0 0 3px rgba(217, 119, 6, 0.32);
 
+  --success: #16A34A;
+  --success-soft: #DCFCE7;
+  --warning: #D97706;
+  --warning-soft: #FEF3C7;
+  --danger: #DC2626;
+  --danger-soft: #FEE2E2;
+  --info: #2563EB;
+  --info-soft: #DBEAFE;
+
   --bubble-mine: linear-gradient(135deg, #D97706 0%, #B45309 100%);
   --bubble-theirs: #F4EFE8;
   --bubble-mine-text: #FFFFFF;
@@ -50,6 +59,20 @@
   --radius-xl: 28px;
   --radius-xxl: 36px;
   --radius-pill: 999px;
+
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
 }
 
 [data-theme='dark'] {
@@ -69,6 +92,15 @@
   --shadow-medium: 0 4px 8px rgba(0, 0, 0, 0.5), 0 20px 48px rgba(0, 0, 0, 0.55);
   --shadow-glass: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 24px 60px rgba(0, 0, 0, 0.6);
   --shadow-aurora: 0 24px 80px rgba(217, 119, 6, 0.32), 0 8px 24px rgba(124, 58, 237, 0.32);
+
+  --success: #4ADE80;
+  --success-soft: rgba(74, 222, 128, 0.16);
+  --warning: #FBBF24;
+  --warning-soft: rgba(251, 191, 36, 0.16);
+  --danger: #F87171;
+  --danger-soft: rgba(248, 113, 113, 0.16);
+  --info: #60A5FA;
+  --info-soft: rgba(96, 165, 250, 0.16);
 
   --bubble-mine: linear-gradient(135deg, #292524 0%, #1C1917 100%);
   --bubble-theirs: #161412;

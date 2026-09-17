@@ -1,21 +1,20 @@
 import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button, Input, Card } from '../../components/ui';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Button, Input } from '../../components/ui';
 import {
   authService,
   cacheFallbackOtp,
   clearCachedOtp,
 } from '../../services/auth.service';
-import { useUiStore } from '../../store/uiStore';
+import AuthShell from './AuthShell';
 
 export default function SetPassword() {
   const loc = useLocation();
   const nav = useNavigate();
-  const showToast = useUiStore((s) => s.showToast);
   const email = loc.state?.email || '';
   const purpose = loc.state?.purpose || 'reset';
 
-  const [step, setStep] = useState(email ? 1 : 0); // 0: enter email, 1: verify otp, 2: new password
+  const [step, setStep] = useState(email ? 1 : 0);
   const [mail, setMail] = useState(email);
   const [otp, setOtp] = useState('');
   const [password, setPassword] = useState('');
@@ -32,7 +31,6 @@ export default function SetPassword() {
     setError('');
     try {
       const res = await authService.sendOtp(trimmed);
-      // Backend OTP response dùng snake_case → { result: { otp, ... } }
       const otpValue = res?.result?.otp || res?.otp;
       if (otpValue) cacheFallbackOtp(otpValue);
       setStep(1);
@@ -61,12 +59,6 @@ export default function SetPassword() {
     }
   }
 
-  /**
-   * Bước cuối — đặt mật khẩu mới.
-   * Lưu ý: backend chưa có endpoint /api/auth/reset-password chuẩn.
-   * Cách hiện tại: gọi updateMe sau khi login. Nếu user đã verify OTP, mật khẩu cũ vẫn còn
-   * → báo lỗi rõ ràng cho user thay vì fake success.
-   */
   async function finish() {
     if (!password || password.length < 8) {
       setError('Mật khẩu mới phải có ít nhất 8 ký tự.');
@@ -75,8 +67,6 @@ export default function SetPassword() {
     setLoading(true);
     setError('');
     try {
-      // Chuyển tiếp sang EnterName với đầy đủ { email, password }.
-      // EnterName sẽ thu thập thêm dateOfBirth rồi gọi authService.register().
       clearCachedOtp();
       nav('/enter-name', { state: { email: mail.trim(), password } });
     } finally {
@@ -84,54 +74,89 @@ export default function SetPassword() {
     }
   }
 
-  return (
-    <div className="auth-page">
-      <Card glass className="auth-card page-in">
-        <Link to="/login" className="auth-back">← Quay lại</Link>
-        <h1 className="auth-title">{purpose === 'register' ? 'Đặt mật khẩu' : 'Quên mật khẩu'}</h1>
-        <p className="auth-sub">
-          {step === 0 && 'Nhập email của bạn để nhận mã OTP.'}
-          {step === 1 && 'Nhập mã OTP đã được gửi tới email của bạn.'}
-          {step === 2 && 'Đặt mật khẩu mới cho tài khoản.'}
-        </p>
+  const eyebrowMap = { 0: 'Quên mật khẩu', 1: 'Xác thực', 2: 'Đặt lại' };
+  const titleMap = {
+    0: 'Khôi phục tài khoản',
+    1: 'Nhập mã OTP',
+    2: 'Đặt mật khẩu mới',
+  };
+  const subMap = {
+    0: purpose === 'register'
+        ? 'Nhập email để bắt đầu đăng ký tài khoản mới.'
+        : 'Nhập email của bạn để nhận mã OTP đặt lại mật khẩu.',
+    1: `Mã đã được gửi tới ${mail}. Vui lòng kiểm tra hộp thư đến (kể cả spam).`,
+    2: 'Chọn mật khẩu mới an toàn cho tài khoản của bạn.',
+  };
 
-        {step === 0 && (
-          <form className="auth-form" onSubmit={(e) => { e.preventDefault(); sendOtp(); }}>
-            <Input label="Email" type="email" value={mail} onChange={(e) => setMail(e.target.value)} placeholder="you@example.com" autoComplete="email" />
-            {error && <p className="auth-error">{error}</p>}
-            <Button type="submit" variant="primary" size="lg" loading={loading} fullWidth>Gửi OTP</Button>
-          </form>
-        )}
-        {step === 1 && (
-          <form className="auth-form" onSubmit={(e) => { e.preventDefault(); verifyOtp(); }}>
-            <Input
-              label="Mã OTP"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-              placeholder="000000"
-              maxLength={6}
-              inputMode="numeric"
-              autoComplete="one-time-code"
-            />
-            {error && <p className="auth-error">{error}</p>}
-            <Button type="submit" variant="primary" size="lg" loading={loading} fullWidth>Xác thực</Button>
-          </form>
-        )}
-        {step === 2 && (
-          <form className="auth-form" onSubmit={(e) => { e.preventDefault(); finish(); }}>
-            <Input
-              label="Mật khẩu mới"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="≥ 8 ký tự"
-              autoComplete="new-password"
-            />
-            {error && <p className="auth-error">{error}</p>}
-            <Button type="submit" variant="primary" size="lg" loading={loading} fullWidth>Hoàn tất</Button>
-          </form>
-        )}
-      </Card>
-    </div>
+  return (
+    <AuthShell
+      eyebrow={eyebrowMap[step]}
+      title={titleMap[step]}
+      sub={subMap[step]}
+    >
+      {step === 0 && (
+        <form className="auth-form" onSubmit={(e) => { e.preventDefault(); sendOtp(); }}>
+          <Input
+            label="Email"
+            type="email"
+            value={mail}
+            onChange={(e) => setMail(e.target.value)}
+            placeholder="you@example.com"
+            autoComplete="email"
+            autoFocus
+          />
+          {error && <p className="auth-error" role="alert">{error}</p>}
+          <div className="auth-submit-row">
+            <Button type="submit" variant="primary" size="lg" loading={loading} fullWidth>
+              Gửi OTP
+            </Button>
+          </div>
+        </form>
+      )}
+      {step === 1 && (
+        <form className="auth-form" onSubmit={(e) => { e.preventDefault(); verifyOtp(); }}>
+          <Input
+            label="Mã OTP"
+            value={otp}
+            onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+            placeholder="000000"
+            maxLength={6}
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            autoFocus
+          />
+          {error && <p className="auth-error" role="alert">{error}</p>}
+          <div className="auth-submit-row">
+            <Button type="submit" variant="primary" size="lg" loading={loading} fullWidth>
+              Xác thực
+            </Button>
+          </div>
+        </form>
+      )}
+      {step === 2 && (
+        <form className="auth-form" onSubmit={(e) => { e.preventDefault(); finish(); }}>
+          <Input
+            label="Mật khẩu mới"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="≥ 8 ký tự"
+            autoComplete="new-password"
+            autoFocus
+          />
+          {error && <p className="auth-error" role="alert">{error}</p>}
+          <div className="auth-submit-row">
+            <Button type="submit" variant="primary" size="lg" loading={loading} fullWidth>
+              Hoàn tất
+            </Button>
+          </div>
+        </form>
+      )}
+
+      <div className="auth-divider">hoặc</div>
+      <div className="auth-meta" style={{ justifyContent: 'center' }}>
+        <a href="/login" onClick={(e) => { e.preventDefault(); nav('/login'); }}>← Quay lại đăng nhập</a>
+      </div>
+    </AuthShell>
   );
 }

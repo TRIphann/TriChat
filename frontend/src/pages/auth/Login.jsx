@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button, Input, Card } from '../../components/ui';
+import { Button, Input } from '../../components/ui';
 import { authService, mapAuthError } from '../../services/auth.service';
 import { useUiStore } from '../../store/uiStore';
+import AuthShell from './AuthShell';
 
 const PWD_HINT = 'Mật khẩu phân biệt HOA/thường. Tắt Caps Lock và không có khoảng trắng thừa.';
 
@@ -40,42 +41,48 @@ export default function Login() {
   }
 
   return (
-    <div className="auth-page">
-      <Card glass className="auth-card page-in">
-        <Link to="/" className="auth-back">← Về trang chính</Link>
-        <h1 className="auth-title">Chào mừng trở lại</h1>
-        <p className="auth-sub">Đăng nhập để tiếp tục trò chuyện cùng bạn bè.</p>
-
-        <form className="auth-form" onSubmit={onSubmit} noValidate>
-          <Input
-            label="Email"
-            type="email"
-            placeholder="ten@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            hint="Nhập đúng email bạn đã dùng khi đăng ký, ví dụ ten@example.com"
-            autoComplete="email"
-          />
-          <Input
-            label="Mật khẩu"
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            hint={PWD_HINT}
-            autoComplete="current-password"
-          />
-          {error && <p className="auth-error">{error}</p>}
+    <AuthShell
+      eyebrow="Đăng nhập"
+      title="Chào mừng trở lại"
+      sub="Tiếp tục trò chuyện cùng bạn bè và cộng đồng của bạn."
+    >
+      <form className="auth-form" onSubmit={onSubmit} noValidate>
+        <Input
+          label="Email"
+          type="email"
+          placeholder="ten@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          hint="Nhập đúng email bạn đã dùng khi đăng ký"
+          autoComplete="email"
+        />
+        <Input
+          label="Mật khẩu"
+          type="password"
+          placeholder="••••••••"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          hint={PWD_HINT}
+          autoComplete="current-password"
+        />
+        {error && <p className="auth-error" role="alert">{error}</p>}
+        <div className="auth-submit-row">
           <Button type="submit" variant="primary" size="lg" loading={loading} fullWidth>
             Đăng nhập
           </Button>
-        </form>
-
-        <div className="auth-meta">
-          <Link to="/set-password">Quên mật khẩu?</Link>
-          <span>Chưa có tài khoản? <Link to="/sign-up">Đăng ký</Link></span>
         </div>
-      </Card>
-    </div>
+      </form>
+
+      <div className="auth-divider">hoặc</div>
+
+      <div className="auth-meta" style={{ justifyContent: 'center' }}>
+        <span>
+          Chưa có tài khoản? <Link to="/sign-up">Tạo tài khoản</Link>
+        </span>
+      </div>
+      <div className="auth-meta" style={{ justifyContent: 'center', marginTop: 8 }}>
+        <Link to="/set-password">Quên mật khẩu?</Link>
+      </div>
+    </AuthShell>
   );
 }

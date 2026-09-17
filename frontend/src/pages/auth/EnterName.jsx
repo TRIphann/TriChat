@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Button, Input, Card } from '../../components/ui';
+import { Button, Input } from '../../components/ui';
 import { authService } from '../../services/auth.service';
+import AuthShell from './AuthShell';
 
 export default function EnterName() {
   const loc = useLocation();
@@ -10,7 +11,6 @@ export default function EnterName() {
   const password = loc.state?.password || '';
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  // OTP signup flow cũng phải có DOB — backend validator yêu cầu bắt buộc.
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -20,7 +20,7 @@ export default function EnterName() {
     const trimmedLast = lastName.trim();
 
     if (!trimmedLast || !trimmedFirst) {
-      setError('Vui lòng nhập đầy đủ họ tên (không để trống, không chỉ khoảng trắng).');
+      setError('Vui lòng nhập đầy đủ họ tên.');
       return;
     }
     if (!dateOfBirth) {
@@ -28,7 +28,7 @@ export default function EnterName() {
       return;
     }
     if (!password) {
-      setError('Thiếu mật khẩu — vui lòng quay lại bước trước và nhập mật khẩu.');
+      setError('Thiếu mật khẩu — vui lòng quay lại bước trước.');
       return;
     }
     setLoading(true);
@@ -50,27 +50,45 @@ export default function EnterName() {
   }
 
   return (
-    <div className="auth-page">
-      <Card glass className="auth-card page-in">
-        <h1 className="auth-title">Cho chúng tôi biết về bạn</h1>
-        <p className="auth-sub">Tên và ngày sinh của bạn sẽ hiển thị với mọi người trên TriChat.</p>
-        <div className="auth-form">
-          <Input label="Họ" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Nguyễn" autoComplete="family-name" />
-          <Input label="Tên" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="An" autoComplete="given-name" />
+    <AuthShell
+      eyebrow="Hoàn tất đăng ký"
+      title="Cho chúng tôi biết về bạn"
+      sub="Tên và ngày sinh sẽ hiển thị với mọi người trên TriChat."
+    >
+      <div className="auth-form">
+        <div className="auth-row">
           <Input
-            label="Ngày sinh"
-            type="date"
-            value={dateOfBirth}
-            onChange={(e) => setDateOfBirth(e.target.value)}
-            hint="Bắt buộc — định dạng yyyy-MM-dd, ngày trong quá khứ."
-            max={new Date().toISOString().slice(0, 10)}
+            label="Họ"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            placeholder="Nguyễn"
+            autoComplete="family-name"
+            autoFocus
           />
-          {error && <p className="auth-error">{error}</p>}
+          <Input
+            label="Tên"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            placeholder="An"
+            autoComplete="given-name"
+          />
+        </div>
+        <Input
+          label="Ngày sinh"
+          type="date"
+          value={dateOfBirth}
+          onChange={(e) => setDateOfBirth(e.target.value)}
+          hint="Định dạng yyyy-MM-dd · ngày trong quá khứ."
+          max={new Date().toISOString().slice(0, 10)}
+          autoComplete="bday"
+        />
+        {error && <p className="auth-error" role="alert">{error}</p>}
+        <div className="auth-submit-row">
           <Button onClick={next} variant="primary" size="lg" loading={loading} fullWidth>
             Tiếp tục
           </Button>
         </div>
-      </Card>
-    </div>
+      </div>
+    </AuthShell>
   );
 }
