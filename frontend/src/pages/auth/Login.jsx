@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button, Input } from '../../components/ui';
-import { authService, mapAuthError } from '../../services/auth.service';
+import { authService, friendlyAuthError } from '../../services/auth.service';
 import { useUiStore } from '../../store/uiStore';
 import AuthShell from './AuthShell';
 
@@ -29,11 +29,11 @@ export default function Login() {
       showToast('Đăng nhập thành công', 'success');
       nav('/app');
     } catch (e) {
-      const friendly = mapAuthError(e?.code);
       setError(
-        friendly ||
-          e?.message ||
+        friendlyAuthError(
+          e,
           'Không thể đăng nhập. Vui lòng kiểm tra email, mật khẩu và kết nối mạng rồi thử lại.',
+        ),
       );
     } finally {
       setLoading(false);

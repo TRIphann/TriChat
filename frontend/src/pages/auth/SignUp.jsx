@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Input } from '../../components/ui';
-import { authService, mapAuthError } from '../../services/auth.service';
+import { authService, friendlyAuthError } from '../../services/auth.service';
 import { useUiStore } from '../../store/uiStore';
 import AuthShell from './AuthShell';
 
@@ -86,8 +86,7 @@ export default function SignUp() {
       showToast('Đăng ký thành công', 'success');
       nav('/app');
     } catch (e) {
-      const friendly = mapAuthError(e?.code);
-      setError(friendly || e?.message || 'Đăng ký thất bại. Vui lòng kiểm tra thông tin.');
+      setError(friendlyAuthError(e, 'Đăng ký thất bại. Vui lòng kiểm tra thông tin.'));
     } finally {
       setLoading(false);
     }

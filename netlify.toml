@@ -1,22 +1,31 @@
+# TriChat — Netlify configuration
+# ------------------------------------
+# Build & deploy: chỉ định rõ build command và publish directory.
+# SPA: redirect mọi route về /index.html (đã có rule ở frontend/public/_redirects,
+# khai báo ở đây nữa để tăng độ chắc chắn + tránh bị override bởi UI config).
+
 [build]
   base    = "frontend"
-  command = "npm install && npm run build"
+  command = "npm run build"
   publish = "dist"
 
-[build.environment]
-  NODE_VERSION = "20"
-
+# SPA fallback: mọi request không khớp file tĩnh → /index.html.
+# Netlify vẫn ưu tiên _redirects, nhưng khai báo thêm ở đây để robust.
 [[redirects]]
-  from = "/api/*"
-  to   = "https://trichat.onrender.com/api/:splat"
+  from   = "/*"
+  to     = "/index.html"
   status = 200
-  force = true
 
-[[redirects]]
-  from = "/hubs/*"
-  to   = "https://trichat.onrender.com/hubs/:splat"
-  status = 200
-  force = true
+# Security headers — an toàn hơn cho SPA.
+[[headers]]
+  for    = "/*"
+  [headers.values]
+    X-Frame-Options         = "DENY"
+    X-Content-Type-Options  = "nosniff"
+    Referrer-Policy         = "strict-origin-when-cross-origin"
+    Permissions-Policy      = "geolocation=(self), microphone=(self), camera=(self)"
 
-[functions]
-  directory = "functions"
+[[headers]]
+  for    = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

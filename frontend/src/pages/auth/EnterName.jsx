@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button, Input } from '../../components/ui';
-import { authService } from '../../services/auth.service';
+import { authService, friendlyAuthError } from '../../services/auth.service';
 import AuthShell from './AuthShell';
 
 export default function EnterName() {
@@ -43,7 +43,7 @@ export default function EnterName() {
       });
       nav('/app');
     } catch (e) {
-      setError(e?.message || 'Không thể tạo tài khoản');
+      setError(friendlyAuthError(e, 'Không thể tạo tài khoản. Vui lòng thử lại.'));
     } finally {
       setLoading(false);
     }

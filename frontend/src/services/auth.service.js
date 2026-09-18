@@ -5,8 +5,13 @@ import {
   signInWithEmailAndPassword,
 } from 'firebase/auth';
 
-// Map mã lỗi Firebase Auth → thông điệp hữu ích kèm hướng dẫn
+// Map mã lỗi Firebase Auth → thông điệp hữu ích kèm hướng dẫn.
+// Firebase throw error với code có prefix "auth/" (vd "auth/email-already-in-use").
+// Hàm mapAuthError nhận code đã được chuẩn hoá (không prefix).
 export function mapAuthError(code) {
+  if (!code) return '';
+  // Tách phần sau dấu "/" cuối cùng để chuẩn hoá ("auth/email-already-in-use" → "email-already-in-use").
+  const normalized = String(code).split('/').pop();
   const map = {
     'email-already-in-use': 'Email này đã có tài khoản. Hãy đăng nhập hoặc dùng email khác.',
     'weak-password': 'Mật khẩu quá yếu. Hãy dùng ≥ 8 ký tự gồm chữ HOA, chữ thường và số.',
@@ -20,7 +25,19 @@ export function mapAuthError(code) {
     'network-request-failed': 'Không kết nối được máy chủ. Kiểm tra mạng và thử lại.',
     'operation-not-allowed': 'Đăng nhập email/mật khẩu chưa được bật. Liên hệ quản trị viên.',
   };
-  return map[code] || '';
+  return map[normalized] || '';
+}
+
+/**
+ * Helper lấy message thân thiện từ một error bất kỳ:
+ * - Nếu có code Firebase đã biết → trả về message Tiếng Việt từ map.
+ * - Nếu là Error thường → trả về e.message.
+ * - Nếu không hiểu được → fallback.
+ */
+export function friendlyAuthError(e, fallback = 'Đã có lỗi xảy ra. Vui lòng thử lại.') {
+  const friendly = mapAuthError(e?.code);
+  if (friendly) return friendly;
+  return e?.message || fallback;
 }
 
 export const authService = {

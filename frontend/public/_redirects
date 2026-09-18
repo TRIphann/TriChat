@@ -1,0 +1,12 @@
+# TriChat — Netlify redirects
+# -------------------------------------------
+# 1. API + SignalR proxy → backend ASP.NET (Render).
+#    /api/* và /hubs/* sẽ được reverse proxy tới backend thật.
+# 2. Mọi URL còn lại → index.html (SPA fallback cho react-router).
+#    Bắt buộc, nếu thiếu thì mọi đường dẫn sâu (/login, /app, ...) sẽ 404.
+
+/api/*  https://trichat.onrender.com/api/:splat   200
+/hubs/* https://trichat.onrender.com/hubs/:splat  200
+
+# SPA fallback — match tất cả route chưa được proxy ở trên.
+/*      /index.html                                200
