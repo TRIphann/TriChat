@@ -79,6 +79,10 @@ builder.Services.Scan(scan => scan
     .AsSelf()
     .WithScopedLifetime());
 
+// FriendshipDataStore: bind interface → Firestore impl explicitly,
+// vì Scrutor chỉ register concrete AsSelf.
+builder.Services.AddScoped<IFriendshipDataStore, FirestoreFriendshipDataStore>();
+
 builder.Services.AddTransient<GlobalExceptionHandler>();
 
 builder.Services.AddSingleton<FirebaseService>();

@@ -2,17 +2,26 @@ import { http } from '../lib/httpClient';
 
 // Tất cả payload gửi backend dùng snake_case (ASP.NET Core SnakeCaseLower JSON).
 export const friendService = {
-  async getFriends() {
-    return http.get('/api/friends');
+  /**
+   * Lấy danh sách bạn bè (sort theo "bạn nhắn tin gần đây nhất").
+   * Hỗ trợ phân trang qua limit + offset. Trả về { items, total, hasMore }.
+   */
+  async getFriends({ limit = 20, offset = 0 } = {}) {
+    return http.get('/api/friends', { limit, offset });
   },
-  async getUserFriends(userId) {
-    return http.get(`/api/friends/user/${userId}`);
+
+  /**
+   * Lấy bạn bè của một user cụ thể (paginated).
+   */
+  async getUserFriends(userId, { limit = 20, offset = 0 } = {}) {
+    return http.get(`/api/friends/user/${userId}`, { limit, offset });
   },
-  async getPendingReceived() {
-    return http.get('/api/friends/requests/received');
+
+  async getPendingReceived({ limit = 10, offset = 0 } = {}) {
+    return http.get('/api/friends/requests/received', { limit, offset });
   },
-  async getPendingSent() {
-    return http.get('/api/friends/requests/sent');
+  async getPendingSent({ limit = 10, offset = 0 } = {}) {
+    return http.get('/api/friends/requests/sent', { limit, offset });
   },
   async getBlocked() {
     return http.get('/api/friends/blocked');
@@ -48,11 +57,12 @@ export const friendService = {
   },
 
   /**
-   * Lấy danh sách người dùng trong hệ thống để gợi ý kết bạn.
-   * Endpoint: GET /api/user (trả về toàn bộ user).
-   * Frontend tự lọc trừ current user + đã là bạn + đang pending.
+   * Gợi ý kết bạn — backend tự chọn chiến lược:
+   *  - User chưa có bạn → sort theo tài khoản mới tạo (MutualCount = null).
+   *  - User đã có bạn → sort theo số bạn chung giảm dần (MutualCount có giá trị).
+   * Endpoint: GET /api/friends/suggestions?limit=N&offset=N
    */
-  async discoverUsers() {
-    return http.get('/api/user');
+  async getSuggestions({ limit = 10, offset = 0 } = {}) {
+    return http.get('/api/friends/suggestions', { limit, offset });
   },
 };

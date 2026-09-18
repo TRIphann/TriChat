@@ -25,62 +25,163 @@ public class FriendController(FriendshipService friendshipService) : ControllerB
 
     // ── GET /api/friends ─────────────────────────────────────────
     /// <summary>
-    /// Lấy danh sách bạn bè của người dùng hiện tại.
+    /// Lấy danh sách bạn bè của người dùng hiện tại (sort: bạn nhắn tin gần đây nhất lên đầu).
+    /// Hỗ trợ phân trang: <c>?limit=N&amp;offset=N</c>. Mặc định 20 / 0.
     /// </summary>
-    /// <returns>Danh sách tóm tắt bạn bè (FriendSummaryResponse)</returns>
+    /// <param name="limit">Số bản ghi tối đa trong page (1..100, mặc định 20).</param>
+    /// <param name="offset">Vị trí bắt đầu (zero-based, mặc định 0).</param>
     /// <response code="200">Lấy danh sách bạn bè thành công</response>
     /// <response code="401">Người dùng chưa xác thực</response>
     [HttpGet]
-    [ProducesResponseType(typeof(ApiResponse<List<FriendSummaryResponse>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<PaginatedResponse<FriendSummaryResponse>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<ErrorDetail>), StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> GetFriends() =>
-        Ok(ApiResponse<List<FriendSummaryResponse>>.SuccessResponse(
-            await friendshipService.GetFriendsAsync(CurrentUid)));
+    public async Task<IActionResult> GetFriends(
+        [FromQuery] int limit = 20,
+        [FromQuery] int offset = 0)
+    {
+        // Clamp input về khoảng hợp lý
+        limit  = Math.Clamp(limit,  1, 100);
+        offset = Math.Max(0, offset);
+
+        var (items, total) = await friendshipService.GetFriendsPagedAsync(CurrentUid, limit, offset);
+        return Ok(ApiResponse<PaginatedResponse<FriendSummaryResponse>>.SuccessResponse(
+            new PaginatedResponse<FriendSummaryResponse>
+            {
+                Items   = items,
+                Total   = total,
+                Limit   = limit,
+                Offset  = offset,
+                HasMore = offset + items.Count < total,
+            }));
+    }
+
+    // ── GET /api/friends/suggestions ────────────────────────────
+    /// <summary>
+    /// Gợi ý kết bạn.
+    ///  - User hiện tại CHƯA có bạn → trả theo tài khoản mới tạo nhất (<c>MutualCount = null</c>).
+    ///  - User đã có bạn → sort theo số bạn chung giảm dần (kèm <c>MutualCount</c>).
+    /// Luôn loại trừ: chính mình, đã là bạn, đang pending (gửi/nhận).
+    /// Hỗ trợ phân trang: <c>?limit=N&amp;offset=N</c>. Mặc định 10 / 0.
+    /// </summary>
+    /// <param name="limit">Số gợi ý tối đa trong page (1..50, mặc định 10).</param>
+    /// <param name="offset">Vị trí bắt đầu (zero-based, mặc định 0).</param>
+    [HttpGet("suggestions")]
+    [ProducesResponseType(typeof(ApiResponse<PaginatedResponse<SuggestionResponse>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<ErrorDetail>), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetSuggestions(
+        [FromQuery] int limit = 10,
+        [FromQuery] int offset = 0)
+    {
+        limit  = Math.Clamp(limit,  1, 50);
+        offset = Math.Max(0, offset);
+
+        var (items, total) = await friendshipService.GetSuggestionsPagedAsync(CurrentUid, limit, offset);
+        return Ok(ApiResponse<PaginatedResponse<SuggestionResponse>>.SuccessResponse(
+            new PaginatedResponse<SuggestionResponse>
+            {
+                Items   = items,
+                Total   = total,
+                Limit   = limit,
+                Offset  = offset,
+                HasMore = offset + items.Count < total,
+            }));
+    }
 
     // ── GET /api/friends/user/{userId} ─────────────────────────
     /// <summary>
     /// Lấy danh sách bạn bè của một người dùng cụ thể (thông tin công khai).
+    /// Trả về paginated để đồng nhất với <see cref="GetFriends"/>.
     /// </summary>
     /// <param name="userId">UID của người dùng cần lấy danh sách bạn bè</param>
+    /// <param name="limit">Số bản ghi tối đa (mặc định 20).</param>
+    /// <param name="offset">Vị trí bắt đầu (mặc định 0).</param>
     /// <returns>Danh sách bạn bè của người dùng đó</returns>
     /// <response code="200">Lấy danh sách bạn bè thành công</response>
     /// <response code="401">Người dùng chưa xác thực</response>
     /// <response code="404">Không tìm thấy người dùng</response>
     [HttpGet("user/{userId}")]
-    [ProducesResponseType(typeof(ApiResponse<List<FriendSummaryResponse>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<PaginatedResponse<FriendSummaryResponse>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<ErrorDetail>), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<ErrorDetail>), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetUserFriends(string userId) =>
-        Ok(ApiResponse<List<FriendSummaryResponse>>.SuccessResponse(
-            await friendshipService.GetFriendsAsync(userId)));
+    public async Task<IActionResult> GetUserFriends(
+        string userId,
+        [FromQuery] int limit = 20,
+        [FromQuery] int offset = 0)
+    {
+        limit  = Math.Clamp(limit,  1, 100);
+        offset = Math.Max(0, offset);
+
+        var (items, total) = await friendshipService.GetFriendsPagedAsync(userId, limit, offset);
+        return Ok(ApiResponse<PaginatedResponse<FriendSummaryResponse>>.SuccessResponse(
+            new PaginatedResponse<FriendSummaryResponse>
+            {
+                Items   = items,
+                Total   = total,
+                Limit   = limit,
+                Offset  = offset,
+                HasMore = offset + items.Count < total,
+            }));
+    }
 
     // ── GET /api/friends/requests/received ───────────────────────
     /// <summary>
-    /// Lấy danh sách các lời mời kết bạn đang chờ (Pending) gửi TỚI người dùng hiện tại.
+    /// Lấy danh sách các lời mời kết bạn đang chờ (Pending) gửi TỚI người dùng hiện tại (paginated).
     /// </summary>
-    /// <returns>Danh sách lời mời kết bạn đã nhận</returns>
+    /// <param name="limit">Số bản ghi tối đa (mặc định 10).</param>
+    /// <param name="offset">Vị trí bắt đầu (mặc định 0).</param>
     /// <response code="200">Lấy danh sách thành công</response>
     /// <response code="401">Người dùng chưa xác thực</response>
     [HttpGet("requests/received")]
-    [ProducesResponseType(typeof(ApiResponse<List<FriendshipResponse>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<PaginatedResponse<FriendshipResponse>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<ErrorDetail>), StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> GetPendingReceived() =>
-        Ok(ApiResponse<List<FriendshipResponse>>.SuccessResponse(
-            await friendshipService.GetPendingReceivedAsync(CurrentUid)));
+    public async Task<IActionResult> GetPendingReceived(
+        [FromQuery] int limit = 10,
+        [FromQuery] int offset = 0)
+    {
+        limit  = Math.Clamp(limit,  1, 50);
+        offset = Math.Max(0, offset);
+
+        var (items, total) = await friendshipService.GetPendingReceivedPagedAsync(CurrentUid, limit, offset);
+        return Ok(ApiResponse<PaginatedResponse<FriendshipResponse>>.SuccessResponse(
+            new PaginatedResponse<FriendshipResponse>
+            {
+                Items   = items,
+                Total   = total,
+                Limit   = limit,
+                Offset  = offset,
+                HasMore = offset + items.Count < total,
+            }));
+    }
 
     // ── GET /api/friends/requests/sent ───────────────────────────
     /// <summary>
-    /// Lấy danh sách các lời mời kết bạn đang chờ (Pending) do người dùng hiện tại GỬI ĐI.
+    /// Lấy danh sách các lời mời kết bạn đang chờ (Pending) do người dùng hiện tại GỬI ĐI (paginated).
     /// </summary>
-    /// <returns>Danh sách lời mời kết bạn đã gửi</returns>
+    /// <param name="limit">Số bản ghi tối đa (mặc định 10).</param>
+    /// <param name="offset">Vị trí bắt đầu (mặc định 0).</param>
     /// <response code="200">Lấy danh sách thành công</response>
     /// <response code="401">Người dùng chưa xác thực</response>
     [HttpGet("requests/sent")]
-    [ProducesResponseType(typeof(ApiResponse<List<FriendshipResponse>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<PaginatedResponse<FriendshipResponse>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<ErrorDetail>), StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> GetPendingSent() =>
-        Ok(ApiResponse<List<FriendshipResponse>>.SuccessResponse(
-            await friendshipService.GetPendingSentAsync(CurrentUid)));
+    public async Task<IActionResult> GetPendingSent(
+        [FromQuery] int limit = 10,
+        [FromQuery] int offset = 0)
+    {
+        limit  = Math.Clamp(limit,  1, 50);
+        offset = Math.Max(0, offset);
+
+        var (items, total) = await friendshipService.GetPendingSentPagedAsync(CurrentUid, limit, offset);
+        return Ok(ApiResponse<PaginatedResponse<FriendshipResponse>>.SuccessResponse(
+            new PaginatedResponse<FriendshipResponse>
+            {
+                Items   = items,
+                Total   = total,
+                Limit   = limit,
+                Offset  = offset,
+                HasMore = offset + items.Count < total,
+            }));
+    }
 
     // ── GET /api/friends/blocked ─────────────────────────────────
     /// <summary>

@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useChatStore } from '../../store/chatStore';
-import { useFriendStore } from '../../store/friendStore';
+import {
+  useFriendStore,
+  SUGGESTION_INITIAL_SIZE,
+  SUGGESTION_PAGE_SIZE,
+  REQUESTS_PAGE_SIZE,
+} from '../../store/friendStore';
 import { useUiStore } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
 import { Avatar, Badge } from '../ui';
@@ -193,16 +198,32 @@ function ConversationTile({ conv, online, active, onClick, onAvatar }) {
  *  TAB 2 — BẠN BÈ — 3 hàng xổ xuống + thanh tìm kiếm tìm người
  * ============================================================ */
 function FriendsList() {
-  const friends = useFriendStore((s) => s.friends);
-  const pendingReceived = useFriendStore((s) => s.pendingReceived);
-  const pendingSent = useFriendStore((s) => s.pendingSent);
+  const friends           = useFriendStore((s) => s.friends);
+  const friendsTotal      = useFriendStore((s) => s.friendsTotal);
+  const friendsHasMore    = useFriendStore((s) => s.friendsHasMore);
+  const friendsState      = useFriendStore((s) => s.friendsState);
+
+  const pendingReceived     = useFriendStore((s) => s.pendingReceived);
+  const pendingReceivedTotal = useFriendStore((s) => s.pendingReceivedTotal);
+  const pendingReceivedHasMore = useFriendStore((s) => s.pendingReceivedHasMore);
+  const pendingReceivedState = useFriendStore((s) => s.pendingReceivedState);
+
+  const pendingSent         = useFriendStore((s) => s.pendingSent);
+  const pendingSentTotal    = useFriendStore((s) => s.pendingSentTotal);
+  const pendingSentHasMore  = useFriendStore((s) => s.pendingSentHasMore);
+  const pendingSentState    = useFriendStore((s) => s.pendingSentState);
+
   const searchResults = useFriendStore((s) => s.searchResults);
   const searchState = useFriendStore((s) => s.searchState);
-  const loadAll = useFriendStore((s) => s.loadAll);
-  const search = useFriendStore((s) => s.search);
-  const sendRequest = useFriendStore((s) => s.sendRequest);
-  const respond = useFriendStore((s) => s.respond);
-  const cancelRequest = useFriendStore((s) => s.cancelRequest);
+
+  const loadAll                  = useFriendStore((s) => s.loadAll);
+  const loadPendingReceivedPage  = useFriendStore((s) => s.loadPendingReceivedPage);
+  const loadPendingSentPage      = useFriendStore((s) => s.loadPendingSentPage);
+  const loadFriendsPage          = useFriendStore((s) => s.loadFriendsPage);
+  const search                   = useFriendStore((s) => s.search);
+  const sendRequest              = useFriendStore((s) => s.sendRequest);
+  const respond                  = useFriendStore((s) => s.respond);
+  const cancelRequest            = useFriendStore((s) => s.cancelRequest);
 
   const setActiveUserId = useUiStore((s) => s.setActiveUserId);
   const startChat = useChatStore((s) => s.startChatWithUser);
@@ -214,9 +235,21 @@ function FriendsList() {
   const [openSent, setOpenSent] = useState(false);
   const [openFriends, setOpenFriends] = useState(true);
 
+  // Local "showCount" cho các list button-based (3 + 10 mỗi lần bấm)
+  const [receivedShow, setReceivedShow] = useState(REQUESTS_PAGE_SIZE);
+  const [sentShow, setSentShow]         = useState(REQUESTS_PAGE_SIZE);
+
+  // Infinite scroll sentinel cho "Bạn bè"
+  const friendsSentinelRef = useRef(null);
+  const friendsLoadingRef  = useRef(false);
+
   useEffect(() => {
     loadAll();
   }, [loadAll]);
+
+  // Reset showCount khi total đổi (realtime events có thể thay đổi total)
+  useEffect(() => { setReceivedShow(REQUESTS_PAGE_SIZE); }, [pendingReceivedTotal]);
+  useEffect(() => { setSentShow(REQUESTS_PAGE_SIZE); },     [pendingSentTotal]);
 
   // Debounce search
   useEffect(() => {
@@ -224,7 +257,53 @@ function FriendsList() {
     return () => clearTimeout(id);
   }, [keyword, search]);
 
+  // Infinite scroll cho Bạn bè — khi sentinel vào viewport, load page tiếp theo
+  useEffect(() => {
+    const node = friendsSentinelRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && friendsHasMore && !friendsLoadingRef.current &&
+              friendsState !== 'loading') {
+            friendsLoadingRef.current = true;
+            loadFriendsPage({ reset: false }).finally(() => {
+              friendsLoadingRef.current = false;
+            });
+          }
+        }
+      },
+      { rootMargin: '200px 0px' },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [friendsHasMore, friendsState, loadFriendsPage]);
+
   const showSearchResults = keyword.trim().length >= 2;
+  const visibleReceived = pendingReceived.slice(0, receivedShow);
+  const visibleSent     = pendingSent.slice(0, sentShow);
+
+  function handleShowMoreReceived() {
+    if (receivedShow >= pendingReceivedTotal) {
+      loadPendingReceivedPage({ reset: true, limit: REQUESTS_PAGE_SIZE });
+      return;
+    }
+    if (pendingReceivedHasMore || pendingReceived.length < pendingReceivedTotal) {
+      loadPendingReceivedPage({ reset: false, limit: REQUESTS_PAGE_SIZE });
+    }
+    setReceivedShow((n) => n + REQUESTS_PAGE_SIZE);
+  }
+
+  function handleShowMoreSent() {
+    if (sentShow >= pendingSentTotal) {
+      loadPendingSentPage({ reset: true, limit: REQUESTS_PAGE_SIZE });
+      return;
+    }
+    if (pendingSentHasMore || pendingSent.length < pendingSentTotal) {
+      loadPendingSentPage({ reset: false, limit: REQUESTS_PAGE_SIZE });
+    }
+    setSentShow((n) => n + REQUESTS_PAGE_SIZE);
+  }
 
   return (
     <>
@@ -264,19 +343,19 @@ function FriendsList() {
       {!showSearchResults && (
         <div className="left-panel__friends-groups">
           {/* Hàng 0 — Gợi ý kết bạn (chỉ khi chưa có bạn) */}
-          {friends.length === 0 && <SuggestionList />}
+          {friendsTotal === 0 && <SuggestionList />}
 
-          {/* Hàng 1 — Lời mời kết bạn (đã nhận) */}
+          {/* Hàng 1 — Lời mời kết bạn (đã nhận) — 3 đầu + nút Xem thêm +10 */}
           <CollapsibleRow
             title="Lời mời kết bạn"
-            count={pendingReceived.length}
+            count={pendingReceivedTotal}
             open={openReceived}
             onToggle={() => setOpenReceived((v) => !v)}
-            empty={pendingReceived.length === 0}
+            empty={pendingReceivedTotal === 0}
             emptyText="Không có lời mời nào."
           >
             <ul className="left-panel__items">
-              {pendingReceived.map((req) => {
+              {visibleReceived.map((req) => {
                 const name = req.senderName || req.senderId;
                 return (
                   <li key={req.id}>
@@ -313,19 +392,29 @@ function FriendsList() {
                 );
               })}
             </ul>
+            {(pendingReceivedHasMore || visibleReceived.length < pendingReceivedTotal) && (
+              <button
+                type="button"
+                className="friend-group__more"
+                onClick={handleShowMoreReceived}
+                disabled={pendingReceivedState === 'loading'}
+              >
+                {pendingReceivedState === 'loading' ? 'Đang tải…' : 'Xem thêm'}
+              </button>
+            )}
           </CollapsibleRow>
 
-          {/* Hàng 2 — Lời mời đã gửi */}
+          {/* Hàng 2 — Lời mời đã gửi — 3 đầu + nút Xem thêm +10 */}
           <CollapsibleRow
             title="Lời mời đã gửi"
-            count={pendingSent.length}
+            count={pendingSentTotal}
             open={openSent}
             onToggle={() => setOpenSent((v) => !v)}
-            empty={pendingSent.length === 0}
+            empty={pendingSentTotal === 0}
             emptyText="Chưa gửi lời mời nào."
           >
             <ul className="left-panel__items">
-              {pendingSent.map((req) => {
+              {visibleSent.map((req) => {
                 const name = req.addresseeName || req.addresseeId;
                 return (
                   <li key={req.id}>
@@ -356,15 +445,25 @@ function FriendsList() {
                 );
               })}
             </ul>
+            {(pendingSentHasMore || visibleSent.length < pendingSentTotal) && (
+              <button
+                type="button"
+                className="friend-group__more"
+                onClick={handleShowMoreSent}
+                disabled={pendingSentState === 'loading'}
+              >
+                {pendingSentState === 'loading' ? 'Đang tải…' : 'Xem thêm'}
+              </button>
+            )}
           </CollapsibleRow>
 
-          {/* Hàng 3 — Danh sách bạn bè */}
+          {/* Hàng 3 — Danh sách bạn bè (infinite scroll 20/lần, sort: bạn nhắn gần đây) */}
           <CollapsibleRow
             title="Bạn bè"
-            count={friends.length}
+            count={friendsTotal}
             open={openFriends}
             onToggle={() => setOpenFriends((v) => !v)}
-            empty={friends.length === 0}
+            empty={friendsTotal === 0}
             emptyText="Chưa có bạn bè nào."
           >
             <ul className="left-panel__items">
@@ -399,6 +498,18 @@ function FriendsList() {
                 );
               })}
             </ul>
+            {friendsHasMore && (
+              <div
+                ref={friendsSentinelRef}
+                className="friend-group__sentinel"
+                aria-hidden="true"
+              >
+                {friendsState === 'loading' ? 'Đang tải…' : ''}
+              </div>
+            )}
+            {!friendsHasMore && friendsTotal > 0 && (
+              <p className="friend-group__end">— Đã hết danh sách bạn bè —</p>
+            )}
           </CollapsibleRow>
         </div>
       )}
@@ -430,81 +541,118 @@ function CollapsibleRow({ title, count, open, onToggle, empty, emptyText, childr
   );
 }
 
-/* ---------- Gợi ý kết bạn ---------- */
+/* ---------- Gợi ý kết bạn (3 đầu, "Xem thêm" +10) ---------- */
 function SuggestionList() {
-  const suggestions = useFriendStore((s) => s.suggestions);
-  const suggestionsState = useFriendStore((s) => s.suggestionsState);
+  const suggestions       = useFriendStore((s) => s.suggestions);
+  const suggestionsState  = useFriendStore((s) => s.suggestionsState);
+  const suggestionsTotal  = useFriendStore((s) => s.suggestionsTotal);
+  const suggestionsHasMore = useFriendStore((s) => s.suggestionsHasMore);
   const loadSuggestions = useFriendStore((s) => s.loadSuggestions);
   const sendRequest = useFriendStore((s) => s.sendRequest);
   const setActiveUserId = useUiStore((s) => s.setActiveUserId);
 
+  // Hiển thị tuỳ theo local showCount — 3 lần đầu, +10 mỗi lần bấm.
+  const [showCount, setShowCount] = useState(SUGGESTION_INITIAL_SIZE);
+  const listRef = useRef(null);
+
+  // Reset về 3 khi store reload
+  useEffect(() => { setShowCount(SUGGESTION_INITIAL_SIZE); }, [suggestionsTotal]);
+
+  // Lần đầu vào — fetch 3 item
   useEffect(() => {
-    if (suggestionsState === 'idle') loadSuggestions();
-  }, [suggestionsState, loadSuggestions]);
+    if (suggestionsState === 'idle') {
+      loadSuggestions({ reset: true, limit: SUGGESTION_INITIAL_SIZE });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function handleShowMore() {
+    loadSuggestions({ reset: false, limit: SUGGESTION_PAGE_SIZE });
+    setShowCount((n) => n + SUGGESTION_PAGE_SIZE);
+  }
+
+  const visible = suggestions.slice(0, showCount);
 
   return (
     <div className="friend-suggest">
       <div className="friend-suggest__head">
         <h3 className="friend-suggest__title">Gợi ý kết bạn</h3>
-        {suggestionsState === 'success' && suggestions.length > 0 && (
-          <button
-            className="friend-suggest__refresh"
-            onClick={() => loadSuggestions()}
-            aria-label="Tải lại"
-            title="Tải lại gợi ý"
-          >
-            Làm mới
-          </button>
+        {suggestionsTotal > 0 && (
+          <span className="friend-suggest__count">
+            {visible.length}/{suggestionsTotal}
+          </span>
         )}
       </div>
 
       {suggestionsState === 'loading' && suggestions.length === 0 ? (
         <p className="friend-group__empty">Đang tải gợi ý...</p>
-      ) : suggestions.length === 0 ? (
+      ) : suggestionsTotal === 0 ? (
         <p className="friend-group__empty">Chưa có gợi ý nào.</p>
       ) : (
-        <ul className="left-panel__items">
-          {suggestions.map((u) => {
-            const name =
-              u.fullName ||
-              `${u.firstName || ''} ${u.lastName || ''}`.trim() ||
-              u.email ||
-              u.id;
-            return (
-              <li key={u.id}>
-                <div className="conv-tile">
-                  <Avatar
-                    src={u.avatar}
-                    name={name}
-                    size={48}
-                    onClick={() => setActiveUserId(u.id)}
-                  />
-                  <div className="conv-tile__body">
-                    <div className="conv-tile__row1">
-                      <span className="conv-tile__name">{name}</span>
-                    </div>
-                    <div className="conv-tile__row2">
-                      <div className="request-actions">
-                        <button
-                          className="btn btn--primary btn--sm"
-                          onClick={() => sendRequest(u.id)}
-                        >
-                          Kết bạn
-                        </button>
-                        <button
-                          className="btn btn--ghost btn--sm"
-                          onClick={() => setActiveUserId(u.id)}
-                        >
-                          Xem hồ sơ
-                        </button>
+        <>
+          <ul className="left-panel__items" ref={listRef}>
+            {visible.map((u) => {
+              const name =
+                u.fullName ||
+                `${u.firstName || ''} ${u.lastName || ''}`.trim() ||
+                u.email ||
+                u.id;
+              const mutual = typeof u.mutual_count === 'number' ? u.mutual_count : null;
+              return (
+                <li key={u.id}>
+                  <div className="conv-tile">
+                    <Avatar
+                      src={u.avatar}
+                      name={name}
+                      size={48}
+                      onClick={() => setActiveUserId(u.id)}
+                    />
+                    <div className="conv-tile__body">
+                      <div className="conv-tile__row1">
+                        <span className="conv-tile__name">{name}</span>
+                      </div>
+                      <div className="conv-tile__row2">
+                        {mutual !== null && mutual > 0 ? (
+                          <span className="conv-tile__preview conv-tile__preview--mutual">
+                            {mutual} bạn chung
+                          </span>
+                        ) : (
+                          <span className="conv-tile__preview">Gợi ý cho bạn</span>
+                        )}
+                        <div className="request-actions">
+                          <button
+                            className="btn btn--primary btn--sm"
+                            onClick={() => sendRequest(u.id)}
+                          >
+                            Kết bạn
+                          </button>
+                          <button
+                            className="btn btn--ghost btn--sm"
+                            onClick={() => setActiveUserId(u.id)}
+                          >
+                            Xem
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+                </li>
+              );
+            })}
+          </ul>
+
+          {(suggestionsHasMore || visible.length < suggestions.length) &&
+            visible.length < suggestionsTotal && (
+              <button
+                type="button"
+                className="friend-group__more"
+                onClick={handleShowMore}
+                disabled={suggestionsState === 'loading'}
+              >
+                {suggestionsState === 'loading' ? 'Đang tải…' : 'Xem thêm'}
+              </button>
+            )}
+        </>
       )}
     </div>
   );

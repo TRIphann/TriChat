@@ -1,24 +1,46 @@
 import { create } from 'zustand';
 import { friendService } from '../services/friend.service';
 import { createFriendConnection } from '../lib/signalr';
-import { useAuthStore } from './authStore';
+
+// Phân trang hợp nhất — bạn bè lấy 20/lần (infinite scroll),
+// còn gợi ý / pending requests dùng nút "Xem thêm": lần đầu 3, các lần sau 10/lần.
+export const FRIENDS_PAGE_SIZE = 20;
+export const SUGGESTION_INITIAL_SIZE = 3;
+export const SUGGESTION_PAGE_SIZE = 10;
+export const REQUESTS_PAGE_SIZE = 10;
 
 export const useFriendStore = create((set, get) => ({
+  // ── Bạn bè (paginated, infinite-scroll) ────────────────────
   friends: [],
-  pendingReceived: [],
-  pendingSent: [],
-  searchResults: [],
-  searchQuery: '',
+  friendsTotal: 0,
+  friendsHasMore: false,
+  friendsState: 'idle', // 'idle' | 'loading' | 'success' | 'error'
 
-  // Gợi ý kết bạn — user chưa có bạn sẽ thấy danh sách này
+  // ── Lời mời nhận (paginated, nút Xem thêm 10/lần) ───────────
+  pendingReceived: [],
+  pendingReceivedTotal: 0,
+  pendingReceivedHasMore: false,
+  pendingReceivedState: 'idle',
+
+  // ── Lời mời đã gửi (paginated, nút Xem thêm 10/lần) ──────────
+  pendingSent: [],
+  pendingSentTotal: 0,
+  pendingSentHasMore: false,
+  pendingSentState: 'idle',
+
+  // ── Gợi ý kết bạn (paginated, nút Xem thêm 10/lần) ──────────
   suggestions: [],
+  suggestionsTotal: 0,
+  suggestionsHasMore: false,
   suggestionsState: 'idle', // 'idle' | 'loading' | 'success' | 'error'
 
-  friendsState: 'idle',
-  requestsState: 'idle',
+  // ── Tìm kiếm người để kết bạn ───────────────────────────────
+  searchResults: [],
+  searchQuery: '',
   searchState: 'idle',
 
   connection: null,
+  currentUid: null,
 
   async init(uid) {
     // Tránh re-init khi uid không đổi (giống chatStore.init)
@@ -34,31 +56,41 @@ export const useFriendStore = create((set, get) => ({
 
     conn.on('FriendRequestReceived', (fs) => {
       set((s) => ({
+        // Tăng tổng + chèn vào đầu nếu chưa có trong page hiện tại
         pendingReceived: [fs, ...s.pendingReceived.filter((f) => f.id !== fs.id)],
+        pendingReceivedTotal: s.pendingReceivedTotal + 1,
       }));
       window.dispatchEvent(new CustomEvent('trichat:friend-realtime', { detail: { type: 'received' } }));
     });
     conn.on('FriendRequestAccepted', (fs) => {
+      const myId = get().currentUid;
+      const friendId = myId === fs.addresseeId ? fs.senderId : fs.addresseeId;
       set((s) => ({
         pendingSent: s.pendingSent.filter((f) => f.id !== fs.id),
         pendingReceived: s.pendingReceived.filter((f) => f.id !== fs.id),
-        friends: s.friends.some((f) => f.friendId === (fs.addresseeId || fs.senderId))
+        friends: s.friends.some((f) => f.friendId === friendId)
           ? s.friends
-          : [mapFriend(fs), ...s.friends],
+          : [mapFriend(fs, myId), ...s.friends],
+        friendsTotal: s.friendsTotal + 1,
       }));
+      // Refresh suggestions (đã có bạn → sort theo mutualCount)
+      get().loadSuggestions({ reset: true, limit: SUGGESTION_INITIAL_SIZE });
     });
     conn.on('FriendRequestDeclined', (fs) => {
       set((s) => ({
         pendingSent: s.pendingSent.filter((f) => f.id !== fs.id),
+        pendingSentTotal: Math.max(0, s.pendingSentTotal - 1),
       }));
     });
     conn.on('FriendRequestCancelled', (fs) => {
       set((s) => ({
         pendingReceived: s.pendingReceived.filter((f) => f.id !== fs.id),
+        pendingReceivedTotal: Math.max(0, s.pendingReceivedTotal - 1),
       }));
     });
     conn.on('FriendUnfriended', () => {
-      get().loadAll();
+      // Reload page đầu của bạn bè để đảm bảo sort đúng
+      get().loadFriendsPage({ reset: true });
     });
 
     try {
@@ -70,53 +102,108 @@ export const useFriendStore = create((set, get) => ({
   },
 
   async loadAll() {
-    set({ friendsState: 'loading', requestsState: 'loading' });
+    // Reset tất cả state về idle rồi load page đầu song song
+    set({
+      friendsState: 'loading',
+      pendingReceivedState: 'loading',
+      pendingSentState: 'loading',
+    });
+    await Promise.all([
+      get().loadFriendsPage({ reset: true }),
+      get().loadPendingReceivedPage({ reset: true, limit: REQUESTS_PAGE_SIZE }),
+      get().loadPendingSentPage({ reset: true, limit: REQUESTS_PAGE_SIZE }),
+    ]);
+  },
+
+  /**
+   * Load page bạn bè theo offset (infinite scroll).
+   * @param {object} opts
+   * @param {boolean} opts.reset — true = thay thế page đầu.
+   * @param {number}  opts.offset — vị trí bắt đầu. Mặc định = số item đang có.
+   */
+  async loadFriendsPage({ reset = true, limit = FRIENDS_PAGE_SIZE, offset } = {}) {
+    if (offset == null) offset = reset ? 0 : get().friends.length;
+    set({ friendsState: 'loading' });
     try {
-      const [friends, received, sent] = await Promise.all([
-        friendService.getFriends(),
-        friendService.getPendingReceived(),
-        friendService.getPendingSent(),
-      ]);
-      set({
-        friends: friends || [],
-        pendingReceived: received || [],
-        pendingSent: sent || [],
+      const page = await friendService.getFriends({ limit, offset });
+      const items = page?.items ?? [];
+      set((s) => ({
+        friends: reset
+          ? items
+          : [...s.friends, ...items.filter((i) => !s.friends.some((f) => f.friendId === i.friendId))],
+        friendsTotal: page?.total ?? 0,
+        friendsHasMore: page?.hasMore ?? false,
         friendsState: 'success',
-        requestsState: 'success',
-      });
-      // Khi load xong, nếu chưa có bạn thì tải luôn gợi ý
-      if (!friends || friends.length === 0) {
-        get().loadSuggestions();
-      }
+      }));
     } catch (e) {
-      set({ friendsState: 'error', requestsState: 'error' });
+      console.warn('[friend] loadFriendsPage failed:', e);
+      set({ friendsState: 'error' });
+    }
+  },
+
+  async loadPendingReceivedPage({ reset = true, limit = REQUESTS_PAGE_SIZE, offset } = {}) {
+    if (offset == null) offset = reset ? 0 : get().pendingReceived.length;
+    set({ pendingReceivedState: 'loading' });
+    try {
+      const page = await friendService.getPendingReceived({ limit, offset });
+      const items = page?.items ?? [];
+      set((s) => ({
+        pendingReceived: reset
+          ? items
+          : [...s.pendingReceived, ...items.filter((i) => !s.pendingReceived.some((r) => r.id === i.id))],
+        pendingReceivedTotal: page?.total ?? 0,
+        pendingReceivedHasMore: page?.hasMore ?? false,
+        pendingReceivedState: 'success',
+      }));
+    } catch (e) {
+      console.warn('[friend] loadPendingReceivedPage failed:', e);
+      set({ pendingReceivedState: 'error' });
+    }
+  },
+
+  async loadPendingSentPage({ reset = true, limit = REQUESTS_PAGE_SIZE, offset } = {}) {
+    if (offset == null) offset = reset ? 0 : get().pendingSent.length;
+    set({ pendingSentState: 'loading' });
+    try {
+      const page = await friendService.getPendingSent({ limit, offset });
+      const items = page?.items ?? [];
+      set((s) => ({
+        pendingSent: reset
+          ? items
+          : [...s.pendingSent, ...items.filter((i) => !s.pendingSent.some((r) => r.id === i.id))],
+        pendingSentTotal: page?.total ?? 0,
+        pendingSentHasMore: page?.hasMore ?? false,
+        pendingSentState: 'success',
+      }));
+    } catch (e) {
+      console.warn('[friend] loadPendingSentPage failed:', e);
+      set({ pendingSentState: 'error' });
     }
   },
 
   /**
-   * Lấy gợi ý kết bạn — gọi GET /api/user rồi lọc trừ current user + đã là bạn + đang pending.
-   * Chỉ chạy khi user chưa có bạn để tránh tải thừa.
+   * Load gợi ý kết bạn — nút "Xem thêm".
+   * Component gọi:
+   *   - Lần đầu:    loadSuggestions({ reset: true,  limit: SUGGESTION_INITIAL_SIZE })
+   *   - Xem thêm:   loadSuggestions({ reset: false, limit: SUGGESTION_PAGE_SIZE })
    */
-  async loadSuggestions() {
+  async loadSuggestions({ reset = true, limit = SUGGESTION_PAGE_SIZE, offset } = {}) {
+    if (offset == null) offset = reset ? 0 : get().suggestions.length;
     if (get().suggestionsState === 'loading') return;
     set({ suggestionsState: 'loading' });
     try {
-      const all = await friendService.discoverUsers();
-      const myUid = useAuthStore.getState().user?.uid;
-      const friendIds = new Set(get().friends.map((f) => f.friendId));
-      // pendingSent: tôi gửi → addresseeId là user kia
-      // pendingReceived: tôi nhận → senderId là user kia
-      const pendingIds = new Set([
-        ...get().pendingSent.map((r) => r.addresseeId || r.addressee_id),
-        ...get().pendingReceived.map((r) => r.senderId || r.sender_id),
-      ]);
-      const filtered = (all || [])
-        .filter((u) => u.id !== myUid)
-        .filter((u) => !friendIds.has(u.id))
-        .filter((u) => !pendingIds.has(u.id))
-        .slice(0, 8);
-      set({ suggestions: filtered, suggestionsState: 'success' });
+      const page = await friendService.getSuggestions({ limit, offset });
+      const items = page?.items ?? [];
+      set((s) => ({
+        suggestions: reset
+          ? items
+          : [...s.suggestions, ...items.filter((i) => !s.suggestions.some((u) => u.id === i.id))],
+        suggestionsTotal: page?.total ?? 0,
+        suggestionsHasMore: page?.hasMore ?? false,
+        suggestionsState: 'success',
+      }));
     } catch (e) {
+      console.warn('[friend] loadSuggestions failed:', e);
       set({ suggestions: [], suggestionsState: 'error' });
     }
   },
@@ -140,6 +227,7 @@ export const useFriendStore = create((set, get) => ({
     const res = await friendService.sendRequest(userId);
     set((s) => ({
       pendingSent: [res, ...s.pendingSent.filter((f) => f.id !== res.id)],
+      pendingSentTotal: s.pendingSentTotal + 1,
       suggestions: s.suggestions.filter((u) => u.id !== userId),
     }));
     return res;
@@ -148,17 +236,20 @@ export const useFriendStore = create((set, get) => ({
   async respond(friendshipId, accept) {
     const res = await friendService.respondRequest(friendshipId, accept);
     if (accept) {
-      const friend = mapFriend(res);
+      const myId = get().currentUid;
+      const friend = mapFriend(res, myId);
       set((s) => ({
         pendingReceived: s.pendingReceived.filter((f) => f.id !== friendshipId),
+        pendingReceivedTotal: Math.max(0, s.pendingReceivedTotal - 1),
         friends: [friend, ...s.friends.filter((f) => f.friendId !== friend.friendId)],
-        // Sau khi đã có bạn thì không cần suggestions nữa
-        suggestions: [],
-        suggestionsState: 'idle',
+        friendsTotal: s.friendsTotal + 1,
       }));
+      // Reload suggestions (đã có bạn → đổi chiến lược sort)
+      get().loadSuggestions({ reset: true, limit: SUGGESTION_INITIAL_SIZE });
     } else {
       set((s) => ({
         pendingReceived: s.pendingReceived.filter((f) => f.id !== friendshipId),
+        pendingReceivedTotal: Math.max(0, s.pendingReceivedTotal - 1),
       }));
     }
     return res;
@@ -169,19 +260,35 @@ export const useFriendStore = create((set, get) => ({
     set((s) => {
       const cancelled = s.pendingSent.find((r) => r.id === friendshipId);
       const cancelledAddresseeId = cancelled?.addresseeId || cancelled?.addressee_id;
+      // Trả lại user vào suggestions nếu còn thiếu bạn
+      const newSuggestions = cancelled && s.friendsTotal === 0
+        ? [
+            {
+              id: cancelledAddresseeId,
+              first_name: '',
+              last_name: '',
+              full_name: cancelled.addresseeName || cancelled.addressee_name,
+              email: '',
+              avatar: cancelled.addresseeAvatar || cancelled.addressee_avatar,
+              mutual_count: null,
+            },
+            ...s.suggestions,
+          ]
+        : s.suggestions;
       return {
         pendingSent: s.pendingSent.filter((f) => f.id !== friendshipId),
-        // Trả lại user vào suggestions nếu còn thiếu bạn
-        suggestions: cancelled && s.friends.length === 0
-          ? [{ id: cancelledAddresseeId, full_name: cancelled.addresseeName || cancelled.addressee_name, avatar: cancelled.addresseeAvatar || cancelled.addressee_avatar }, ...s.suggestions]
-          : s.suggestions,
+        pendingSentTotal: Math.max(0, s.pendingSentTotal - 1),
+        suggestions: newSuggestions,
       };
     });
   },
 
   async unfriend(targetUserId) {
     await friendService.unfriend(targetUserId);
-    set((s) => ({ friends: s.friends.filter((f) => f.friendId !== targetUserId) }));
+    set((s) => ({
+      friends: s.friends.filter((f) => f.friendId !== targetUserId),
+      friendsTotal: Math.max(0, s.friendsTotal - 1),
+    }));
   },
 
   async block(targetUserId) {
@@ -228,14 +335,30 @@ export const useFriendStore = create((set, get) => ({
   },
 }));
 
-function mapFriend(res) {
+function mapFriend(res, myId) {
+  // When we accept a request (we're addressee), the friend is senderId
+  // When sender receives SignalR event, the friend is addresseeId
+  let friendId, friendName, friendAvatar;
+  
+  if (myId && res.addresseeId === myId) {
+    // We are the addressee → friend is sender
+    friendId = res.senderId;
+    friendName = res.senderName || '';
+    friendAvatar = res.senderAvatar || '';
+  } else {
+    // We are the sender (or SignalR event) → friend is addressee
+    friendId = res.addresseeId;
+    friendName = res.addresseeName || '';
+    friendAvatar = res.addresseeAvatar || '';
+  }
+  
   return {
     friendshipId: res.id,
-    friendId: res.addresseeId || res.senderId,
-    firstName: (res.addresseeName || res.senderName || '').split(' ')[0] || '',
-    lastName: (res.addresseeName || res.senderName || '').split(' ').slice(1).join(' ') || '',
-    avatar: res.senderAvatar || '',
-    fullName: res.addresseeName || res.senderName || '',
+    friendId,
+    firstName: friendName.split(' ')[0] || '',
+    lastName: friendName.split(' ').slice(1).join(' ') || '',
+    avatar: friendAvatar,
+    fullName: friendName,
     friendsSince: res.updatedAt || res.createdAt,
   };
 }

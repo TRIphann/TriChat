@@ -231,6 +231,14 @@
   color: var(--text);
   letter-spacing: -0.01em;
 }
+.friend-suggest__count {
+  font-size: 12px;
+  color: var(--text-3);
+  background: var(--surface);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-variant-numeric: tabular-nums;
+}
 .friend-suggest__refresh {
   font-size: 13px;
   font-weight: 600;
@@ -242,6 +250,52 @@
 }
 .friend-suggest__refresh:hover {
   background: color-mix(in srgb, var(--amber) 12%, transparent);
+}
+
+/* ---------- Nút "Xem thêm" + loading sentinel + empty-end ---------- */
+.friend-group__more {
+  display: block;
+  width: calc(100% - 16px);
+  margin: 6px 8px 10px;
+  padding: 10px 14px;
+  background: transparent;
+  border: 1px dashed var(--strong);
+  border-radius: var(--radius-md);
+  color: var(--text-2);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 180ms var(--ease-soft);
+}
+.friend-group__more:hover {
+  background: color-mix(in srgb, var(--amber) 8%, transparent);
+  border-color: var(--amber);
+  color: var(--amber);
+}
+.friend-group__more:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.friend-group__sentinel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 6px 0;
+  font-size: 12px;
+  color: var(--text-3);
+}
+.friend-group__end {
+  text-align: center;
+  margin: 8px 12px 12px;
+  font-size: 12px;
+  color: var(--text-3);
+  letter-spacing: 0.04em;
+  font-style: italic;
+}
+.conv-tile__preview--mutual {
+  color: var(--amber);
+  font-weight: 600;
 }
 
 /* ---------- conv-tile overrides for left-panel context ---------- */

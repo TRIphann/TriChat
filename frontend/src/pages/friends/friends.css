@@ -69,3 +69,59 @@
   margin: 0;
 }
 .friend-card__actions { display: flex; gap: 6px; }
+
+/* ---------- Count, end-of-list, infinite-scroll sentinel ---------- */
+.friends-page__count {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--text-3);
+}
+.friends-page__end {
+  text-align: center;
+  margin: 32px 0 12px;
+  font-size: 13px;
+  color: var(--text-3);
+  letter-spacing: 0.04em;
+  font-style: italic;
+}
+.friends-page__sentinel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  margin-top: 18px;
+}
+.friends-page__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 160px;
+  color: var(--text-3);
+  font-size: 14px;
+}
+
+/* Nút "Xem thêm" trong trang FriendRequests */
+.friends-page__more {
+  display: block;
+  width: 100%;
+  margin: 18px 0 12px;
+  padding: 12px 14px;
+  background: transparent;
+  border: 1px dashed var(--strong);
+  border-radius: var(--radius-md);
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 200ms var(--ease-soft);
+}
+.friends-page__more:hover {
+  background: color-mix(in srgb, var(--amber) 8%, transparent);
+  border-color: var(--amber);
+  color: var(--amber);
+}
+.friends-page__more:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}

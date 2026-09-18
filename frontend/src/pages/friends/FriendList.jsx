@@ -1,28 +1,51 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useFriendStore } from '../../store/friendStore';
-import { Avatar, Badge } from '../../components/ui';
-import { staggerCards } from '../../lib/anime';
+import {
+  useFriendStore,
+  FRIENDS_PAGE_SIZE,
+} from '../../store/friendStore';
+import { Avatar, Badge, Spinner } from '../../components/ui';
 import { useChatStore } from '../../store/chatStore';
 import './friends.css';
 
 export default function FriendList() {
   const nav = useNavigate();
-  const friends = useFriendStore((s) => s.friends);
+  const friends        = useFriendStore((s) => s.friends);
+  const friendsTotal   = useFriendStore((s) => s.friendsTotal);
+  const friendsHasMore = useFriendStore((s) => s.friendsHasMore);
+  const friendsState   = useFriendStore((s) => s.friendsState);
   const pendingReceived = useFriendStore((s) => s.pendingReceived);
-  const loadAll = useFriendStore((s) => s.loadAll);
-  const listRef = useRef(null);
+  const loadFriendsPage = useFriendStore((s) => s.loadFriendsPage);
   const [tab, setTab] = useState('friends');
 
+  // Tải page đầu khi vào trang
   useEffect(() => {
-    loadAll();
-  }, [loadAll]);
+    loadFriendsPage({ reset: true });
+  }, [loadFriendsPage]);
 
+  // Infinite scroll
+  const sentinelRef = useRef(null);
+  const loadingRef  = useRef(false);
   useEffect(() => {
-    if (listRef.current && friends.length) {
-      staggerCards(listRef.current.querySelectorAll('.friend-card'), { gap: 60, dur: 540 });
-    }
-  }, [friends.length, tab]);
+    const node = sentinelRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && friendsHasMore && !loadingRef.current &&
+              friendsState !== 'loading') {
+            loadingRef.current = true;
+            loadFriendsPage({ reset: false }).finally(() => {
+              loadingRef.current = false;
+            });
+          }
+        }
+      },
+      { rootMargin: '300px 0px' },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [friendsHasMore, friendsState, loadFriendsPage]);
 
   return (
     <div className="friends-page">
@@ -49,7 +72,7 @@ export default function FriendList() {
       </div>
 
       {tab === 'friends' && (
-        friends.length === 0 ? (
+        friendsTotal === 0 && friendsState !== 'loading' ? (
           <div className="empty-state">
             <div className="empty-state__icon">👥</div>
             <h3>Chưa có bạn bè nào</h3>
@@ -57,11 +80,29 @@ export default function FriendList() {
             <button className="btn btn--primary btn--md" onClick={() => nav('/add-friend')}>Thêm bạn</button>
           </div>
         ) : (
-          <div className="friends-page__grid" ref={listRef}>
-            {friends.map((f) => (
-              <FriendCard key={f.friendId} friend={f} />
-            ))}
-          </div>
+          <>
+            <p className="friends-page__count">
+              {friends.length}/{friendsTotal} bạn — sắp xếp theo người nhắn gần đây
+            </p>
+            <div className="friends-page__grid">
+              {friends.map((f) => (
+                <FriendCard key={f.friendId} friend={f} />
+              ))}
+            </div>
+            {friendsHasMore && (
+              <div ref={sentinelRef} className="friends-page__sentinel">
+                {friendsState === 'loading' && <Spinner size="sm" />}
+              </div>
+            )}
+            {!friendsHasMore && friendsTotal > 0 && (
+              <p className="friends-page__end">— Đã hết danh sách bạn bè —</p>
+            )}
+            {friendsState === 'loading' && friends.length === 0 && (
+              <div className="friends-page__loading">
+                <Spinner size="md" /> Đang tải…
+              </div>
+            )}
+          </>
         )
       )}
 
